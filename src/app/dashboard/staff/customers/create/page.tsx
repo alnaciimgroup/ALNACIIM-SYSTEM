@@ -45,18 +45,21 @@ export default function CreateCustomerPage() {
                 <input type="text" id="address" name="address" placeholder="e.g. Hodan District, Maka Al-Mukarama Road" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
               </div>
 
+              <div className="flex flex-col gap-2">
+                <label htmlFor="tank_number" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider text-[#3b82f6]">Tank Number / Box ID <span className="text-red-500">*</span></label>
+                <input type="text" id="tank_number" name="tank_number" required placeholder="e.g. T-800 or B-42" className="h-[48px] px-4 rounded-[12px] border border-[#3b82f6]/30 bg-blue-50/10 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all font-black text-[#3b82f6]" />
+                <p className="text-[11px] font-medium text-[#64748b]">This number is permanent and will stay with the customer for all future tanks.</p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="guarantor" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Guarantor (Optional)</label>
-                  <input type="text" id="guarantor" name="guarantor" placeholder="Guarantor name or contact" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
+                  <label htmlFor="guarantor" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Guarantor Name <span className="text-red-500">*</span></label>
+                  <input type="text" id="guarantor" name="guarantor" required placeholder="e.g. Farax Ahmed" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="status" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Status <span className="text-red-500">*</span></label>
-                  <select id="status" name="status" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] bg-white focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all appearance-none">
-                    <option value="active">Active (Eligible for sales)</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                  <label htmlFor="guarantor_phone" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Guarantor Number <span className="text-red-500">*</span></label>
+                  <input type="tel" id="guarantor_phone" name="guarantor_phone" required placeholder="e.g. +252 61..." className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
                 </div>
               </div>
 

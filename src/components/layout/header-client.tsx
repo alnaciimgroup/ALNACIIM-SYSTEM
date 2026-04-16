@@ -10,10 +10,12 @@ type UserInfo = {
 
 export function HeaderClient({ 
   title, 
+  actions,
   user,
   logoutAction
 }: { 
   title: string | ReactNode, 
+  actions?: ReactNode,
   user: UserInfo,
   logoutAction: () => Promise<void>
 }) {
@@ -33,21 +35,30 @@ export function HeaderClient({
           <Menu size={22} strokeWidth={2.5} />
         </button>
         
-        <h1 className="text-[18px] lg:text-[20px] font-bold text-[#0f172a] tracking-tight truncate max-w-[200px] lg:max-w-none">
+        <h1 className={`text-[18px] lg:text-[20px] font-bold text-[#0f172a] tracking-tight truncate ${actions ? 'max-w-[120px] sm:max-w-[200px]' : 'max-w-[200px]'} lg:max-w-none`}>
           {title}
         </h1>
+
+        {/* Global Actions Slot (e.g. Filters) */}
+        {actions && (
+          <div className="flex items-center ml-2 border-l border-[#e2e8f0] pl-3 lg:pl-6 py-1 shrink-0">
+            {actions}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3 lg:gap-6">
-        {/* Responsive Search - Hidden on Small Screens */}
-        <div className="hidden md:flex items-center px-4 py-2 rounded-[8px] bg-white border border-[#e2e8f0] text-[#94a3b8] w-[200px] lg:w-[280px] focus-within:ring-2 focus-within:ring-[#3b82f6]/20 transition-all shadow-sm">
-          <Search size={14} className="text-[#94a3b8] shrink-0 mr-2.5" />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="bg-transparent border-none outline-none text-[13px] w-full text-[#0f172a] placeholder-[#94a3b8] font-medium appearance-none m-0 p-0"
-          />
-        </div>
+        {/* Responsive Search - Hidden on Small Screens or when Actions are provided */}
+        {!actions && (
+          <div className="hidden md:flex items-center px-4 py-2 rounded-[8px] bg-white border border-[#e2e8f0] text-[#94a3b8] w-[200px] lg:w-[280px] focus-within:ring-2 focus-within:ring-[#3b82f6]/20 transition-all shadow-sm">
+            <Search size={14} className="text-[#94a3b8] shrink-0 mr-2.5" />
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              className="bg-transparent border-none outline-none text-[13px] w-full text-[#0f172a] placeholder-[#94a3b8] font-medium appearance-none m-0 p-0"
+            />
+          </div>
+        )}
 
         <div className="flex items-center gap-2 lg:gap-4 ml-auto">
           {/* Notifications */}

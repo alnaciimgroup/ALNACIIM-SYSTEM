@@ -79,9 +79,11 @@ export function SalesHistoryTable({ sales }: SalesHistoryTableProps) {
                   <span className={`inline-flex items-center px-2 lg:px-3 py-1 lg:py-1.5 rounded-[10px] text-[9px] lg:text-[10px] font-black uppercase tracking-widest border-2 whitespace-nowrap ${
                     sale.sale_type === 'cash' 
                       ? 'bg-[#ecfdf5] text-[#10b981] border-[#10b981]/10' 
+                      : sale.sale_type === 'free'
+                      ? 'bg-blue-50 text-blue-600 border-blue-100'
                       : 'bg-[#fff7ed] text-[#f59e0b] border-[#f59e0b]/10'
                   }`}>
-                    {sale.sale_type}
+                    {sale.sale_type === 'free' ? '🎁 FREE' : sale.sale_type}
                   </span>
                 </td>
                 <td className="py-6 pr-4 lg:pr-8 text-right">

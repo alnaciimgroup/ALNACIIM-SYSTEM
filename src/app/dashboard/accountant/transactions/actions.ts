@@ -74,8 +74,12 @@ export async function getTransactions(filters: TransactionFilter = {}) {
     ...(sales || []).map(s => ({
       id: s.id,
       displayId: s.custom_sale_id || `SALE-${s.id.substring(0,8).toUpperCase()}`,
-      type: s.sale_type === 'cash' ? 'Cash Sale' : 'Credit Sale',
-      typeColor: s.sale_type === 'cash' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-amber-600 bg-amber-50 border-amber-200',
+      type: s.sale_type === 'cash' ? 'Cash Sale' : s.sale_type === 'credit' ? 'Credit Sale' : 'Free Gift',
+      typeColor: s.sale_type === 'cash' 
+        ? 'text-emerald-600 bg-emerald-50 border-emerald-200' 
+        : s.sale_type === 'credit' 
+        ? 'text-amber-600 bg-amber-50 border-amber-200'
+        : 'text-indigo-600 bg-indigo-50 border-indigo-200 font-black',
       staffName: (s.staff as any)?.full_name || 'System',
       customerName: (s.customer as any)?.name || 'Walk-in',
       amount: Number(s.total_amount),

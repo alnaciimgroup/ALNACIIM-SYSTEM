@@ -2,8 +2,18 @@ import { getAccountantOverview } from '@/app/dashboard/accountant/actions'
 import Link from 'next/link'
 import { Truck, Tag, ClipboardList, Banknote, ShoppingCart, Wallet, Clock, Activity, ArrowUpRight, Download, Users, ChevronRight, ShieldAlert, AlertCircle } from 'lucide-react'
 
-export async function AccountantDashboardContent() {
-  const { metrics, todayStats, topStaff, recentActivity, latestSubmissions, flaggedDiscrepancies } = await getAccountantOverview()
+export async function AccountantDashboardContent({ dateFilter, customDate }: { dateFilter?: string, customDate?: string }) {
+  const { metrics, todayStats, topStaff, recentActivity, latestSubmissions, flaggedDiscrepancies } = await getAccountantOverview(dateFilter, customDate)
+
+  const isFullyAudited = (actual: number, audited: number) => {
+    if (actual === 0 && audited === 0) return true
+    return audited >= actual
+  }
+
+  const periodLabel = dateFilter === 'today' ? 'Today' : 
+                      dateFilter === 'yesterday' ? 'Yesterday' :
+                      dateFilter === '7days' ? 'Last 7 Days' :
+                      dateFilter === 'custom' ? customDate : 'All Time'
 
   return (
     <>
@@ -14,11 +24,23 @@ export async function AccountantDashboardContent() {
             <div className="w-12 h-12 rounded-[16px] bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center">
               <Truck size={24} strokeWidth={2.5} />
             </div>
-            <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">System Total</div>
+            <div className="flex flex-col items-end gap-1">
+               {isFullyAudited(todayStats.distributedToday, metrics.auditedDistributed) ? (
+                 <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+               ) : (
+                 <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending Review</div>
+               )}
+               <div className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-tighter">Live Database</div>
+            </div>
           </div>
           <div className="mt-auto">
             <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Tanks Distributed</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{metrics.totalDistributed.toLocaleString()}</div>
+            <div className="flex items-baseline gap-2">
+              <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{todayStats?.distributedToday?.toLocaleString() ?? 0}</div>
+              {metrics.auditedDistributed > 0 && (
+                <div className="text-[14px] font-bold text-[#10b981] tracking-tight">/ {metrics.auditedDistributed.toLocaleString()} Audited</div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -28,15 +50,53 @@ export async function AccountantDashboardContent() {
             <div className="w-12 h-12 rounded-[16px] bg-[#ecfdf5] text-[#10b981] flex items-center justify-center">
               <Tag size={24} strokeWidth={2.5} />
             </div>
-            <div className="bg-[#f0f9ff] text-[#0ea5e9] px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{todayStats.soldToday} Today</div>
+            <div className="flex flex-col items-end gap-1">
+               {isFullyAudited(todayStats.soldToday, metrics.auditedSold) ? (
+                 <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+               ) : (
+                 <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending Review</div>
+               )}
+               <div className="text-[10px] font-bold text-[#0ea5e9] uppercase tracking-tighter">Live Period</div>
+            </div>
           </div>
           <div className="mt-auto">
             <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Tanks Sold</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{metrics.totalSold.toLocaleString()}</div>
+            <div className="flex items-baseline gap-2">
+              <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{todayStats?.soldToday?.toLocaleString() ?? 0}</div>
+              {metrics.auditedSold > 0 && (
+                <div className="text-[14px] font-bold text-[#10b981] tracking-tight">/ {metrics.auditedSold.toLocaleString()} Audited</div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* 3. Remaining */}
+        {/* 3. Free Sold */}
+        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-[16px] bg-[#fdf2f8] text-[#db2777] flex items-center justify-center">
+              <ShoppingCart size={24} strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col items-end gap-1">
+               {isFullyAudited((todayStats as any).freeToday, (metrics as any).auditedFreeTanks) ? (
+                 <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+               ) : (
+                 <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending Review</div>
+               )}
+               <div className="text-[10px] font-bold text-[#db2777] uppercase tracking-tighter">Free Assets</div>
+            </div>
+          </div>
+          <div className="mt-auto">
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Free Sold</span>
+            <div className="flex items-baseline gap-2">
+              <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{(todayStats as any)?.freeToday?.toLocaleString() ?? 0}</div>
+              {(metrics as any).auditedFreeTanks > 0 && (
+                <div className="text-[14px] font-bold text-[#10b981] tracking-tight">/ {(metrics as any).auditedFreeTanks.toLocaleString()} Audited</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Remaining */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-[16px] bg-[#fff7ed] text-[#f59e0b] flex items-center justify-center">
@@ -46,68 +106,89 @@ export async function AccountantDashboardContent() {
           </div>
           <div className="mt-auto">
             <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Remaining Tanks</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{metrics.totalRemaining.toLocaleString()}</div>
+            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{metrics?.remainingTanks?.toLocaleString() ?? 0}</div>
           </div>
         </div>
 
-        {/* 4. Collected */}
+        {/* 4. Collected Today */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-[16px] bg-[#ecfeff] text-[#0891b2] flex items-center justify-center">
-              <ShoppingCart size={24} strokeWidth={2.5} />
+              <Banknote size={24} strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col items-end gap-1">
+               {isFullyAudited(todayStats.collectedToday, metrics.auditedCollected) ? (
+                 <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+               ) : (
+                 <div className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-orange-100 italic">Pending Review</div>
+               )}
+               <div className="text-[10px] font-bold text-[#0ea5e9] uppercase tracking-tighter">{periodLabel}</div>
             </div>
           </div>
           <div className="mt-auto">
             <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Money Collected</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${metrics.totalMoneyCollected.toLocaleString()}</div>
+            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${todayStats?.collectedToday?.toLocaleString() ?? 0}</div>
           </div>
         </div>
 
-        {/* 5. Submitted */}
+        {/* 5. Credit (Debt) Today */}
+        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-[16px] bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+              <ShoppingCart size={24} strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col items-end gap-1">
+               {isFullyAudited(todayStats.creditToday, metrics.auditedCredit) ? (
+                 <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+               ) : (
+                 <div className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-orange-100 italic">Pending Review</div>
+               )}
+               <div className="text-[10px] font-bold text-[#ea580c] uppercase tracking-tighter">{periodLabel}</div>
+            </div>
+          </div>
+          <div className="mt-auto">
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Credit (Debt) Issued</span>
+            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${todayStats?.creditToday?.toLocaleString() ?? 0}</div>
+          </div>
+        </div>
+
+        {/* 6. Expected Total Today */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-[16px] bg-[#f0fdf4] text-[#16a34a] flex items-center justify-center">
-              <Banknote size={24} strokeWidth={2.5} />
-            </div>
-          </div>
-          <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Total Money Submitted</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${metrics.totalMoneySubmitted.toLocaleString()}</div>
-          </div>
-        </div>
-
-        {/* 6. Difference */}
-        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300 relative overflow-hidden">
-          {metrics.totalDifference > 0 && <div className="absolute top-0 right-0 w-1 h-full bg-[#ef4444]"></div>}
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-[16px] bg-[#fef2f2] text-[#ef4444] flex items-center justify-center">
-              <AlertCircle size={24} strokeWidth={2.5} />
-            </div>
-          </div>
-          <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Total Missing Amount</span>
-            <div className={`text-[32px] font-black leading-none tracking-tighter ${metrics.totalDifference > 0 ? 'text-[#ef4444]' : 'text-[#0f172a]'}`}>
-              ${metrics.totalDifference.toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        {/* 7. Balance */}
-        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-[16px] bg-[#fefce8] text-[#ca8a04] flex items-center justify-center">
               <Wallet size={24} strokeWidth={2.5} />
             </div>
+            <div className="flex flex-col items-end gap-1">
+               <div className="bg-[#f0fdf4] text-[#16a34a] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#dcfce7]">Filtered</div>
+               <div className="text-[10px] font-bold text-[#16a34a] uppercase tracking-tighter">{periodLabel}</div>
+            </div>
           </div>
           <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Outstanding Balance</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${metrics.outstandingBalance.toLocaleString()}</div>
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Expected Revenue</span>
+            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${todayStats?.expectedToday?.toLocaleString() ?? 0}</div>
           </div>
         </div>
+
+        {/* 7. Total Global Debt */}
+        <Link 
+          href="/dashboard/accountant/staff-reports"
+          className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-[16px] bg-[#fef2f2] text-[#ef4444] flex items-center justify-center group-hover:bg-[#ef4444] group-hover:text-white transition-colors">
+              <AlertCircle size={24} strokeWidth={2.5} />
+            </div>
+            <ArrowUpRight size={20} className="text-[#94a3b8] group-hover:text-[#0f172a] transition-colors" />
+          </div>
+          <div className="mt-auto">
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Total Global Debt</span>
+            <div className="text-[32px] font-black text-[#ef4444] leading-none tracking-tighter">${metrics?.outstandingBalance?.toLocaleString() ?? 0}</div>
+          </div>
+        </Link>
 
         {/* 8. Pending */}
         <Link 
-          href="/dashboard/accountant/submissions"
+          href="/dashboard/accountant/submissions?status=pending"
           className="bg-[#0f172a] rounded-[24px] p-6 shadow-xl flex flex-col hover:shadow-2xl transition-all duration-300 text-white group cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
@@ -147,12 +228,25 @@ export async function AccountantDashboardContent() {
                        act.type === 'sale' ? <Tag size={18} /> : <Banknote size={18} />}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[13px] font-black text-[#0f172a] uppercase tracking-tight">{act.label}</span>
-                      <span className="text-[11px] font-medium text-[#94a3b8]">{new Date(act.date).toLocaleString()}</span>
+                       <span className="text-[13px] font-black text-[#0f172a] uppercase tracking-tight">{act.label}</span>
+                       <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-medium text-[#94a3b8]">
+                            {act.date ? new Date(act.date).toLocaleString() : 'Date Unknown'}
+                          </span>
+                          {(act as any).isVerified ? (
+                            <div className="flex items-center gap-1 text-[9px] font-black text-[#10b981] uppercase tracking-widest bg-emerald-50 px-1 rounded">
+                               <ShieldAlert size={8} /> Verified
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 text-[9px] font-black text-orange-500 uppercase tracking-widest bg-orange-50 px-1 rounded">
+                               <Clock size={8} /> Unaudited
+                            </div>
+                          )}
+                       </div>
                     </div>
                   </div>
-                  <div className="text-[15px] font-black text-[#0f172a]">
-                    {act.type === 'distribution' ? `${act.amount} Units` : `$${act.amount.toLocaleString()}`}
+                  <div className={`text-[15px] font-black ${ (act as any).isVerified ? 'text-[#0f172a]' : 'text-[#94a3b8]' }`}>
+                    {act.type === 'distribution' ? `${act.amount} Units` : `$${act?.amount?.toLocaleString() ?? 0}`}
                   </div>
                 </div>
               ))}
@@ -172,11 +266,11 @@ export async function AccountantDashboardContent() {
                       <span className="text-[11px] font-black text-[#3b82f6] w-5">0{i+1}</span>
                       <div className="flex flex-col">
                         <span className="text-[14px] font-bold text-white group-hover:text-[#3b82f6] transition-colors">{staff.name}</span>
-                        <span className="text-[10px] font-black text-white/30 uppercase">Staff Member</span>
+                        <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Audited Billing Only</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[14px] font-black text-[#10b981]">${ staff.revenue.toLocaleString() }</div>
+                      <div className="text-[14px] font-black text-[#10b981]">${ staff?.revenue?.toLocaleString() ?? 0 }</div>
                     </div>
                   </Link>
                 ))}

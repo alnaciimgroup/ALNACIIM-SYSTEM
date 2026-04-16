@@ -4,8 +4,8 @@ import { EndOfDayReport } from '@/components/staff/end-of-day-report'
 import { InventoryAlerts } from '@/components/staff/inventory-alerts'
 import { getStaffDashboardData } from '@/app/dashboard/staff/actions'
 
-export async function StaffDashboardContent() {
-  const { metrics, recentSales } = await getStaffDashboardData()
+export async function StaffDashboardContent({ date }: { date: string }) {
+  const { metrics, recentSales } = await getStaffDashboardData(date)
   const today = new Date().toISOString().split('T')[0]
 
   const dailyReport = {
@@ -16,8 +16,9 @@ export async function StaffDashboardContent() {
     debtPayments: metrics.debtPaymentsToday,
     creditSold: metrics.creditSalesToday,
     outstandingDebt: metrics.outstandingDebt,
+    freeTanksSold: metrics.freeTanksToday,
     status: 'PENDING' as const,
-    date: today
+    date: date === 'all' ? today : date
   }
 
   return (
@@ -31,7 +32,8 @@ export async function StaffDashboardContent() {
             reference: `TXN-${s.id.slice(0, 5).toUpperCase()}`,
             time: new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             quantity: s.sale_items?.reduce((a: number, i: any) => a + i.quantity, 0) || 0,
-            amount: Number(s.total_amount)
+            amount: Number(s.total_amount),
+            sale_type: s.sale_type
           }))} />
         </div>
 

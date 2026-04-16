@@ -12,6 +12,7 @@ interface ReportProps {
   debtPayments: number
   creditSold: number
   outstandingDebt: number
+  freeTanksSold: number
   status: 'PENDING' | 'SUBMITTED' | 'VERIFIED'
   date: string
 }
@@ -30,6 +31,14 @@ export function EndOfDayReport({ report }: { report: ReportProps }) {
             <span className="text-[15px] text-gray-300 font-medium">Tanks Sold</span>
           </div>
           <span className="text-[18px] font-bold">{report.tanksSold}</span>
+        </div>
+
+        <div className="flex items-center justify-between border-b border-gray-800 pb-5">
+          <div className="flex items-center gap-3">
+            <span className="text-[18px]">🎁</span>
+            <span className="text-[15px] text-blue-400 font-bold uppercase tracking-tight">Free Tanks Given</span>
+          </div>
+          <span className="text-[18px] font-black text-blue-400">{report.freeTanksSold}</span>
         </div>
 
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">

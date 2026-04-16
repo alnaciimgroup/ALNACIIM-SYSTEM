@@ -13,14 +13,30 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   const rawData = {
     staff_id: formData.get('staff_id') as string,
     quantity: parseInt(formData.get('quantity') as string),
+    free_quantity: parseInt(formData.get('free_quantity') as string) || 0,
     zone: formData.get('zone') as string,
     item_id: '' // Will be resolved
   }
 
   // Auto-resolve item_id since UI only distributes "Tanks"
-  const { data: items } = await supabase.from('items').select('id').limit(1)
-  const defaultItemId = items?.[0]?.id
-  if (!defaultItemId) return { message: 'System Error: No items configured.', errors: true }
+  // SELF-HEALING: If no items exist (due to a wipe), create a default one automatically
+  let { data: items } = await supabase.from('items').select('id').limit(1)
+  let defaultItemId = items?.[0]?.id
+
+  if (!defaultItemId) {
+    // System was wiped, create a default "Standard Tank" to maintain functionality
+    const { data: newItem, error: createError } = await supabase
+      .from('items')
+      .insert({ name: 'Standard Water Tank', current_price: 5.00 })
+      .select('id')
+      .single()
+    
+    if (createError || !newItem) {
+        return { message: 'Critical Error: System could not self-heal items table.', errors: true }
+    }
+    defaultItemId = newItem.id
+  }
+  
   rawData.item_id = defaultItemId
 
   const validated = DistributionSchema.safeParse(rawData)
@@ -28,7 +44,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
     return { message: validated.error.issues[0].message, errors: true }
   }
 
-  const { staff_id, item_id, quantity, zone } = validated.data
+  const { staff_id, item_id, quantity, free_quantity, zone } = validated.data
 
   const { data: distribution, error } = await supabase
     .from('distributions')
@@ -37,6 +53,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
       staff_id,
       item_id,
       quantity,
+      free_quantity,
       zone,
       status: 'completed' 
     })
@@ -45,7 +62,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
 
   if (error) {
     console.error('Insert error:', error)
-    return { message: 'Failed to record distribution.', errors: true }
+    return { message: `Insert Error: ${error.message}`, errors: true }
   }
 
   await logAction('DISTRIBUTE_STOCK', { 
@@ -75,14 +92,16 @@ export async function getAgentDashboardData() {
     { data: weeklyData }
   ] = await Promise.all([
     supabase.from('users').select('id, full_name').eq('role', 'staff').order('full_name'),
-    supabase.from('distributions').select('id, created_at, quantity, status, staff:users!distributions_staff_id_fkey (full_name)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
-    supabase.from('distributions').select('quantity').gte('created_at', sevenDaysAgo.toISOString())
+    supabase.from('distributions').select('id, created_at, quantity, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
+    supabase.from('distributions').select('quantity, free_quantity').gte('created_at', sevenDaysAgo.toISOString())
   ])
 
   const weeklyTotal = weeklyData?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
+  const weeklyFree = weeklyData?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
 
   // Calculate some real metrics
   const sumQuantity = distributions?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
+  const sumFree = distributions?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
   const uniqueStaff = new Set(distributions?.map(d => (d.staff as any)?.full_name)).size
 
   // Normalize staff join type for the UI
@@ -90,6 +109,7 @@ export async function getAgentDashboardData() {
     id: d.id,
     created_at: d.created_at,
     quantity: d.quantity,
+    free_quantity: d.free_quantity || 0,
     status: d.status,
     staff: {
       full_name: Array.isArray(d.staff) ? d.staff[0]?.full_name : (d.staff as any)?.full_name || 'Unknown'
@@ -101,8 +121,10 @@ export async function getAgentDashboardData() {
     distributions: normalizedDistributions,
     metrics: {
       distributedToday: sumQuantity,
+      freeToday: sumFree,
       staffServed: uniqueStaff,
       totalThisWeek: weeklyTotal,
+      freeThisWeek: weeklyFree,
       activeStaffCount: staffList?.length || 0
     }
   }

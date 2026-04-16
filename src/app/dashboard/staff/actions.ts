@@ -6,27 +6,63 @@ import { redirect } from 'next/navigation'
 import { verifySession } from '@/utils/auth'
 import { SaleSchema, SubmissionSchema } from '@/utils/validation'
 import { logAction } from '@/utils/audit'
+import { getWorkDate, getCurrentWorkDate } from '@/utils/date-utils'
 
 /**
  * Fetch dashboard data for the logged-in staff member.
  */
-export async function getStaffDashboardData() {
+export async function getStaffDashboardData(date?: string) {
   const { user } = await verifySession(['staff'])
   const supabase = await createClient()
 
-  const today = new Date().toISOString().split('T')[0]
+  let startOfDay = ''
+  let endOfDay = ''
+  if (date && date !== 'all') {
+    startOfDay = `${date}T00:00:00.000Z`
+    // Ensure end of day includes the late night portion (up to 4 AM next day)
+    // Actually, for query range, we should go up to 4 AM of NEXT calendar day
+    const nextDay = new Date(date)
+    nextDay.setDate(nextDay.getDate() + 1)
+    const nextDateStr = nextDay.toISOString().split('T')[0]
+    endOfDay = `${nextDateStr}T03:59:59.999Z`
+    
+    // Start of day should actually start at 4 AM of current calendar day
+    startOfDay = `${date}T04:00:00.000Z`
+  } else if (!date) {
+    const todayWorkDate = getCurrentWorkDate()
+    startOfDay = `${todayWorkDate}T04:00:00.000Z`
+    
+    const tomorrow = new Date(todayWorkDate)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]
+    endOfDay = `${tomorrowStr}T03:59:59.999Z`
+  }
+
+  let distributionsQuery = supabase.from('distributions').select('id, created_at, quantity').eq('staff_id', user.id).eq('status', 'completed')
+  let salesQuery = supabase.from('sales').select('id, sale_type, total_amount, created_at, sale_items (quantity)').eq('staff_id', user.id).eq('status', 'completed')
+  let paymentsQuery = supabase.from('payments').select('amount, payment_method, created_at, sale:sales!inner(staff_id)').eq('sale.staff_id', user.id)
+
+  if (startOfDay && endOfDay) {
+    distributionsQuery = distributionsQuery.gte('created_at', startOfDay).lte('created_at', endOfDay)
+    salesQuery = salesQuery.gte('created_at', startOfDay).lte('created_at', endOfDay)
+    paymentsQuery = paymentsQuery.gte('created_at', startOfDay).lte('created_at', endOfDay)
+  }
 
   const [
     { count: customerCount },
     { data: distributions },
     { data: sales },
     { data: payments },
+    { data: allTimeDistributions },
+    { data: allTimeSales },
     { data: customers }
   ] = await Promise.all([
     supabase.from('customers').select('*', { count: 'exact', head: true }).eq('staff_id', user.id),
-    supabase.from('distributions').select('id, created_at, quantity').eq('staff_id', user.id).eq('status', 'completed'),
-    supabase.from('sales').select('id, sale_type, total_amount, sale_items (quantity)').eq('staff_id', user.id).eq('status', 'completed'),
-    supabase.from('payments').select('amount, payment_method, sale:sales!inner(staff_id)').gte('created_at', `${today}T00:00:00.000Z`).eq('sale.staff_id', user.id),
+    distributionsQuery,
+    salesQuery,
+    paymentsQuery,
+    supabase.from('distributions').select('quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
+    supabase.from('sale_items').select('quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
     supabase.from('customers').select('debt').eq('staff_id', user.id)
   ])
 
@@ -49,16 +85,33 @@ export async function getStaffDashboardData() {
     ?.filter(p => p.payment_method === 'debt_repayment')
     ?.reduce((acc, p) => acc + Number(p.amount), 0) || 0
 
-  // We calculate Money Collected as actual payments received (auto-cash + manual repayments)
-  const moneyCollectedToday = (payments?.reduce((acc, p) => acc + Number(p.amount), 0) || 0)
+  const moneyCollectedToday = payments?.reduce((acc, p) => acc + Number(p.amount), 0) || 0
 
   const outstandingDebt = customers?.reduce((acc, c) => acc + Number(c.debt || 0), 0) || 0
+  
+  const globalReceived = allTimeDistributions?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
+  const globalFreeReceived = allTimeDistributions?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
+  
+  const globalSold = allTimeSales?.reduce((acc, s) => acc + s.quantity, 0) || 0
+  const globalFreeSold = allTimeSales?.filter(s => s.sales?.sale_type === 'free')?.reduce((acc, s) => acc + s.quantity, 0) || 0
+  
+  const remainingTanks = globalReceived - globalSold
+  const remainingFreeTanks = globalFreeReceived - globalFreeSold
+
+  const freeTanksToday = sales
+    ?.filter(s => s.sale_type === 'free')
+    ?.reduce((acc, s) => {
+      const itemQty = s.sale_items?.reduce((a: number, i: any) => a + i.quantity, 0) || 0
+      return acc + itemQty
+    }, 0) || 0
 
   return {
     metrics: {
       tanksReceived: totalReceived,
       tanksSold: totalSold,
-      remainingTanks: totalReceived - totalSold,
+      freeTanksToday,
+      remainingTanks,
+      remainingFreeTanks,
       cashSalesToday,
       creditSalesToday,
       debtPaymentsToday,
@@ -79,13 +132,14 @@ export async function recordSale(prevState: any, formData: FormData) {
   const { user } = await verifySession(['staff'])
   const supabase = await createClient()
 
+  const saleType = formData.get('sale_type') as string
   const rawData = {
     customer_id: formData.get('customer_id') as string,
-    sale_type: formData.get('sale_type') as string,
+    sale_type: saleType,
     items: [{
       item_id: '', // Will be resolved below
       quantity: parseInt(formData.get('quantity') as string),
-      unit_price: 5.00, // Globally enforced unit price
+      unit_price: saleType === 'free' ? 0.00 : 5.00, // Globally enforced unit price
     }],
     total_amount: 0 // Will be calculated
   }
@@ -213,11 +267,14 @@ export async function submitDailyReport(prevState: any, formData: FormData) {
     return { message: validated.error.issues[0].message, errors: true }
   }
 
+  const workDay = getCurrentWorkDate()
+
   const { error } = await supabase
     .from('cash_submissions')
     .insert({
       staff_id: user.id,
       amount: validated.data.amount,
+      submission_date: workDay,
       status: 'pending'
     })
 
@@ -257,12 +314,27 @@ async function isSaleLocked(supabase: any, saleId: string, staffId: string) {
 }
 
 export async function updateSale(id: string, quantity: number, unitPrice: number) {
-  const { user } = await verifySession(['staff'])
+  const { user, role } = await verifySession(['staff', 'accountant', 'superadmin'])
   const supabase = await createClient()
 
-  if (await isSaleLocked(supabase, id, user.id)) {
-    throw new Error('Transaction is locked and cannot be edited after submission.')
+  if (role === 'staff') {
+    if (await isSaleLocked(supabase, id, user.id)) {
+      throw new Error('Transaction is locked and cannot be edited after submission.')
+    }
   }
+
+  // 0. Fetch the old sale context
+  const { data: oldSale } = await supabase
+    .from('sales')
+    .select('total_amount, sale_type, customer_id')
+    .eq('id', id)
+    .single()
+    
+  if (!oldSale) throw new Error('Sale not found')
+  
+  const oldTotal = Number(oldSale.total_amount)
+  const totalAmount = quantity * unitPrice
+  const delta = totalAmount - oldTotal
 
   // 1. Update Sale Items
   const { error: itemError } = await supabase
@@ -273,7 +345,6 @@ export async function updateSale(id: string, quantity: number, unitPrice: number
   if (itemError) throw new Error('Failed to update sale items')
 
   // 2. Update Sale Total
-  const totalAmount = quantity * unitPrice
   const { error: saleError } = await supabase
     .from('sales')
     .update({ total_amount: totalAmount, updated_at: new Date().toISOString() })
@@ -281,8 +352,25 @@ export async function updateSale(id: string, quantity: number, unitPrice: number
 
   if (saleError) throw new Error('Failed to update sale total')
 
-  await logAction('UPDATE_SALE', { targetTable: 'sales', targetId: id, details: { quantity, totalAmount } })
+  // 3. Sync Financials safely using Delta Math
+  if (delta !== 0) {
+    if (oldSale.sale_type === 'cash') {
+      const { data: payment } = await supabase.from('payments').select('id, amount').eq('sale_id', id).limit(1).single()
+      if (payment) {
+        await supabase.from('payments').update({ amount: Number(payment.amount) + delta }).eq('id', payment.id)
+      }
+    } else if (oldSale.sale_type === 'credit') {
+      const { data: customer } = await supabase.from('customers').select('debt').eq('id', oldSale.customer_id).single()
+      if (customer) {
+        const newDebt = Math.max(0, Number(customer.debt || 0) + delta)
+        await supabase.from('customers').update({ debt: newDebt }).eq('id', oldSale.customer_id)
+      }
+    }
+  }
+
+  await logAction('UPDATE_SALE', { targetTable: 'sales', targetId: id, details: { quantity, totalAmount, delta } })
   revalidatePath('/dashboard/staff')
+  revalidatePath('/dashboard/accountant/staff-reports')
 }
 
 export async function deleteSale(id: string) {

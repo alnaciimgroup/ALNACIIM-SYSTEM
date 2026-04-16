@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { HeaderClient } from './header-client'
 import { logout } from '@/app/login/actions'
 
-export function Header({ title }: { title: string | ReactNode }) {
+export function Header({ title, actions }: { title: string | ReactNode; actions?: ReactNode }) {
   const [user, setUser] = useState<{ name: string; role: string } | null>(null)
   const supabase = createClient()
 
@@ -28,6 +28,7 @@ export function Header({ title }: { title: string | ReactNode }) {
   return (
     <HeaderClient 
       title={title} 
+      actions={actions}
       user={displayUser} 
       logoutAction={logout}
     />

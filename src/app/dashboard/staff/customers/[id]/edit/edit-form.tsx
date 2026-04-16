@@ -11,6 +11,8 @@ type EditCustomerFormProps = {
     phone: string
     address: string | null
     guarantor: string | null
+    guarantor_phone: string | null
+    tank_number: string | null
     status: string
   }
 }
@@ -46,19 +48,29 @@ export default function EditCustomerForm({ customer }: EditCustomerFormProps) {
         <input type="text" id="address" name="address" defaultValue={customer.address || ''} className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
       </div>
 
+      <div className="flex flex-col gap-2">
+        <label htmlFor="tank_number" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider text-[#3b82f6]">Tank Number / Box ID <span className="text-red-500">*</span></label>
+        <input type="text" id="tank_number" name="tank_number" defaultValue={customer.tank_number || ''} required placeholder="e.g. T-800" className="h-[48px] px-4 rounded-[12px] border border-[#3b82f6]/30 bg-blue-50/10 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all font-black text-[#3b82f6]" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="guarantor" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Guarantor (Optional)</label>
-          <input type="text" id="guarantor" name="guarantor" defaultValue={customer.guarantor || ''} className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
+          <label htmlFor="guarantor" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Guarantor Name <span className="text-red-500">*</span></label>
+          <input type="text" id="guarantor" name="guarantor" defaultValue={customer.guarantor || ''} required className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="status" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Status <span className="text-red-500">*</span></label>
-          <select id="status" name="status" defaultValue={customer.status} className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] bg-white focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all appearance-none">
-            <option value="active">Active (Eligible for sales)</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <label htmlFor="guarantor_phone" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Guarantor Number <span className="text-red-500">*</span></label>
+          <input type="tel" id="guarantor_phone" name="guarantor_phone" defaultValue={customer.guarantor_phone || ''} required className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="status" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Status <span className="text-red-500">*</span></label>
+        <select id="status" name="status" defaultValue={customer.status} className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] bg-white focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all appearance-none">
+          <option value="active">Active (Eligible for sales)</option>
+          <option value="inactive">Inactive</option>
+        </select>
       </div>
 
       <hr className="border-[#f1f5f9] my-2" />

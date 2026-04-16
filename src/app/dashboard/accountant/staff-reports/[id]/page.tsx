@@ -3,6 +3,7 @@ import { getStaffDetailReport } from './actions'
 import { User as UserIcon, Users, Droplet, Tag, Banknote, ChevronLeft, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { AccountantSalesTable } from '@/components/accountant/accountant-sales-table'
 
 export default async function StaffDetailReportPage({
   params,
@@ -13,7 +14,7 @@ export default async function StaffDetailReportPage({
 }) {
   const { id } = await params
   const { date } = await searchParams
-  const { profile, stats, sales, distributions, submissions } = await getStaffDetailReport(id, date)
+  const { profile, stats, customers, sales, distributions, submissions } = await getStaffDetailReport(id, date)
 
   return (
     <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
@@ -83,7 +84,10 @@ export default async function StaffDetailReportPage({
               </div>
               <div>
                 <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">All-Time Received</div>
-                <div className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none">{stats.allTimeReceived} <span className="text-[14px] font-medium text-[#94a3b8]">tanks</span></div>
+                <div className="mb-1 flex items-end gap-2">
+                  <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.allTimeReceived}</span>
+                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">{stats.allTimeFreeReceived || 0} Free</span>
+                </div>
               </div>
             </div>
 
@@ -95,7 +99,10 @@ export default async function StaffDetailReportPage({
               </div>
               <div>
                 <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">All-Time Sold</div>
-                <div className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none">{stats.allTimeSold} <span className="text-[14px] font-medium text-[#94a3b8]">tanks</span></div>
+                <div className="mb-1 flex items-end gap-2">
+                  <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.allTimeSold}</span>
+                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">{stats.allTimeFreeSold || 0} Free</span>
+                </div>
               </div>
             </div>
 
@@ -112,42 +119,9 @@ export default async function StaffDetailReportPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Sales History */}
-            <div className="bg-white border border-[#e5e7eb] rounded-[24px] shadow-sm overflow-hidden flex flex-col h-[500px]">
-              <div className="p-6 border-b border-[#f1f5f9]">
-                <h3 className="text-[16px] font-bold text-[#0f172a] tracking-tight flex items-center gap-2"><Tag size={18} className="text-[#10b981]" /> Recent Sales</h3>
-              </div>
-              <div className="overflow-y-auto flex-1 p-0">
-                <table className="w-full text-left">
-                  <thead className="sticky top-0 bg-white shadow-[0_1px_0_#f1f5f9]">
-                    <tr>
-                      <th className="px-6 py-3 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-3 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f8fafc]">
-                    {sales.length === 0 ? (
-                      <tr><td colSpan={3} className="px-6 py-8 text-center text-[#94a3b8] text-[13px]">No sales recorded yet.</td></tr>
-                    ) : sales.map((sale: any) => (
-                      <tr key={sale.id} className="hover:bg-[#f8fafc]/50">
-                        <td className="px-6 py-4 text-[13px] font-medium text-[#475569]">
-                          <div className="flex items-center gap-2">
-                            <Calendar size={14} className="text-[#94a3b8]"/>
-                            {new Date(sale.created_at).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-[13px] font-bold uppercase tracking-wider">
-                          <span className={sale.sale_type === 'cash' ? 'text-[#10b981]' : 'text-[#f59e0b]'}>{sale.sale_type}</span>
-                        </td>
-                        <td className="px-6 py-4 text-[14px] font-black text-[#0f172a] text-right">${Number(sale.total_amount).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <AccountantSalesTable sales={sales} />
 
             {/* Submissions History */}
             <div className="bg-white border border-[#e5e7eb] rounded-[24px] shadow-sm overflow-hidden flex flex-col h-[500px]">
@@ -186,6 +160,46 @@ export default async function StaffDetailReportPage({
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#e5e7eb] rounded-[24px] shadow-sm overflow-hidden flex flex-col mb-8">
+            <div className="p-6 border-b border-[#f1f5f9]">
+              <h3 className="text-[16px] font-bold text-[#0f172a] tracking-tight flex items-center gap-2">
+                <Users size={18} className="text-[#8b5cf6]" /> Assigned Customers & Debts
+              </h3>
+            </div>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left min-w-[800px]">
+                <thead className="bg-[#f8fafc] border-b border-[#e2e8f0]">
+                  <tr>
+                    <th className="px-6 py-3 text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider">Customer Name</th>
+                    <th className="px-6 py-3 text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider">Contact Number</th>
+                    <th className="px-6 py-3 text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider">Address / Zone</th>
+                    <th className="px-6 py-3 text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider text-right">Current Debt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f1f5f9]">
+                  {customers?.length === 0 ? (
+                    <tr><td colSpan={4} className="px-6 py-8 text-center text-[#94a3b8] text-[13px]">No customers assigned to this staff member.</td></tr>
+                  ) : customers?.map((c: any) => (
+                    <tr key={c.id} className="hover:bg-[#f8fafc]/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="text-[14px] font-bold text-[#0f172a] block">{c.name}</span>
+                        <span className="text-[11px] font-medium text-[#94a3b8]">Status: <span className="uppercase">{c.status}</span></span>
+                      </td>
+                      <td className="px-6 py-4 text-[13px] font-medium text-[#475569]">{c.phone || '-'}</td>
+                      <td className="px-6 py-4 text-[13px] text-[#64748b]">{c.address || '-'}</td>
+                      <td className="px-6 py-4 text-[14px] font-black text-right">
+                        {c.debt > 0 
+                          ? <span className="text-[#ef4444]">${Number(c.debt).toFixed(2)}</span>
+                          : <span className="text-[#10b981]">$0.00</span>
+                        }
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

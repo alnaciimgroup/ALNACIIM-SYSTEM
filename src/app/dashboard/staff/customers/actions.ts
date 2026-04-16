@@ -42,6 +42,9 @@ export async function createCustomer(prevState: any, formData: FormData) {
   const rawData = {
     name: formData.get('name') as string,
     phone: formData.get('phone') as string,
+    guarantor: formData.get('guarantor') as string,
+    guarantor_phone: formData.get('guarantor_phone') as string,
+    tank_number: formData.get('tank_number') as string,
     staff_id: user.id
   }
 
@@ -55,10 +58,12 @@ export async function createCustomer(prevState: any, formData: FormData) {
     .insert({
       staff_id: user.id,
       name: validated.data.name,
-      phone: validated.data.phone || null,
+      phone: validated.data.phone,
       address: formData.get('address') as string,
-      guarantor: formData.get('guarantor') as string,
-      status: formData.get('status') as string || 'active'
+      guarantor: validated.data.guarantor,
+      guarantor_phone: validated.data.guarantor_phone,
+      tank_number: validated.data.tank_number,
+      status: 'active'
     })
     .select()
     .single()
@@ -132,6 +137,9 @@ export async function updateCustomer(id: string, prevState: any, formData: FormD
   const rawData = {
     name: formData.get('name') as string,
     phone: formData.get('phone') as string,
+    guarantor: formData.get('guarantor') as string,
+    guarantor_phone: formData.get('guarantor_phone') as string,
+    tank_number: formData.get('tank_number') as string,
     staff_id: user.id
   }
 
@@ -144,9 +152,11 @@ export async function updateCustomer(id: string, prevState: any, formData: FormD
     .from('customers')
     .update({ 
       name: validated.data.name, 
-      phone: validated.data.phone || null, 
+      phone: validated.data.phone, 
       address: formData.get('address') as string, 
-      guarantor: formData.get('guarantor') as string, 
+      guarantor: validated.data.guarantor, 
+      guarantor_phone: validated.data.guarantor_phone,
+      tank_number: validated.data.tank_number,
       status: formData.get('status') as string, 
       updated_at: new Date().toISOString() 
     })

@@ -77,15 +77,20 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
         <div className="flex flex-col gap-2.5">
           <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Payment Method</label>
           <div className="flex gap-3 h-[50px]">
-            <label className={`flex-1 flex items-center justify-center gap-2 rounded-[12px] border-2 cursor-pointer transition-all font-bold text-[14px] ${salesType === 'cash' ? 'bg-[#eff6ff] border-[#3b82f6] text-[#3b82f6]' : 'bg-white border-[#e2e8f0] text-[#64748b] hover:bg-[#f8fafc]'}`}>
+            <label className={`flex-1 flex items-center justify-center gap-1.5 lg:gap-2 rounded-[12px] border-2 cursor-pointer transition-all font-bold text-[12px] lg:text-[14px] ${salesType === 'cash' ? 'bg-[#eff6ff] border-[#3b82f6] text-[#3b82f6]' : 'bg-white border-[#e2e8f0] text-[#64748b] hover:bg-[#f8fafc]'}`}>
               <input type="radio" name="sale_type" value="cash" checked={salesType === 'cash'} onChange={() => setSalesType('cash')} className="hidden" />
-              <DollarSign size={18} />
+              <DollarSign size={16} className="hidden sm:block" />
               CASH
             </label>
-            <label className={`flex-1 flex items-center justify-center gap-2 rounded-[12px] border-2 cursor-pointer transition-all font-bold text-[14px] ${salesType === 'credit' ? 'bg-[#fff7ed] border-[#f59e0b] text-[#f59e0b]' : 'bg-white border-[#e2e8f0] text-[#64748b] hover:bg-[#f8fafc]'}`}>
+            <label className={`flex-1 flex items-center justify-center gap-1.5 lg:gap-2 rounded-[12px] border-2 cursor-pointer transition-all font-bold text-[12px] lg:text-[14px] ${salesType === 'credit' ? 'bg-[#fff7ed] border-[#f59e0b] text-[#f59e0b]' : 'bg-white border-[#e2e8f0] text-[#64748b] hover:bg-[#f8fafc]'}`}>
               <input type="radio" name="sale_type" value="credit" checked={salesType === 'credit'} onChange={() => setSalesType('credit')} className="hidden" />
-              <CreditCard size={18} />
-              UNPAID DEBT
+              <CreditCard size={16} className="hidden sm:block" />
+              CREDIT
+            </label>
+            <label className={`flex-1 flex items-center justify-center gap-1.5 lg:gap-2 rounded-[12px] border-2 cursor-pointer transition-all font-bold text-[12px] lg:text-[14px] ${salesType === 'free' ? 'bg-[#ecfdf5] border-[#10b981] text-[#10b981]' : 'bg-white border-[#e2e8f0] text-[#64748b] hover:bg-[#f8fafc]'}`}>
+              <input type="radio" name="sale_type" value="free" checked={salesType === 'free'} onChange={() => setSalesType('free')} className="hidden" />
+              <ShoppingBag size={16} className="hidden sm:block" />
+              FREE
             </label>
           </div>
         </div>
@@ -120,13 +125,13 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Total Amount ($)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <DollarSign size={18} className="text-[#3b82f6]" />
+              <DollarSign size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
             </div>
-            <div className="w-full h-[50px] pl-[44px] pr-4 bg-[#eff6ff] border border-[#3b82f6]/20 rounded-[12px] text-[18px] font-black text-[#3b82f6] flex items-center transition-all">
-              {(qty * 5).toFixed(2)}
+            <div className={`w-full h-[50px] pl-[44px] pr-4 bg-[#eff6ff] border rounded-[12px] text-[18px] font-black flex items-center transition-all ${salesType === 'free' ? 'border-[#10b981]/20 text-[#10b981] bg-[#ecfdf5]' : 'border-[#3b82f6]/20 text-[#3b82f6] bg-[#eff6ff]'}`}>
+              {salesType === 'free' ? '0.00' : (qty * 5).toFixed(2)}
             </div>
             {/* Hidden Input for Server Action Validation */}
-            <input type="hidden" name="unit_price" value="5.00" />
+            <input type="hidden" name="unit_price" value={salesType === 'free' ? '0.00' : '5.00'} />
           </div>
         </div>
 

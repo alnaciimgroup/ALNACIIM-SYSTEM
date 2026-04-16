@@ -39,11 +39,15 @@ export function CustomerList({ initialCustomers }: { initialCustomers: Customer[
     })
   }
 
-  // Client-side filtering for immediate snappy UI (since we have the full scoped list)
+  // Client-side filtering for immediate snappy UI
   const filteredCustomers = initialCustomers.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || 
                           (c.phone && c.phone.includes(search))
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter
+    
+    let matchesStatus = true
+    if (statusFilter === 'active') matchesStatus = c.status === 'active'
+    if (statusFilter === 'inactive') matchesStatus = c.status === 'inactive'
+    if (statusFilter === 'debt') matchesStatus = c.debt > 0
     
     return matchesSearch && matchesStatus
   })
@@ -70,7 +74,8 @@ export function CustomerList({ initialCustomers }: { initialCustomers: Customer[
             className="px-4 py-2.5 bg-[#f8fafc] text-[#64748b] border border-[#e2e8f0] text-[13px] font-bold rounded-[12px] hover:bg-[#f1f5f9] transition-colors outline-none cursor-pointer appearance-none pr-8 relative"
             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")', backgroundPosition: 'right 12px center', backgroundRepeat: 'no-repeat' }}
           >
-            <option value="all">Filter: All Status</option>
+            <option value="all">Filter: All Records</option>
+            <option value="debt">With Unpaid Debt</option>
             <option value="active">Active Only</option>
             <option value="inactive">Inactive Only</option>
           </select>

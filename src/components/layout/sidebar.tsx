@@ -44,6 +44,7 @@ export function Sidebar({
       case 'accountant':
         return [
           { name: 'Dashboard', href: '/dashboard/accountant', icon: LayoutDashboard },
+          { name: 'Customers', href: '/dashboard/accountant/customers', icon: Users },
           { name: 'Staff Reports', href: '/dashboard/accountant/staff-reports', icon: Users },
           { name: 'Financial Overview', href: '/dashboard/accountant/financials', icon: Calculator },
           { name: 'Transactions', href: '/dashboard/accountant/transactions', icon: History },

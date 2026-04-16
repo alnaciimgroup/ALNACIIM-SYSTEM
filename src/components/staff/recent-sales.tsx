@@ -11,6 +11,7 @@ type SaleRecord = {
   time: string
   quantity: number
   amount: number
+  sale_type?: string
   customer_name?: string
 }
 
@@ -52,8 +53,8 @@ export function RecentSales({ sales }: { sales: SaleRecord[] }) {
                     </span>
                   </td>
                   <td className="py-4">
-                    <span className="text-[13px] lg:text-[14px] text-[#0f172a] font-bold whitespace-nowrap">
-                      ${record.amount.toFixed(2)}
+                    <span className={`text-[13px] lg:text-[14px] font-bold whitespace-nowrap ${record.sale_type === 'free' || record.amount === 0 ? 'text-blue-600 font-black' : 'text-[#0f172a]'}`}>
+                      {record.sale_type === 'free' || record.amount === 0 ? '🎁 FREE' : `$${record.amount.toFixed(2)}`}
                     </span>
                   </td>
                   <td className="py-4 text-right">

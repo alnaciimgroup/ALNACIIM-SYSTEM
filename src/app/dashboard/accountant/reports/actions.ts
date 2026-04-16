@@ -1,6 +1,5 @@
-'use server'
-
 import { createClient } from '@/utils/supabase/server'
+import { getWorkDate } from '@/utils/date-utils'
 
 export async function getReportsSummary(filters: {
   startDate?: string;
@@ -10,24 +9,11 @@ export async function getReportsSummary(filters: {
 }) {
   const supabase = await createClient()
 
-  // 1. Get ONLY Active Staff to prevent deleted/fake test users from polluting global metrics.
-  const { data: activeStaff } = await supabase.from('users').select('id').eq('role', 'staff')
-  const validStaffIds = activeStaff?.map(s => s.id) || []
-
-  let salesQuery = supabase.from('sales').select('id, total_amount, sale_type, created_at')
+  let salesQuery = supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id')
   let paymentsQuery: any = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)')
-  let submissionsQuery = supabase.from('cash_submissions').select('amount, status, created_at')
-  let distQuery = supabase.from('distributions').select('quantity, created_at')
-  let saleItemsQuery = supabase.from('sale_items').select('quantity, sales!inner(created_at, staff_id, customer_id)')
-
-  // Constrain queries globally to valid staff
-  if (!filters.staffId) {
-    salesQuery = salesQuery.in('staff_id', validStaffIds)
-    paymentsQuery = paymentsQuery.in('sales.staff_id', validStaffIds)
-    submissionsQuery = submissionsQuery.in('staff_id', validStaffIds)
-    distQuery = distQuery.in('staff_id', validStaffIds)
-    saleItemsQuery = saleItemsQuery.in('sales.staff_id', validStaffIds)
-  }
+  let submissionsQuery = supabase.from('cash_submissions').select('amount, status, created_at, staff_id')
+  let distQuery = supabase.from('distributions').select('quantity, created_at, staff_id')
+  let saleItemsQuery = supabase.from('sale_items').select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
 
   // Apply Specific Filters
   if (filters.startDate) {
@@ -62,44 +48,104 @@ export async function getReportsSummary(filters: {
   const [
     { data: sales },
     { data: payments },
-    { data: submissions },
+    { data: allSubmissions },
     { data: distributions },
-    { data: saleItems }
+    { data: saleItems },
+    { data: globalSales },
+    { data: globalPayments }
   ] = await Promise.all([
     salesQuery,
     paymentsQuery,
-    submissionsQuery,
+    supabase.from('cash_submissions').select('staff_id, submission_date, status, amount'),
     distQuery,
-    saleItemsQuery
+    saleItemsQuery,
+    supabase.from('sales').select('total_amount').eq('sale_type', 'credit'),
+    supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment')
   ])
 
-  // Calculations
-  const totalDistributed = distributions?.reduce((acc, d) => acc + d.quantity, 0) || 0
-  const totalSold = saleItems?.reduce((acc, si) => acc + si.quantity, 0) || 0
-  const remainingTanks = totalDistributed - totalSold
+  // GATING LOGIC
+  const verifiedDays = new Set((allSubmissions || [])
+    .filter(s => s.status === 'verified')
+    .map(s => `${s.staff_id}_${s.submission_date?.split('T')[0]}`))
 
-  // Fix Mathematical Double-Counting
-  const creditSalesAmount = sales?.filter(s => s.sale_type === 'credit').reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
-  
-  const cashPayments = payments?.filter((p: any) => p.payment_method === 'cash').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
-  const debtPayments = payments?.filter((p: any) => p.payment_method === 'debt_repayment').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
+  const isVerified = (staffId: string, createdAt: string) => {
+    if (!staffId || !createdAt) return false
+    const workDate = getWorkDate(createdAt)
+    return verifiedDays.has(`${staffId}_${workDate}`)
+  }
 
-  // Money Collected is strictly the physical money received (Cash Sales + Debt Repayments)
-  const totalCollected = cashPayments + debtPayments
-  const totalSubmitted = submissions?.filter(s => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.amount), 0) || 0
-  const totalDifference = totalCollected - totalSubmitted
+  // 1. RAW CALCULATIONS (Live Data)
+  const actualDistributed = (distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0
+  const actualSold = (saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0
+  const actualRemaining = actualDistributed - actualSold
+
+  // 2. AUDITED CALCULATIONS (Verified Data)
+  const filteredSales = (sales || []).filter(s => isVerified((s as any).staff_id, s.created_at))
+  const filteredPayments = (payments || []).filter(p => isVerified((p.sales as any).staff_id, p.created_at))
+  const filteredDistributions = (distributions || []).filter(d => isVerified((d as any).staff_id, d.created_at))
+  const filteredSaleItems = (saleItems || []).filter(si => isVerified((si.sales as any).staff_id, (si.sales as any).created_at))
+
+  const auditedDistributed = filteredDistributions?.reduce((acc, d) => acc + d.quantity, 0) || 0
+  const auditedSold = filteredSaleItems?.reduce((acc, si) => acc + si.quantity, 0) || 0
+
+  // 3. FINANCIAL CALCULATIONS
+  const creditSalesAmount = filteredSales?.filter(s => s.sale_type === 'credit').reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
   
-  // Outstanding Debt = (Total Credit Sales) - (Total Debt Payments)
-  const outstandingBalance = creditSalesAmount - debtPayments
+  const cashPayments = filteredPayments?.filter((p: any) => p.payment_method === 'cash').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
+  const debtPayments = filteredPayments?.filter((p: any) => p.payment_method === 'debt_repayment').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
+
+  const totalActualCollected = (payments || []).filter((p: any) => p.payment_method === 'cash' || p.payment_method === 'debt_repayment').reduce((acc, p) => acc + Number(p.amount), 0) || 0
+  const auditedCollected = cashPayments + debtPayments
+
+  const totalSubmitted = (allSubmissions || []).filter(s => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.amount), 0) || 0
+  const totalDifference = auditedCollected - totalSubmitted
+  
+  const totalActualCredit = (sales || [])?.filter(s => s.sale_type === 'credit').reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
+  const auditedCredit = creditSalesAmount
+
+  // Global Financial Balances (Always All-Time)
+  const globalTotalCredit = (globalSales || [])?.reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
+  const globalDebtPayments = (globalPayments || [])?.reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
+  const outstandingBalance = globalTotalCredit - globalDebtPayments
+
+  // Calculate Free Distribution
+  const totalFreeTanks = (saleItems || [])?.filter(si => (si.sales as any).sale_type === 'free').reduce((acc, si) => acc + si.quantity, 0) || 0
+  const auditedFreeTanks = filteredSaleItems?.filter(si => (si.sales as any).sale_type === 'free').reduce((acc, si) => acc + si.quantity, 0) || 0
 
   return {
-    totalDistributed,
-    totalSold,
-    remainingTanks,
-    totalCollected,
+    totalDistributed: actualDistributed,
+    auditedDistributed,
+    totalSold: actualSold,
+    auditedSold,
+    totalFreeTanks,
+    auditedFreeTanks,
+    remainingTanks: actualRemaining,
+    totalCollected: totalActualCollected,
+    auditedCollected,
     totalSubmitted,
     totalDifference,
+    totalCredit: totalActualCredit,
+    auditedCredit,
     outstandingBalance
+  }
+}
+
+export async function getFilterMetadata() {
+  const supabase = await createClient()
+  const [
+    { data: staff },
+    { data: customers },
+    { data: items }
+  ] = await Promise.all([
+    supabase.from('users').select('id, full_name, role').in('role', ['staff', 'activeStaff']),
+    supabase.from('customers').select('id, name'),
+    supabase.from('items').select('id, name')
+  ])
+
+  return {
+    staff: staff || [],
+    customers: customers || [],
+    items: items || []
   }
 }
 
@@ -130,8 +176,11 @@ export async function getDetailedReport(type: string, filters: {
       if (filters.customerId) query = query.eq('customer_id', filters.customerId)
       if (filters.saleType) query = query.eq('sale_type', filters.saleType)
       if (filters.status) query = query.eq('status', filters.status)
+      const { data: verifiedReports } = await supabase.from('cash_submissions').select('staff_id, submission_date').eq('status', 'verified')
+      const verifiedKeys = new Set((verifiedReports || []).map(r => `${r.staff_id}_${r.submission_date}`))
+      
       const { data } = await query.order('created_at', { ascending: false })
-      return data || []
+      return (data || []).filter(s => verifiedKeys.has(`${(s as any).staff_id}_${new Date(s.created_at).toISOString().split('T')[0]}`))
     }
 
     case 'distribution': {
@@ -145,85 +194,31 @@ export async function getDetailedReport(type: string, filters: {
       if (end) query = query.lte('created_at', end)
       if (filters.staffId) query = query.eq('staff_id', filters.staffId)
       if (filters.itemId) query = query.eq('item_id', filters.itemId)
+      const { data: verifiedReports } = await supabase.from('cash_submissions').select('staff_id, submission_date').eq('status', 'verified')
+      const verifiedKeys = new Set((verifiedReports || []).map(r => `${r.staff_id}_${r.submission_date}`))
+
       const { data } = await query.order('created_at', { ascending: false })
-      return data || []
+      return (data || []).filter(d => verifiedKeys.has(`${(d as any).staff_id}_${new Date(d.created_at).toISOString().split('T')[0]}`))
     }
 
     case 'debt': {
-      // Calculate debt per customer
       const { data: customers } = await supabase.from('customers').select('id, name, users(full_name)')
       const { data: sales } = await supabase.from('sales').select('customer_id, total_amount').eq('sale_type', 'credit')
-      const { data: payments } = await supabase.from('payments').select('sale_id, amount, sales!inner(customer_id)')
+      const { data: payments } = await supabase.from('payments').select('amount, sales!inner(customer_id)').eq('payment_method', 'debt_repayment')
 
       return (customers || []).map(c => {
-        const totalCredit = sales?.filter(s => s.customer_id === c.id).reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
-        const totalPaid = payments?.filter(p => (p.sales as any).customer_id === c.id).reduce((acc, p) => acc + Number(p.amount), 0) || 0
+        const totalDebt = (sales || []).filter(s => s.customer_id === c.id).reduce((acc, s) => acc + Number(s.total_amount), 0)
+        const totalPaid = (payments || []).filter(p => (p.sales as any).customer_id === c.id).reduce((acc, p) => acc + Number(p.amount), 0)
         return {
-          customerName: c.name,
-          staffName: (c.users as any)?.full_name || 'Unassigned',
-          totalCredit,
-          totalPaid,
-          balance: totalCredit - totalPaid
+          id: c.id,
+          name: c.name,
+          staff: (c.users as any)?.full_name || 'N/A',
+          amount: totalDebt - totalPaid
         }
-      }).filter(d => d.balance !== 0)
-    }
-
-    case 'payments': {
-      let query = supabase.from('payments').select(`
-        id, created_at, amount, payment_method,
-        sale:sales!inner(staff_id, customer_id, users!sales_staff_id_fkey(full_name), customers(name))
-      `)
-      if (start) query = query.gte('created_at', start)
-      if (end) query = query.lte('created_at', end)
-      if (filters.staffId) query = query.eq('sales.staff_id', filters.staffId)
-      if (filters.customerId) query = query.eq('sales.customer_id', filters.customerId)
-      const { data } = await query.order('created_at', { ascending: false })
-      return data || []
-    }
-
-    case 'submissions': {
-      let query = supabase.from('cash_submissions').select(`
-        id, created_at, amount, status,
-        staff:users!staff_id_fkey(full_name)
-      `)
-      if (start) query = query.gte('created_at', start)
-      if (end) query = query.lte('created_at', end)
-      if (filters.staffId) query = query.eq('staff_id', filters.staffId)
-      const { data } = await query.order('created_at', { ascending: false })
-      
-      // We also need "collected" for each submission day. 
-      // This is simpler if we just show the submissions themselves for now.
-      return data || []
-    }
-
-    case 'performance': {
-      const { data: staff } = await supabase.from('users').select('id, full_name').eq('role', 'staff')
-      const results = await Promise.all((staff || []).map(async s => {
-        const stats = await getReportsSummary({ staffId: s.id, startDate: filters.startDate, endDate: filters.endDate })
-        return {
-          id: s.id,
-          staffName: s.full_name,
-          ...stats
-        }
-      }))
-      return results
+      }).filter(c => c.amount > 0)
     }
 
     default:
       return []
   }
-}
-
-export async function getFilterMetadata() {
-  const supabase = await createClient()
-  const [
-    { data: staff },
-    { data: customers },
-    { data: items }
-  ] = await Promise.all([
-    supabase.from('users').select('id, full_name, role').in('role', ['staff', 'agent']).order('full_name'),
-    supabase.from('customers').select('id, name').order('name'),
-    supabase.from('items').select('id, name').order('name')
-  ])
-  return { staff: staff || [], customers: customers || [], items: items || [] }
 }

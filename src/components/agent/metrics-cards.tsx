@@ -2,8 +2,10 @@ import { Droplet, Users, CalendarDays, TrendingUp } from 'lucide-react'
 
 interface MetricsProps {
   distributedToday: number
+  freeToday?: number
   staffServed: number
   totalThisWeek: number
+  freeThisWeek?: number
   activeStaffCount: number
 }
 
@@ -29,11 +31,9 @@ export function AgentMetricsCards({ metrics }: { metrics: MetricsProps }) {
             <Droplet size={24} strokeWidth={2} />
           </div>
         </div>
-        <div className="mb-1">
+        <div className="mb-1 flex items-end gap-2">
           <span className="text-[38px] font-extrabold text-[#0f172a] tracking-tight leading-none block mb-2">{metrics.distributedToday}</span>
-          <p className="text-[13px] text-[#10b981] font-semibold flex items-center gap-1.5">
-            <TrendingUp size={14} strokeWidth={3} /> Active today
-          </p>
+          <span className="text-[13px] font-black text-[#10b981] mb-3 uppercase tracking-widest">{metrics.freeToday || 0} Free</span>
         </div>
       </div>
 
@@ -59,9 +59,9 @@ export function AgentMetricsCards({ metrics }: { metrics: MetricsProps }) {
             <CalendarDays size={24} strokeWidth={2} />
           </div>
         </div>
-        <div className="mb-1">
+        <div className="mb-1 flex items-end gap-2">
           <span className="text-[38px] font-extrabold text-[#0f172a] tracking-tight leading-none block mb-2">{metrics.totalThisWeek}</span>
-          <p className="text-[13px] text-[#94a3b8] font-medium">7-day rolling total</p>
+          <span className="text-[13px] font-black text-[#10b981] mb-3 uppercase tracking-widest">{metrics.freeThisWeek || 0} Free</span>
         </div>
       </div>
     </div>

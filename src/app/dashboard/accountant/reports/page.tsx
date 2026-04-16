@@ -1,6 +1,6 @@
 import { Header } from '@/components/layout/header'
 import { getReportsSummary, getDetailedReport, getFilterMetadata } from './actions'
-import { FileText, Download, TrendingUp, Calendar, ChevronRight, PieChart, Users, Banknote, Search, ArrowRight, Truck, Tag, ClipboardList, Wallet, AlertCircle, ShoppingCart, Clock } from 'lucide-react'
+import { FileText, Download, TrendingUp, Calendar, ChevronRight, PieChart, Users, Banknote, Search, ArrowRight, Truck, Tag, ClipboardList, Wallet, AlertCircle, ShoppingCart, Clock, Gift } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function ReportsPage({
@@ -172,6 +172,7 @@ export default async function ReportsPage({
                   <option value="">All Types</option>
                   <option value="cash">Cash Only</option>
                   <option value="credit">Credit Only</option>
+                  <option value="free">Free Items Only</option>
                 </select>
               </div>
 
@@ -206,7 +207,7 @@ export default async function ReportsPage({
                    <Truck size={20} />
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Distributed</span>
-                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary.totalDistributed.toLocaleString()}</div>
+                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary?.totalDistributed?.toLocaleString() ?? 0}</div>
              </div>
 
              {/* 2. Sold */}
@@ -215,7 +216,7 @@ export default async function ReportsPage({
                    <Tag size={20} />
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Tanks Sold</span>
-                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary.totalSold.toLocaleString()}</div>
+                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary?.totalSold?.toLocaleString() ?? 0}</div>
              </div>
 
              {/* 3. Remaining */}
@@ -224,7 +225,7 @@ export default async function ReportsPage({
                    <ClipboardList size={20} />
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking_widest mb-1.5 block">Remaining Stock</span>
-                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary.remainingTanks.toLocaleString()}</div>
+                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary?.remainingTanks?.toLocaleString() ?? 0}</div>
              </div>
 
              {/* 4. Collected */}
@@ -233,7 +234,7 @@ export default async function ReportsPage({
                    <ShoppingCart size={20} />
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Money Collected</span>
-                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary.totalCollected.toLocaleString()}</div>
+                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary?.totalCollected?.toLocaleString() ?? 0}</div>
              </div>
 
              {/* 5. Submitted */}
@@ -242,7 +243,7 @@ export default async function ReportsPage({
                    <Banknote size={20} />
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Money Submitted</span>
-                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary.totalSubmitted.toLocaleString()}</div>
+                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary?.totalSubmitted?.toLocaleString() ?? 0}</div>
              </div>
 
              {/* 6. Difference */}
@@ -252,17 +253,26 @@ export default async function ReportsPage({
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Difference</span>
                 <div className={`text-[24px] font-black tracking-tight ${summary.totalDifference !== 0 ? 'text-[#ef4444]' : 'text-[#0f172a]'}`}>
-                  ${summary.totalDifference.toLocaleString()}
+                  ${summary?.totalDifference?.toLocaleString() ?? 0}
                 </div>
              </div>
 
              {/* 7. Outstanding */}
-             <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all lg:col-span-2">
+             <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
                 <div className="w-10 h-10 rounded-[12px] bg-[#fffbeb] text-[#d97706] flex items-center justify-center mb-4">
                    <Wallet size={20} />
                 </div>
-                <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Outstanding Balance (Debt)</span>
-                <div className="text-[24px] font-black text-[#d97706] tracking-tight">${summary.outstandingBalance.toLocaleString()}</div>
+                <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Debt Balance</span>
+                <div className="text-[24px] font-black text-[#d97706] tracking-tight">${summary?.outstandingBalance?.toLocaleString() ?? 0}</div>
+             </div>
+
+             {/* 8. Free Distribution */}
+             <div className="bg-[#f0f9ff] p-6 rounded-[24px] border border-blue-100 shadow-sm flex flex-col hover:shadow-md transition-all">
+                <div className="w-10 h-10 rounded-[12px] bg-blue-500 text-white flex items-center justify-center mb-4">
+                   <Gift size={20} />
+                </div>
+                <span className="text-[10px] font-black text-[#0369a1] uppercase tracking-widest mb-1.5 block">Free Tanks Given</span>
+                <div className="text-[24px] font-black text-[#0369a1] tracking-tight">{summary?.totalFreeTanks?.toLocaleString() ?? 0}</div>
              </div>
           </div>
 
@@ -325,6 +335,7 @@ export default async function ReportsPage({
                               <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b">Staff</th>
                               <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b text-right">Dist</th>
                               <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b text-right">Sold</th>
+                              <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b text-right text-blue-600">Free</th>
                               <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b text-right">Stock</th>
                               <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b text-right">Coll</th>
                               <th className="px-6 py-4 text-[11px] font-black text-[#64748b] uppercase tracking-widest border-b text-right text-emerald-600">Subm</th>
@@ -348,7 +359,11 @@ export default async function ReportsPage({
                                  </td>
                                  <td className="px-6 py-4 text-[14px] font-black text-[#10b981] text-right">${Number(row.total_amount).toLocaleString()}</td>
                                  <td className="px-6 py-4 text-center">
-                                   <span className={`px-2 py-0.5 rounded-[6px] text-[10px] font-black uppercase tracking-widest border ${row.sale_type === 'cash' ? 'bg-[#ecfdf5] text-[#10b981] border-emerald-200' : 'bg-[#fff7ed] text-[#ea580c] border-amber-200'}`}>{row.sale_type}</span>
+                                   <span className={`px-2 py-0.5 rounded-[6px] text-[10px] font-black uppercase tracking-widest border ${
+                                     row.sale_type === 'cash' ? 'bg-[#ecfdf5] text-[#10b981] border-emerald-200' : 
+                                     row.sale_type === 'free' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                     'bg-[#fff7ed] text-[#ea580c] border-amber-200'
+                                   }`}>{row.sale_type === 'free' ? '🎁 FREE' : row.sale_type}</span>
                                  </td>
                                </>
                              )}
@@ -393,6 +408,7 @@ export default async function ReportsPage({
                                  <td className="px-6 py-4 text-[13px] font-black text-[#0f172a]">{row.staffName}</td>
                                  <td className="px-6 py-4 text-[14px] font-bold text-right text-[#475569]">{row.totalDistributed}</td>
                                  <td className="px-6 py-4 text-[14px] font-bold text-right text-[#475569]">{row.totalSold}</td>
+                                 <td className="px-6 py-4 text-[14px] font-black text-right text-blue-600">{row.totalFreeTanks}</td>
                                  <td className="px-6 py-4 text-[14px] font-bold text-right text-[#475569]">{row.remainingTanks}</td>
                                  <td className="px-6 py-4 text-[14px] font-black text-right text-[#0f172a]">${row.totalCollected.toLocaleString()}</td>
                                  <td className="px-6 py-4 text-[14px] font-black text-right text-[#16a34a]">${row.totalSubmitted.toLocaleString()}</td>
