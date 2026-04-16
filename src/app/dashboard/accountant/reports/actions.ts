@@ -75,18 +75,18 @@ export async function getReportsSummary(filters: {
   }
 
   // 1. RAW CALCULATIONS (Live Data)
-  const actualDistributed = (distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0
-  const actualSold = (saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0
+  const actualDistributed = (distributions || []).reduce((acc: number, d: any) => acc + d.quantity, 0) || 0
+  const actualSold = (saleItems || []).reduce((acc: number, si: any) => acc + si.quantity, 0) || 0
   const actualRemaining = actualDistributed - actualSold
 
   // 2. AUDITED CALCULATIONS (Verified Data)
-  const filteredSales = (sales || []).filter(s => isVerified((s as any).staff_id, s.created_at))
-  const filteredPayments = (payments || []).filter(p => isVerified((p.sales as any).staff_id, p.created_at))
-  const filteredDistributions = (distributions || []).filter(d => isVerified((d as any).staff_id, d.created_at))
-  const filteredSaleItems = (saleItems || []).filter(si => isVerified((si.sales as any).staff_id, (si.sales as any).created_at))
+  const filteredSales = (sales || []).filter((s: any) => isVerified((s as any).staff_id, s.created_at))
+  const filteredPayments = (payments || []).filter((p: any) => isVerified((p.sales as any).staff_id, p.created_at))
+  const filteredDistributions = (distributions || []).filter((d: any) => isVerified((d as any).staff_id, d.created_at))
+  const filteredSaleItems = (saleItems || []).filter((si: any) => isVerified((si.sales as any).staff_id, (si.sales as any).created_at))
 
-  const auditedDistributed = filteredDistributions?.reduce((acc, d) => acc + d.quantity, 0) || 0
-  const auditedSold = filteredSaleItems?.reduce((acc, si) => acc + si.quantity, 0) || 0
+  const auditedDistributed = filteredDistributions?.reduce((acc: number, d: any) => acc + d.quantity, 0) || 0
+  const auditedSold = filteredSaleItems?.reduce((acc: number, si: any) => acc + si.quantity, 0) || 0
 
   // 3. FINANCIAL CALCULATIONS
   const creditSalesAmount = filteredSales?.filter(s => s.sale_type === 'credit').reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
@@ -94,13 +94,13 @@ export async function getReportsSummary(filters: {
   const cashPayments = filteredPayments?.filter((p: any) => p.payment_method === 'cash').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
   const debtPayments = filteredPayments?.filter((p: any) => p.payment_method === 'debt_repayment').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
 
-  const totalActualCollected = (payments || []).filter((p: any) => p.payment_method === 'cash' || p.payment_method === 'debt_repayment').reduce((acc, p) => acc + Number(p.amount), 0) || 0
+  const totalActualCollected = (payments || []).filter((p: any) => p.payment_method === 'cash' || p.payment_method === 'debt_repayment').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
   const auditedCollected = cashPayments + debtPayments
 
-  const totalSubmitted = (allSubmissions || []).filter(s => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.amount), 0) || 0
+  const totalSubmitted = (allSubmissions || []).filter((s: any) => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.amount), 0) || 0
   const totalDifference = auditedCollected - totalSubmitted
   
-  const totalActualCredit = (sales || [])?.filter(s => s.sale_type === 'credit').reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
+  const totalActualCredit = (sales || [])?.filter((s: any) => s.sale_type === 'credit').reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
   const auditedCredit = creditSalesAmount
 
   // Global Financial Balances (Always All-Time)
@@ -109,8 +109,8 @@ export async function getReportsSummary(filters: {
   const outstandingBalance = globalTotalCredit - globalDebtPayments
 
   // Calculate Free Distribution
-  const totalFreeTanks = (saleItems || [])?.filter(si => (si.sales as any).sale_type === 'free').reduce((acc, si) => acc + si.quantity, 0) || 0
-  const auditedFreeTanks = filteredSaleItems?.filter(si => (si.sales as any).sale_type === 'free').reduce((acc, si) => acc + si.quantity, 0) || 0
+  const totalFreeTanks = (saleItems || [])?.filter((si: any) => (si.sales as any).sale_type === 'free').reduce((acc: number, si: any) => acc + si.quantity, 0) || 0
+  const auditedFreeTanks = filteredSaleItems?.filter((si: any) => (si.sales as any).sale_type === 'free').reduce((acc: number, si: any) => acc + si.quantity, 0) || 0
 
   return {
     totalDistributed: actualDistributed,
