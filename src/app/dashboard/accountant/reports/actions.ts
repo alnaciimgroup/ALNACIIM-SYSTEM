@@ -99,7 +99,11 @@ export async function getReportsSummary(filters: {
   const totalActualCollected = (payments || []).filter((p: any) => p.payment_method === 'cash' || p.payment_method === 'debt_repayment').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
   const auditedCollected = cashPayments + debtPayments
 
-  const totalSubmitted = (periodSubmissions || []).filter((s: any) => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0
+  const totalSubmitted = (periodSubmissions || [])
+    .filter((s: any) => s.status === 'verified')
+    .reduce((acc: number, s: any) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0
+
+  // The Difference should be relative to the Audited (Verified) collections
   const totalDifference = auditedCollected - totalSubmitted
   
   const totalActualCredit = (sales || [])?.filter((s: any) => s.sale_type === 'credit').reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
