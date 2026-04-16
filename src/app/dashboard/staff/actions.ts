@@ -92,8 +92,11 @@ export async function getStaffDashboardData(date?: string) {
   const globalReceived = allTimeDistributions?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
   const globalFreeReceived = allTimeDistributions?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
   
-  const globalSold = allTimeSales?.reduce((acc, s) => acc + s.quantity, 0) || 0
-  const globalFreeSold = allTimeSales?.filter(s => s.sales?.sale_type === 'free')?.reduce((acc, s) => acc + s.quantity, 0) || 0
+  const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
+  const globalFreeSold = allTimeSales?.filter((s: any) => {
+    const sale = Array.isArray(s.sales) ? s.sales[0] : s.sales;
+    return sale?.sale_type === 'free';
+  })?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
   
   const remainingTanks = globalReceived - globalSold
   const remainingFreeTanks = globalFreeReceived - globalFreeSold
