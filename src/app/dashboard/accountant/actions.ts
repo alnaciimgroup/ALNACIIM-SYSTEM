@@ -46,20 +46,21 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     { data: submissionsData },
     { data: recentDist },
     { data: recentSales },
-    { data: staffPerformance }
+    { data: staffPerformance },
+    { data: allSubmissions }
   ] = await Promise.all([
     metricsPromise,
     supabase.from('distributions').select('quantity, staff_id, created_at').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('sales').select('total_amount, sale_type, staff_id, created_at, sale_items(quantity)').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('payments').select('amount, created_at, sales!inner(staff_id)').gte('created_at', periodStart).lte('created_at', periodEnd),
-    supabase.from('cash_submissions').select('*').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(20),
-    supabase.from('distributions').select('*').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
-    supabase.from('sales').select('*').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
-    supabase.from('users').select('id, full_name, sales:sales(total_amount, created_at)').eq('role', 'staff')
+    supabase.from('cash_submissions').select('id, amount, status, created_at').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(20),
+    supabase.from('distributions').select('id, quantity, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
+    supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
+    supabase.from('users').select('id, full_name, sales:sales(total_amount, created_at)').eq('role', 'staff'),
+    supabase.from('cash_submissions').select('staff_id, submission_date, status')
   ])
 
   // 2. Performance & Activity Gating
-  const { data: allSubmissions } = await supabase.from('cash_submissions').select('staff_id, submission_date, status')
   const verifiedDays = new Set((allSubmissions || [])
     .filter(s => s.status === 'verified')
     .map(s => `${s.staff_id}_${s.submission_date?.split('T')[0]}`))
@@ -157,6 +158,8 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       outstandingBalance,
       totalFreeTanks,
       auditedFreeTanks,
+      totalSubmitted,
+      totalDifference,
       pendingReviews: pendingCount
     },
     todayStats: {

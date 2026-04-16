@@ -11,7 +11,7 @@ export async function getReportsSummary(filters: {
 
   let salesQuery = supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id')
   let paymentsQuery: any = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)')
-  let submissionsQuery = supabase.from('cash_submissions').select('amount, status, created_at, staff_id')
+  let submissionsQuery = supabase.from('cash_submissions').select('amount, submitted_amount, status, submission_date, staff_id')
   let distQuery = supabase.from('distributions').select('quantity, created_at, staff_id')
   let saleItemsQuery = supabase.from('sale_items').select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
 
@@ -20,7 +20,7 @@ export async function getReportsSummary(filters: {
     const start = `${filters.startDate}T00:00:00.000Z`
     salesQuery = salesQuery.gte('created_at', start)
     paymentsQuery = paymentsQuery.gte('created_at', start)
-    submissionsQuery = submissionsQuery.gte('created_at', start)
+    submissionsQuery = submissionsQuery.gte('submission_date', filters.startDate)
     distQuery = distQuery.gte('created_at', start)
     saleItemsQuery = saleItemsQuery.gte('sales.created_at', start)
   }
@@ -28,7 +28,7 @@ export async function getReportsSummary(filters: {
     const end = `${filters.endDate}T23:59:59.999Z`
     salesQuery = salesQuery.lte('created_at', end)
     paymentsQuery = paymentsQuery.lte('created_at', end)
-    submissionsQuery = submissionsQuery.lte('created_at', end)
+    submissionsQuery = submissionsQuery.lte('submission_date', filters.endDate)
     distQuery = distQuery.lte('created_at', end)
     saleItemsQuery = saleItemsQuery.lte('sales.created_at', end)
   }
@@ -48,19 +48,21 @@ export async function getReportsSummary(filters: {
   const [
     { data: sales },
     { data: payments },
-    { data: allSubmissions },
+    { data: periodSubmissions },
     { data: distributions },
     { data: saleItems },
     { data: globalSales },
-    { data: globalPayments }
+    { data: globalPayments },
+    { data: allSubmissions }
   ] = await Promise.all([
     salesQuery,
     paymentsQuery,
-    supabase.from('cash_submissions').select('staff_id, submission_date, status, amount'),
-    distQuery,
-    saleItemsQuery,
+    submissionsQuery,
+    distQuery.select('quantity, created_at, staff_id'),
+    saleItemsQuery.select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)'),
     supabase.from('sales').select('total_amount').eq('sale_type', 'credit'),
-    supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment')
+    supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment'),
+    supabase.from('cash_submissions').select('staff_id, submission_date, status')
   ])
 
   // GATING LOGIC
@@ -97,7 +99,7 @@ export async function getReportsSummary(filters: {
   const totalActualCollected = (payments || []).filter((p: any) => p.payment_method === 'cash' || p.payment_method === 'debt_repayment').reduce((acc: number, p: any) => acc + Number(p.amount), 0) || 0
   const auditedCollected = cashPayments + debtPayments
 
-  const totalSubmitted = (allSubmissions || []).filter((s: any) => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.amount), 0) || 0
+  const totalSubmitted = (periodSubmissions || []).filter((s: any) => s.status === 'verified').reduce((acc: number, s: any) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0
   const totalDifference = auditedCollected - totalSubmitted
   
   const totalActualCredit = (sales || [])?.filter((s: any) => s.sale_type === 'credit').reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0

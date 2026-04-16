@@ -10,24 +10,29 @@ export async function getReviewSummary() {
   await verifySession(['accountant'])
   const supabase = await createClient()
 
-  // Fetch all submissions
-  const { data: submissions } = await supabase
-    .from('cash_submissions')
-    .select('amount, status')
+  // 1. Fetch only what is needed (Verified totals and Pending count)
+  const [
+    { data: verifiedSubmissions },
+    { data: pendingSubmissions }
+  ] = await Promise.all([
+    supabase.from('cash_submissions').select('amount').eq('status', 'verified'),
+    supabase.from('cash_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+  ])
 
-  const totalSubmitted = submissions?.filter(s => s.status === 'verified').reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
-  const pendingCount = submissions?.filter(s => s.status === 'pending').length || 0
+  const totalSubmitted = verifiedSubmissions?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
+  const pendingCount = pendingSubmissions?.length || 0 // If head: true is used, length is of data which is [] but we want count
   
-  // Note: For a true "collected" total, we'd sum sales/payments. 
-  // For the summary cards, we use the submitted totals.
-  const totalCollected = totalSubmitted // Placeholder for now, can be improved with real sales aggregation
+  // Refetching count properly if head: true was confusing
+  const { count: realPending } = await supabase.from('cash_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+
+  const totalCollected = totalSubmitted 
   const totalDifference = totalCollected - totalSubmitted
 
   return {
     totalCollected,
     totalSubmitted,
     totalDifference,
-    pendingCount
+    pendingCount: realPending || 0
   }
 }
 

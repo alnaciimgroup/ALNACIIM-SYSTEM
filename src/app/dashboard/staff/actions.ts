@@ -57,10 +57,10 @@ export async function getStaffDashboardData(date?: string) {
     { data: allTimeSales },
     { data: customers }
   ] = await Promise.all([
-    supabase.from('customers').select('*', { count: 'exact', head: true }).eq('staff_id', user.id),
-    distributionsQuery,
-    salesQuery,
-    paymentsQuery,
+    supabase.from('customers').select('id', { count: 'exact', head: true }).eq('staff_id', user.id),
+    distributionsQuery.select('id, created_at, quantity'),
+    salesQuery.select('id, sale_type, total_amount, created_at, sale_items (quantity)'),
+    paymentsQuery.select('amount, payment_method, created_at'),
     supabase.from('distributions').select('quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
     supabase.from('sale_items').select('quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
     supabase.from('customers').select('debt').eq('staff_id', user.id)

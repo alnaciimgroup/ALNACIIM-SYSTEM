@@ -10,11 +10,7 @@ export async function getAccountantCustomers(search?: string) {
 
     let query = supabase
       .from('customers')
-      .select(`
-        *,
-        tank_number,
-        users(id, full_name)
-      `)
+      .select('id, name, phone, tank_number, status, debt, staff_id, users(id, full_name)')
       .order('name', { ascending: true })
 
     if (search) {
@@ -45,59 +41,24 @@ export async function getCustomerDetailedData(id: string) {
     await verifySession(['accountant', 'superadmin'])
     const supabase = await createClient()
 
-    // 1. Fetch Profile & Staff (Using simple join)
-    const { data: customer, error: profileError } = await supabase
-      .from('customers')
-      .select(`
-        *,
-        tank_number,
-        staff:users(id, full_name)
-      `)
-      .eq('id', id)
-      .single()
+    // 1. Fetch Profile, Sales, and Payments in PARALLEL (Massive Speed Boost)
+    const [
+      { data: customer, error: profileError },
+      { data: sales, error: salesError },
+      { data: payments, error: paymentsError }
+    ] = await Promise.all([
+      supabase.from('customers').select('*, tank_number, staff:users(id, full_name)').eq('id', id).single(),
+      supabase.from('sales').select('id, created_at, total_amount, sale_type, status, items:sale_items(quantity, unit_price, items(name))').eq('customer_id', id).order('created_at', { ascending: false }),
+      supabase.from('payments').select('id, created_at, amount, payment_method, sales(sale_type, customer_id)').eq('sales.customer_id', id).order('created_at', { ascending: false })
+    ])
 
     if (profileError || !customer) {
       console.error(`Customer Profile Fetch Error for ID ${id}:`, profileError?.message)
       return null
     }
 
-    // 2. Fetch Sales History
-    const { data: sales, error: salesError } = await supabase
-      .from('sales')
-      .select(`
-        id,
-        created_at,
-        total_amount,
-        sale_type,
-        status,
-        items:sale_items(
-          quantity,
-          unit_price,
-          items(name)
-        )
-      `)
-      .eq('customer_id', id)
-      .order('created_at', { ascending: false })
-
     if (salesError) console.error('Sales Fetch Error:', salesError.message)
-
-    // 3. Fetch Payments History (Using filter directly on payment records linked to this customer)
-    // We join with sales then back to customer
-    const { data: payments, error: paymentsError } = await supabase
-      .from('payments')
-      .select(`
-        id,
-        created_at,
-        amount,
-        payment_method,
-        sales(sale_type, customer_id)
-      `)
-      .eq('sales.customer_id', id)
-      .order('created_at', { ascending: false })
-
-    if (paymentsError) {
-      console.error('Payments Fetch Error:', paymentsError.message)
-    }
+    if (paymentsError) console.error('Payments Fetch Error:', paymentsError.message)
 
     const filteredPayments = (payments || []).filter(p => (p.sales as any)?.customer_id === id)
 

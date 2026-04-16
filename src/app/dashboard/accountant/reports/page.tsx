@@ -203,8 +203,15 @@ export default async function ReportsPage({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
              {/* 1. Distributed */}
              <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-[12px] bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center mb-4">
-                   <Truck size={20} />
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-[12px] bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center">
+                    <Truck size={20} />
+                  </div>
+                  {summary.auditedDistributed >= summary.totalDistributed ? (
+                    <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+                  ) : (
+                    <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending</div>
+                  )}
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Distributed</span>
                 <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary?.totalDistributed?.toLocaleString() ?? 0}</div>
@@ -212,8 +219,15 @@ export default async function ReportsPage({
 
              {/* 2. Sold */}
              <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-[12px] bg-[#ecfdf5] text-[#10b981] flex items-center justify-center mb-4">
-                   <Tag size={20} />
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-[12px] bg-[#ecfdf5] text-[#10b981] flex items-center justify-center">
+                    <Tag size={20} />
+                  </div>
+                  {summary.auditedSold >= summary.totalSold ? (
+                    <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+                  ) : (
+                    <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending</div>
+                  )}
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Tanks Sold</span>
                 <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary?.totalSold?.toLocaleString() ?? 0}</div>
@@ -230,8 +244,15 @@ export default async function ReportsPage({
 
              {/* 4. Collected */}
              <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-[12px] bg-[#ecfeff] text-[#0ea5e9] flex items-center justify-center mb-4">
-                   <ShoppingCart size={20} />
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-[12px] bg-[#ecfeff] text-[#0ea5e9] flex items-center justify-center">
+                    <ShoppingCart size={20} />
+                  </div>
+                  {summary.auditedCollected >= summary.totalCollected ? (
+                    <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+                  ) : (
+                    <div className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-orange-100 italic">Pending</div>
+                  )}
                 </div>
                 <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Money Collected</span>
                 <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary?.totalCollected?.toLocaleString() ?? 0}</div>
