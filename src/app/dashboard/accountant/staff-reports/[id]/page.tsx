@@ -14,7 +14,7 @@ export default async function StaffDetailReportPage({
 }) {
   const { id } = await params
   const { date } = await searchParams
-  const { profile, stats, customers, sales, distributions, submissions } = await getStaffDetailReport(id, date)
+  const { profile, stats, customers, sales, submissions } = await getStaffDetailReport(id, date)
 
   return (
     <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
