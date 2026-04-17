@@ -21,46 +21,50 @@ export default async function FinancialsPage() {
 
           {/* Top Master Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-[12px] bg-[#ecfdf5] text-[#10b981] flex items-center justify-center">
-                  <Banknote size={20} className="w-5 h-5" />
-                </div>
-                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Total Cash Sales</div>
-              </div>
-              <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalCashSales.toFixed(2)}</div>
-            </div>
-
-            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-[12px] bg-[#fff7ed] text-[#f59e0b] flex items-center justify-center">
-                  <CreditCard size={20} className="w-5 h-5" />
-                </div>
-                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Total Credit Sales</div>
-              </div>
-              <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalCreditSales.toFixed(2)}</div>
-            </div>
-
-            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm">
+            {/* 1. Money Collected */}
+            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm hover:shadow-md transition-all">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-[12px] bg-[#eff6ff] text-[#3b82f6] flex items-center justify-center">
-                  <DollarSign size={20} className="w-5 h-5" />
+                  <Banknote size={20} className="w-5 h-5" />
                 </div>
-                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Total Collected</div>
+                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Money Collected</div>
               </div>
               <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalMoneyCollected.toFixed(2)}</div>
             </div>
 
-            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-              <div className="absolute top-0 right-0 w-1.5 h-full bg-[#3b82f6] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            {/* 2. Credit (Debt) Issued */}
+            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm hover:shadow-md transition-all">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-[12px] bg-[#f8fafc] text-[#3b82f6] flex items-center justify-center">
-                  <Wallet size={20} className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-[12px] bg-[#fff7ed] text-[#f59e0b] flex items-center justify-center">
+                  <CreditCard size={20} className="w-5 h-5" />
                 </div>
-                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Total Global Debt</div>
+                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Credit (Debt) Issued</div>
               </div>
-              <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalOutstandingBalance.toFixed(2)}</div>
-              <div className="text-[11px] font-bold text-[#64748b]/60 mt-1 uppercase tracking-wider">Outstanding Liability</div>
+              <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalCreditSales.toFixed(2)}</div>
+            </div>
+
+            {/* 3. Expected Revenue */}
+            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm hover:shadow-md transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-[12px] bg-slate-100 text-slate-600 flex items-center justify-center">
+                  <Activity size={20} className="w-5 h-5" />
+                </div>
+                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Expected Revenue</div>
+              </div>
+              <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${(totals.totalMoneyCollected + totals.totalCreditSales).toFixed(2)}</div>
+            </div>
+
+            {/* 4. Total Global Debt (RED) */}
+            <div className="bg-red-50 rounded-[20px] p-6 border border-red-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="absolute top-0 right-0 w-1.5 h-full bg-[#ef4444]"></div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-[12px] bg-[#ef4444] text-white flex items-center justify-center">
+                  <AlertTriangle size={20} className="w-5 h-5" />
+                </div>
+                <div className="text-[12px] font-extrabold text-red-600 uppercase tracking-wider">Total Global Debt</div>
+              </div>
+              <div className="text-[32px] font-black text-[#ef4444] tracking-tighter leading-none">${totals.totalOutstandingBalance.toFixed(2)}</div>
+              <div className="text-[11px] font-bold text-red-600/60 mt-1 uppercase tracking-wider italic">Outstanding Liability</div>
             </div>
           </div>
 
