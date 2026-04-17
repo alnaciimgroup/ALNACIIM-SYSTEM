@@ -115,14 +115,17 @@ export async function getReportsSummary(filters: {
     totalSold: (saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0,
     auditedSold: (saleItems || []).filter(si => isVerified(si.sales.staff_id, si.sales.created_at)).reduce((acc, si) => acc + si.quantity, 0) || 0,
     remainingTanks: ((distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0),
-    totalCollected: auditedCollected, // Force summary cards to match verified truth ($100)
+    totalCollected: auditedCollected, 
+    rawCollected: totalMoneyCollected,
     auditedCollected,
-    totalSubmitted, // Forced to match $100 if duplicates exist
-    totalDifference, // Should be $0 for the user's data
-    totalCredit: creditSalesAmount, // $15
+    totalSubmitted, 
+    rawSubmitted: (periodSubmissions || []).reduce((acc, s) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0,
+    totalDifference, 
+    totalCredit: creditSalesAmount,
+    rawCredit: (sales || []).filter(s => s.sale_type === 'credit').reduce((acc, s) => acc + Number(s.total_amount), 0) || 0,
     auditedCredit: creditSalesAmount,
-    outstandingBalance, // $15
-    expectedRevenue: auditedCollected + creditSalesAmount // $115
+    outstandingBalance, 
+    expectedRevenue: auditedCollected + creditSalesAmount 
   }
 }
 

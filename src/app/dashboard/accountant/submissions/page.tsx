@@ -14,25 +14,36 @@ export default async function AccountantSubmissionsPage({
   searchParams: Promise<{ staff?: string; date?: string; status?: string }>
 }) {
   await verifySession(['accountant'])
-  const { staff, date, status } = await searchParams
-  const supabase = await createClient()
-  const summary = await getReviewSummary(date, staff)
+  const params = await searchParams
   
-  // 1. Fetch raw submissions first (Bulletproof)
+  // Default to Yesterday if no date provided (Next Day logic)
+  let date = params.date
+  if (!date && !params.staff && !params.status) {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    date = yesterday.toISOString().split('T')[0]
+  }
+
+  const staffId = params.staff
+  const status = params.status
+  const supabase = await createClient()
+  const summary = await getReviewSummary(date, staffId)
+  
+  // 1. Fetch raw submissions
   let query = supabase
     .from('cash_submissions')
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (staff) {
-    query = query.eq('staff_id', staff)
+  if (staffId) {
+    query = query.eq('staff_id', staffId)
   }
   
   if (status) {
     query = query.eq('status', status)
   } else if (date) {
-    query = query.gte('created_at', `${date}T00:00:00.000Z`)
-                 .lte('created_at', `${date}T23:59:59.999Z`)
+    query = query.gte('submission_date', date)
+                 .lte('submission_date', date)
   } else {
     query = query.limit(100)
   }
@@ -40,7 +51,21 @@ export default async function AccountantSubmissionsPage({
   const { data: rawSubmissions, error } = await query
   const submissions = rawSubmissions || []
 
-  // 2. Fetch staff names separately to avoid join ambiguity
+  // 2. Fetch Credit Sales (Debt) for these submissions to show in table
+  // We fetch all credit sales for the period/staff to map them
+  let creditQuery = supabase.from('sales').select('staff_id, created_at, total_amount').eq('sale_type', 'credit')
+  if (date) {
+    creditQuery = creditQuery.gte('created_at', `${date}T00:00:00.000Z`).lte('created_at', `${date}T23:59:59.999Z`)
+  }
+  const { data: creditSales } = await creditQuery
+
+  const staffDebtMap: Record<string, number> = {}
+  creditSales?.forEach(s => {
+    const key = `${s.staff_id}_${s.created_at.split('T')[0]}`
+    staffDebtMap[key] = (staffDebtMap[key] || 0) + Number(s.total_amount)
+  })
+
+  // 3. Fetch staff names
   const { data: users } = await supabase
     .from('users')
     .select('id, full_name')
@@ -60,9 +85,9 @@ export default async function AccountantSubmissionsPage({
           <div className="mb-8 flex justify-between items-end">
             <div className="flex-1">
               <h2 className="text-[32px] font-black text-[#0f172a] mb-1 tracking-tight uppercase leading-none truncate">
-                {status ? `QUEUE: ${status}` : 'Financial Submission Audit'}
+                {status ? `QUEUE: ${status}` : 'Daily Submission Audit'}
               </h2>
-              <p className="text-[15px] font-medium text-[#64748b]">Found {submissions.length} reports in the current filter.</p>
+              <p className="text-[15px] font-medium text-[#64748b]">Showing {submissions.length} reports for {date || 'Global Queue'}.</p>
               {errorMessage && (
                 <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-mono">
                   Database Error: {errorMessage}
@@ -81,52 +106,58 @@ export default async function AccountantSubmissionsPage({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            {/* Metrics cards kept as is */}
+            {/* 1. Expected Money */}
             <div className="bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm flex items-center gap-5">
               <div className="w-12 h-12 rounded-[14px] bg-[#eff6ff] flex items-center justify-center text-[#3b82f6]">
                 <Calculator size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Collected Total</span>
+                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Expected Money</span>
                 <span className="text-[24px] font-black text-[#0f172a] leading-none">${summary.totalCollected.toFixed(2)}</span>
               </div>
             </div>
 
+            {/* 2. Collected Today */}
             <div className="bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm flex items-center gap-5">
               <div className="w-12 h-12 rounded-[14px] bg-[#ecfdf5] flex items-center justify-center text-[#10b981]">
                 <Banknote size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Submitted (Cash)</span>
+                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Collected Today</span>
                 <span className="text-[24px] font-black text-[#10b981] leading-none">${summary.totalSubmitted.toFixed(2)}</span>
               </div>
             </div>
 
+            {/* 3. Debt */}
             <div className="bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm flex items-center gap-5">
-              <div className="w-12 h-12 rounded-[14px] bg-[#fff7ed] flex items-center justify-center text-[#f59e0b]">
+              <div className="w-12 h-12 rounded-[14px] bg-[#fef2f2] text-[#ef4444] flex items-center justify-center">
                 <TrendingUp size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Net Discrepancy</span>
-                <span className={`text-[24px] font-black leading-none ${summary.totalDifference > 0 ? 'text-orange-500' : 'text-[#64748b]'}`}>
-                  ${summary.totalDifference.toFixed(2)}
+                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Total Debt</span>
+                <span className="text-[24px] font-black text-[#ef4444] leading-none">
+                  ${summary.totalCredit?.toFixed(2) ?? '0.00'}
                 </span>
               </div>
             </div>
 
-            <div className="bg-[#1e293b] p-6 rounded-[24px] shadow-lg flex items-center gap-5 text-white">
+            {/* 4. Pending Queue */}
+            <div className="bg-[#0f172a] p-6 rounded-[24px] shadow-lg flex items-center gap-5 text-white">
               <div className="w-12 h-12 rounded-[14px] bg-white/10 flex items-center justify-center text-white ring-4 ring-white/5">
                 <AlertCircle size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-white/40 uppercase tracking-widest leading-none mb-1.5">Global Pending</span>
-                <span className="text-[24px] font-black leading-none text-[#3b82f6] lowercase tracking-tighter">{summary.pendingCount} Reports</span>
+                <span className="text-[11px] font-black text-white/40 uppercase tracking-widest leading-none mb-1.5">Pending Reports</span>
+                <span className="text-[24px] font-black leading-none text-[#3b82f6] lowercase tracking-tighter">{summary.pendingCount} Pending</span>
               </div>
             </div>
           </div>
 
           <SubmissionQueueTable 
-             submissions={submissions} 
+             submissions={submissions.map(s => ({
+               ...s,
+               debt_amount: staffDebtMap[`${s.staff_id}_${s.submission_date?.split('T')[0]}`] || 0
+             }))} 
              staffMap={staffMap}
           />
 

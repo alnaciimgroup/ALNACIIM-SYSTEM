@@ -13,6 +13,7 @@ interface Submission {
   money_collected: number
   submitted_amount: number
   difference_amount: number
+  debt_amount?: number
   status: string
   note?: string
   created_at: string
@@ -31,7 +32,7 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
       <div className="bg-white border border-[#e5e7eb] shadow-sm rounded-[28px] overflow-hidden">
         <div className="p-6 border-b border-[#f1f5f9] bg-[#f8fafc]/50 flex justify-between items-center">
            <h3 className="text-[14px] font-black text-[#0f172a] uppercase tracking-widest flex items-center gap-2">
-             <Hash size={16} className="text-[#3b82f6]" /> Active Audit Queue
+             <Hash size={16} className="text-[#3b82f6]" /> Daily Audit Queue
            </h3>
         </div>
         <div className="overflow-x-auto">
@@ -40,8 +41,8 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
               <tr className="bg-[#f8fafc]">
                 <th className="py-5 px-8 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Staff Identity</th>
                 <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Expected</th>
-                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Submitted</th>
-                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Difference</th>
+                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Collected Today</th>
+                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Debt</th>
                 <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Status</th>
                 <th className="py-5 pr-8 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9] text-right">Review</th>
               </tr>
@@ -78,8 +79,8 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
                        <span className="text-[17px] font-black text-[#0f172a] tracking-tighter">${Number(sub.submitted_amount).toFixed(2)}</span>
                     </td>
                     <td className="py-6">
-                       <span className={`text-[15px] font-black ${Math.abs(sub.difference_amount) > 0.01 ? 'text-red-500' : 'text-[#64748b]'}`}>
-                          ${Number(sub.difference_amount).toFixed(2)}
+                       <span className="text-[15px] font-black text-red-500">
+                          ${Number(sub.debt_amount || 0).toFixed(2)}
                        </span>
                     </td>
                     <td className="py-6">

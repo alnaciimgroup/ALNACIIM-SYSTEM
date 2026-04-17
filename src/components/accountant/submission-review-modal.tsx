@@ -118,25 +118,32 @@ export function SubmissionReviewModal({ submission, staffName, onClose }: Props)
            </div>
 
            {/* Financial Grid */}
-           <div className="grid grid-cols-2 gap-6 mb-8">
-              <div className="p-5 rounded-[24px] bg-[#f8fafc] border border-[#e2e8f0]">
+           <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="p-4 rounded-[24px] bg-[#f8fafc] border border-[#e2e8f0]">
                  <div className="flex items-center gap-2 mb-2 text-[#64748b]">
                     <Calculator size={14} />
-                    <span className="text-[11px] font-black uppercase tracking-wider">Expected Cash</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Expected</span>
                  </div>
-                 <div className="text-[24px] font-black text-[#0f172a] tracking-tighter">${Number(submission.money_collected).toFixed(2)}</div>
+                 <div className="text-[20px] font-black text-[#0f172a] tracking-tighter">${Number(submission.money_collected).toFixed(2)}</div>
               </div>
-              <div className="p-5 rounded-[24px] bg-[#f8fafc] border border-[#e2e8f0]">
+              <div className="p-4 rounded-[24px] bg-[#f8fafc] border border-[#e2e8f0]">
                  <div className="flex items-center gap-2 mb-2 text-[#64748b]">
                     <Banknote size={14} />
-                    <span className="text-[11px] font-black uppercase tracking-wider">Submitted Cash</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Collected</span>
                  </div>
                  <input 
                     type="number" 
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className="w-full text-[24px] font-black text-[#3b82f6] bg-transparent border-none outline-none focus:ring-0 p-0 tracking-tighter"
+                    className="w-full text-[20px] font-black text-[#3b82f6] bg-transparent border-none outline-none focus:ring-0 p-0 tracking-tighter"
                  />
+              </div>
+              <div className="p-4 rounded-[24px] bg-[#fef2f2] border border-[#fecaca]">
+                 <div className="flex items-center gap-2 mb-2 text-red-600">
+                    <TrendingUp size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Debt</span>
+                 </div>
+                 <div className="text-[20px] font-black text-red-600 tracking-tighter">${Number((submission as any).debt_amount || 0).toFixed(2)}</div>
               </div>
            </div>
 
