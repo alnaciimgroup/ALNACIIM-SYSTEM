@@ -32,14 +32,13 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     endDate = customDate
   }
 
-  // 1. Fetch Core Metrics via Analytics Engine
-  const metricsPromise = getReportsSummary({ startDate, endDate })
+  // 1. Fetch Core Metrics via Analytics Engine (Isolated for exact Type Inference)
+  const metrics = await getReportsSummary({ startDate, endDate })
   
   const periodStart = startDate ? `${startDate}T00:00:00.000Z` : '2000-01-01T00:00:00.000Z'
   const periodEnd = endDate ? `${endDate}T23:59:59.999Z` : '2099-12-31T23:59:59.999Z'
 
   const [
-    metrics,
     { data: periodDist },
     { data: periodSales },
     { data: periodPayments },
@@ -49,7 +48,6 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     { data: staffPerformance },
     { data: allSubmissions }
   ] = await Promise.all([
-    metricsPromise,
     supabase.from('distributions').select('quantity, staff_id, created_at').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('sales').select('total_amount, sale_type, staff_id, created_at, sale_items(quantity)').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('payments').select('amount, created_at, sales!inner(staff_id)').gte('created_at', periodStart).lte('created_at', periodEnd),
