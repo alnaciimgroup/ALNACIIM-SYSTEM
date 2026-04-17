@@ -1,6 +1,6 @@
 import { Header } from '@/components/layout/header'
 import { getFinancialOverview } from './actions'
-import { Banknote, CreditCard, DollarSign, Activity, AlertTriangle, Scale, Target } from 'lucide-react'
+import { Banknote, CreditCard, DollarSign, Activity, AlertTriangle, Scale, Target, Wallet } from 'lucide-react'
 
 export default async function FinancialsPage() {
   const { totals, topDebtors } = await getFinancialOverview()
@@ -51,16 +51,16 @@ export default async function FinancialsPage() {
               <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalMoneyCollected.toFixed(2)}</div>
             </div>
 
-            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-2 h-full bg-[#ef4444]"></div>
+            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="absolute top-0 right-0 w-1.5 h-full bg-[#3b82f6] opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-[12px] bg-[#fef2f2] text-[#ef4444] flex items-center justify-center">
-                  <AlertTriangle size={20} className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-[12px] bg-[#f8fafc] text-[#3b82f6] flex items-center justify-center">
+                  <Wallet size={20} className="w-5 h-5" />
                 </div>
-                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Total Difference</div>
+                <div className="text-[12px] font-extrabold text-[#64748b] uppercase tracking-wider">Total Global Debt</div>
               </div>
-              <div className="text-[32px] font-black text-[#ef4444] tracking-tighter leading-none">${Math.abs(totals.totalDifference).toFixed(2)}</div>
-              <div className="text-[11px] font-bold text-[#ef4444]/80 mt-1 uppercase tracking-wider">Unreconciled Cash</div>
+              <div className="text-[32px] font-black text-[#0f172a] tracking-tighter leading-none">${totals.totalOutstandingBalance.toFixed(2)}</div>
+              <div className="text-[11px] font-bold text-[#64748b]/60 mt-1 uppercase tracking-wider">Outstanding Liability</div>
             </div>
           </div>
 
