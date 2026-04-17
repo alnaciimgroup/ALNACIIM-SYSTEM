@@ -63,7 +63,7 @@ export default async function StaffDetailReportPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-[12px] bg-[#f8fafc] text-[#0f172a] flex items-center justify-center">
@@ -105,21 +105,6 @@ export default async function StaffDetailReportPage({
                 <div className="mb-1 flex items-end gap-2">
                   <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.auditedSold}</span>
                   <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">Period</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[20px] p-6 border border-[#e5e7eb] shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-[12px] bg-[#ecfeff] text-[#0ea5e9] flex items-center justify-center">
-                  <Banknote size={20} strokeWidth={2.5} />
-                </div>
-                <div className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-orange-100 italic">Financial</div>
-              </div>
-              <div>
-                <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Total Revenue Generated</div>
-                <div className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none">
-                  ${(stats.auditedCollected + stats.auditedCredit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
             </div>
