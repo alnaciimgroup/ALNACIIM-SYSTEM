@@ -165,12 +165,12 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       pendingReviews: pendingCount
     },
     todayStats: {
-      distributedToday: distributedInPeriod, 
-      soldToday: soldInPeriod,
-      collectedToday: collectedInPeriod,
-      creditToday: creditInPeriod,
-      freeToday: freeInPeriod,
-      expectedToday: expectedInPeriod
+      distributedToday: metrics.totalDistributed, 
+      soldToday: metrics.totalSold,
+      collectedToday: metrics.totalCollected,
+      creditToday: metrics.totalCredit,
+      freeToday: metrics.totalFreeTanks,
+      expectedToday: metrics.expectedRevenue
     },
     topStaff,
     recentActivity,

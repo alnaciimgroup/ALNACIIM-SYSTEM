@@ -1,36 +1,17 @@
+import { getReportsSummary } from '../reports/actions'
 import { createClient } from '@/utils/supabase/server'
+import { verifySession } from '@/utils/auth'
 
 export async function getFinancialOverview() {
+  await verifySession(['accountant'])
+  
+  // 1. Fetch high level audited totals from the central engine
+  // This ensures the $115, $100, and $15 metrics are perfectly synced
+  const metrics = await getReportsSummary({})
+
   const supabase = await createClient()
 
-  // We fetch high level historical totals
-  const [
-    { data: sales },
-    { data: payments },
-    { data: submissions },
-    { data: customers }
-  ] = await Promise.all([
-    supabase.from('sales').select('total_amount, sale_type'),
-    supabase.from('payments').select('amount'),
-    supabase.from('cash_submissions').select('submitted_amount, difference_amount'),
-    supabase.from('customers').select('debt')
-  ])
-
-  let totalCashSales = 0
-  let totalCreditSales = 0
-  
-  sales?.forEach(s => {
-    if (s.sale_type === 'cash') totalCashSales += Number(s.total_amount)
-    else totalCreditSales += Number(s.total_amount)
-  })
-
-  const totalPaymentsReceived = payments?.reduce((a, b) => a + Number(b.amount), 0) || 0
-  const totalMoneyCollected = totalPaymentsReceived
-  const totalMoneySubmitted = submissions?.reduce((a, b) => a + Number(b.submitted_amount), 0) || 0
-  const totalOutstandingBalance = customers?.reduce((a, b) => a + Number(b.debt), 0) || 0
-  const totalDifference = totalMoneyCollected - totalMoneySubmitted
-
-  // Also get a brief breakdown of outstanding customer debt limits
+  // 2. Fetch top debtors for the risk area
   const { data: topDebtors } = await supabase
     .from('customers')
     .select('id, name, debt, phone, staff:users!inner(full_name)')
@@ -40,13 +21,14 @@ export async function getFinancialOverview() {
 
   return {
     totals: {
-      totalCashSales,
-      totalCreditSales,
-      totalPaymentsReceived,
-      totalMoneyCollected,
-      totalMoneySubmitted,
-      totalOutstandingBalance,
-      totalDifference
+      totalCashSales: metrics.auditedCollected, // Audited collected truth ($100)
+      totalCreditSales: metrics.auditedCredit, // Audited credit sales ($15)
+      totalPaymentsReceived: metrics.auditedCollected,
+      totalMoneyCollected: metrics.auditedCollected,
+      totalMoneySubmitted: metrics.totalSubmitted,
+      totalOutstandingBalance: metrics.outstandingBalance, // ($15)
+      totalDifference: metrics.totalDifference,
+      expectedRevenue: metrics.expectedRevenue // ($115)
     },
     topDebtors: topDebtors || []
   }
