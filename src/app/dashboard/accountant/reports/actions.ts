@@ -1,5 +1,4 @@
 import { createClient } from '@/utils/supabase/server'
-import { getWorkDate } from '@/utils/date-utils'
 
 export async function getReportsSummary(filters: {
   startDate?: string;
@@ -11,7 +10,6 @@ export async function getReportsSummary(filters: {
 
   let salesQuery = supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id')
   let paymentsQuery: any = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)')
-  let submissionsQuery = supabase.from('cash_submissions').select('amount, submitted_amount, status, submission_date, staff_id')
   let distQuery = supabase.from('distributions').select('quantity, created_at, staff_id')
   let saleItemsQuery = supabase.from('sale_items').select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
 
@@ -20,7 +18,6 @@ export async function getReportsSummary(filters: {
     const start = `${filters.startDate}T00:00:00.000Z`
     salesQuery = salesQuery.gte('created_at', start)
     paymentsQuery = paymentsQuery.gte('created_at', start)
-    submissionsQuery = submissionsQuery.gte('submission_date', filters.startDate)
     distQuery = distQuery.gte('created_at', start)
     saleItemsQuery = saleItemsQuery.gte('sales.created_at', start)
   }
@@ -28,13 +25,11 @@ export async function getReportsSummary(filters: {
     const end = `${filters.endDate}T23:59:59.999Z`
     salesQuery = salesQuery.lte('created_at', end)
     paymentsQuery = paymentsQuery.lte('created_at', end)
-    submissionsQuery = submissionsQuery.lte('submission_date', filters.endDate)
     distQuery = distQuery.lte('created_at', end)
     saleItemsQuery = saleItemsQuery.lte('sales.created_at', end)
   }
   if (filters.staffId) {
     salesQuery = salesQuery.eq('staff_id', filters.staffId)
-    submissionsQuery = submissionsQuery.eq('staff_id', filters.staffId)
     paymentsQuery = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)').eq('sales.staff_id', filters.staffId)
     distQuery = distQuery.eq('staff_id', filters.staffId)
     saleItemsQuery = saleItemsQuery.eq('sales.staff_id', filters.staffId)
@@ -48,61 +43,34 @@ export async function getReportsSummary(filters: {
   const [
     { data: sales },
     { data: payments },
-    { data: periodSubmissions },
     { data: distributions },
     { data: saleItems },
     { data: globalSales },
-    { data: globalPayments },
-    { data: allSubmissions }
+    { data: globalPayments }
   ] = await Promise.all([
     salesQuery,
     paymentsQuery,
-    submissionsQuery,
     distQuery.select('quantity, created_at, staff_id'),
     saleItemsQuery.select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)'),
     supabase.from('sales').select('total_amount').eq('sale_type', 'credit'),
-    supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment'),
-    supabase.from('cash_submissions').select('staff_id, submission_date, status')
+    supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment')
   ])
 
-  // GATING LOGIC: A staff member's work for a day is only "Audited" if they has a verified submission
-  const verifiedDays = new Set((allSubmissions || [])
-    .filter(s => s.status === 'verified')
-    .map(s => `${s.staff_id}_${s.submission_date?.split('T')[0]}`))
-
-  const isVerified = (staffId: string, createdAt: string) => {
-    if (!staffId || !createdAt) return false
-    const workDate = getWorkDate(createdAt)
-    return verifiedDays.has(`${staffId}_${workDate}`)
-  }
-
   // 1. FINANCIAL CALCULATIONS
-  // Use the Raw Payments ($100) instead of bloated Submissions ($105) for truth
   const totalMoneyCollected = (payments || []).reduce((acc, p) => acc + Number(p.amount), 0) || 0
   
-  // Audited only counts records from days where a submission was verified
   const cashPayments = (payments || [])
-    .filter(p => p.payment_method === 'cash' && isVerified(p.sales.staff_id, p.created_at))
+    .filter(p => p.payment_method === 'cash')
     .reduce((acc, p) => acc + Number(p.amount), 0) || 0
   
   const debtPayments = (payments || [])
-    .filter(p => p.payment_method === 'debt_repayment' && isVerified(p.sales.staff_id, p.created_at))
+    .filter(p => p.payment_method === 'debt_repayment')
     .reduce((acc, p) => acc + Number(p.amount), 0) || 0
 
   const auditedCollected = cashPayments + debtPayments
   const creditSalesAmount = (sales || [])
-    .filter(s => s.sale_type === 'credit' && isVerified(s.staff_id, s.created_at))
+    .filter(s => s.sale_type === 'credit')
     .reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
-
-  // Submission Logic: Clean up duplicates for the summary cards
-  const totalSubmittedRaw = (periodSubmissions || [])
-    .filter(s => s.status === 'verified')
-    .reduce((acc, s) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0
-
-  // IMPORTANT: For the "Twin View", if we have more submitted than collected for a day (duplicate),
-  // we cap the "TOTAL SUBMITTED" display at the actual collections to match the user's "100" target.
-  const totalSubmitted = Math.min(totalSubmittedRaw, auditedCollected)
-  const totalDifference = auditedCollected - totalSubmitted
 
   // Global Balances (Always All-Time)
   const globalTotalCredit = (globalSales || [])?.reduce((acc: number, s: any) => acc + Number(s.total_amount), 0) || 0
@@ -111,18 +79,18 @@ export async function getReportsSummary(filters: {
 
   return {
     totalDistributed: (distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0,
-    auditedDistributed: (distributions || []).filter(d => isVerified(d.staff_id, d.created_at)).reduce((acc, d) => acc + d.quantity, 0) || 0,
+    auditedDistributed: (distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0,
     totalSold: (saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0,
-    auditedSold: (saleItems || []).filter(si => isVerified(si.sales.staff_id, si.sales.created_at)).reduce((acc, si) => acc + si.quantity, 0) || 0,
+    auditedSold: (saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0,
     remainingTanks: ((distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0),
-    totalCollected: auditedCollected, // Force summary cards to match verified truth ($100)
+    totalCollected: auditedCollected, 
     auditedCollected,
-    totalSubmitted, // Forced to match $100 if duplicates exist
-    totalDifference, // Should be $0 for the user's data
-    totalCredit: creditSalesAmount, // $15
+    totalSubmitted: auditedCollected, // Submission page is removed, so we assume submission = collection
+    totalDifference: 0,
+    totalCredit: creditSalesAmount,
     auditedCredit: creditSalesAmount,
-    outstandingBalance, // $15
-    expectedRevenue: auditedCollected + creditSalesAmount // $115
+    outstandingBalance, 
+    expectedRevenue: auditedCollected + creditSalesAmount 
   }
 }
 
@@ -173,11 +141,8 @@ export async function getDetailedReport(type: string, filters: {
       if (filters.saleType) query = query.eq('sale_type', filters.saleType)
       if (filters.status) query = query.eq('status', filters.status)
       
-      const { data: verifiedReports } = await supabase.from('cash_submissions').select('staff_id, submission_date').eq('status', 'verified')
-      const verifiedKeys = new Set((verifiedReports || []).map(r => `${r.staff_id}_${r.submission_date}`))
-      
       const { data } = await query.order('created_at', { ascending: false })
-      return (data || []).filter(s => verifiedKeys.has(`${(s as any).staff_id}_${new Date(s.created_at).toISOString().split('T')[0]}`))
+      return data || []
     }
 
     case 'distribution': {
@@ -192,11 +157,8 @@ export async function getDetailedReport(type: string, filters: {
       if (filters.staffId) query = query.eq('staff_id', filters.staffId)
       if (filters.itemId) query = query.eq('item_id', filters.itemId)
       
-      const { data: verifiedReports } = await supabase.from('cash_submissions').select('staff_id, submission_date').eq('status', 'verified')
-      const verifiedKeys = new Set((verifiedReports || []).map(r => `${r.staff_id}_${r.submission_date}`))
-
       const { data } = await query.order('created_at', { ascending: false })
-      return (data || []).filter(d => verifiedKeys.has(`${(d as any).staff_id}_${new Date(d.created_at).toISOString().split('T')[0]}`))
+      return data || []
     }
 
     case 'debt': {

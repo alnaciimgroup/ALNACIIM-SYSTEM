@@ -48,7 +48,6 @@ export function Sidebar({
           { name: 'Staff Reports', href: '/dashboard/accountant/staff-reports', icon: Users },
           { name: 'Financial Overview', href: '/dashboard/accountant/financials', icon: Calculator },
           { name: 'Transactions', href: '/dashboard/accountant/transactions', icon: History },
-          { name: 'Daily Submissions', href: '/dashboard/accountant/submissions', icon: Banknote },
           { name: 'Staff List', href: '/dashboard/accountant/staff', icon: List },
           { name: 'Reports', href: '/dashboard/accountant/reports', icon: BarChart2 },
         ]

@@ -110,56 +110,13 @@ export default async function DailyReportPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-             <div className="lg:col-span-2">
-                <DailySubmissionForm 
-                  moneyCollected={summary.totalMoneyCollected}
-                  date={summary.date}
-                  tanksSold={summary.tanksSold}
-                />
-             </div>
-
-             <div className="flex flex-col gap-6">
-                <div className="bg-[#1e293b] p-8 rounded-[24px] text-white shadow-lg">
-                   <div className="w-12 h-12 rounded-[14px] bg-white/10 flex items-center justify-center text-white mb-6">
-                      <Banknote size={24} strokeWidth={2.5} />
-                   </div>
-                   <h3 className="text-[20px] font-black mb-2 uppercase tracking-tight">Financial Total</h3>
-                   <p className="text-white/60 text-[13px] font-bold uppercase tracking-wider mb-8">Aggregate Money Collected</p>
-                   
-                   <div className="flex items-baseline gap-2">
-                      <span className="text-[48px] font-black leading-none">${summary.totalMoneyCollected.toFixed(2)}</span>
-                      <span className="text-[14px] font-black text-white/40 uppercase tracking-widest">USD</span>
-                   </div>
+          <div className="grid grid-cols-1 gap-8">
+             <div className="bg-white p-8 rounded-[24px] border border-[#e5e7eb] shadow-sm flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#3b82f6] mb-6">
+                   <TrendingUp size={32} strokeWidth={2.5} />
                 </div>
-
-                <div className="bg-white p-8 rounded-[24px] border border-[#e5e7eb] shadow-sm">
-                   <h4 className="text-[13px] font-black text-[#0f172a] uppercase tracking-widest mb-4">Submission Status</h4>
-                   <div className="space-y-4">
-                      <div className="flex items-center justify-between text-[14px]">
-                         <span className="font-bold text-[#64748b]">Tanks Distributed</span>
-                         <span className="font-black text-[#0f172a]">{summary.tanksSold} Units</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[14px]">
-                         <span className="font-bold text-[#64748b]">Tanks Received</span>
-                         <span className="font-black text-[#0f172a]">{summary.tanksReceived} Units</span>
-                      </div>
-                      <div className="pt-4 border-t border-[#f1f5f9] flex items-center justify-between">
-                         <span className="text-[12px] font-black text-[#0f172a] uppercase tracking-widest">Inventory Balance</span>
-                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${remainingTanks < 10 ? 'bg-red-50 text-red-600' : 'bg-[#ecfdf5] text-[#10b981]'}`}>
-                            {remainingTanks < 10 ? 'Critical' : 'Stable'}
-                         </span>
-                      </div>
-                   </div>
-                </div>
-
-                <Link href="/dashboard/staff/history/submissions" className="bg-[#f8fafc] border border-[#e2e8f0] p-6 rounded-[20px] flex items-center justify-between group hover:border-[#3b82f6] transition-all">
-                   <div className="flex flex-col">
-                      <span className="text-[14px] font-black text-[#0f172a] uppercase tracking-tight">Audit History</span>
-                      <span className="text-[12px] font-bold text-[#64748b]">Review past submissions</span>
-                   </div>
-                   <ArrowRight size={18} className="text-[#94a3b8] group-hover:text-[#3b82f6] group-hover:translate-x-1 transition-all" />
-                </Link>
+                <h3 className="text-[24px] font-black text-[#0f172a] mb-2 uppercase tracking-tight">Performance Summary</h3>
+                <p className="text-[#64748b] font-medium max-w-[400px]">Review your daily totals and metrics above. Your recorded transactions are automatically synced with the main ledger.</p>
              </div>
           </div>
 
