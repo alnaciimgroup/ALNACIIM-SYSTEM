@@ -79,26 +79,26 @@ export async function getReportsSummary(filters: {
 
   // 1. FINANCIAL CALCULATIONS
   // Use the Raw Payments ($100) instead of bloated Submissions ($105) for truth
-  const totalMoneyCollected = (payments || []).reduce((acc, p) => acc + Number(p.amount), 0) || 0
+  const totalMoneyCollected = (payments || []).reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
   
   // Audited only counts records from days where a submission was verified
   const cashPayments = (payments || [])
     .filter(p => p.payment_method === 'cash' && isVerified(p.sales.staff_id, p.created_at))
-    .reduce((acc, p) => acc + Number(p.amount), 0) || 0
+    .reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
   
   const debtPayments = (payments || [])
     .filter(p => p.payment_method === 'debt_repayment' && isVerified(p.sales.staff_id, p.created_at))
-    .reduce((acc, p) => acc + Number(p.amount), 0) || 0
+    .reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
 
   const auditedCollected = cashPayments + debtPayments
   const creditSalesAmount = (sales || [])
     .filter(s => s.sale_type === 'credit' && isVerified(s.staff_id, s.created_at))
-    .reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
+    .reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0
 
   // Submission Logic: Clean up duplicates for the summary cards
   const totalSubmittedRaw = (periodSubmissions || [])
     .filter(s => s.status === 'verified')
-    .reduce((acc, s) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0
+    .reduce((acc: number, s) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0
 
   // IMPORTANT: For the "Twin View", if we have more submitted than collected for a day (duplicate),
   // we cap the "TOTAL SUBMITTED" display at the actual collections to match the user's "100" target.
@@ -111,22 +111,22 @@ export async function getReportsSummary(filters: {
   const outstandingBalance = globalTotalCredit - globalDebtPayments
 
   return {
-    totalDistributed: (distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0,
-    auditedDistributed: (distributions || []).filter(d => isVerified(d.staff_id, d.created_at)).reduce((acc, d) => acc + d.quantity, 0) || 0,
-    totalSold: (saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0,
-    auditedSold: (saleItems || []).filter(si => isVerified(si.sales.staff_id, si.sales.created_at)).reduce((acc, si) => acc + si.quantity, 0) || 0,
-    remainingTanks: ((distributions || []).reduce((acc, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc, si) => acc + si.quantity, 0) || 0),
+    totalDistributed: (distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0,
+    auditedDistributed: (distributions || []).filter(d => isVerified(d.staff_id, d.created_at)).reduce((acc: number, d) => acc + d.quantity, 0) || 0,
+    totalSold: (saleItems || []).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
+    auditedSold: (saleItems || []).filter(si => isVerified(si.sales.staff_id, si.sales.created_at)).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
+    remainingTanks: ((distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc: number, si) => acc + si.quantity, 0) || 0),
     totalCollected: auditedCollected, 
     rawCollected: totalMoneyCollected,
     auditedCollected,
     totalSubmitted, 
-    rawSubmitted: (periodSubmissions || []).reduce((acc, s) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0,
+    rawSubmitted: (periodSubmissions || []).reduce((acc: number, s) => acc + Number(s.submitted_amount ?? s.amount), 0) || 0,
     totalDifference, 
     totalCredit: creditSalesAmount,
-    rawCredit: (sales || []).filter(s => s.sale_type === 'credit').reduce((acc, s) => acc + Number(s.total_amount), 0) || 0,
+    rawCredit: (sales || []).filter(s => s.sale_type === 'credit').reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0,
     auditedCredit: creditSalesAmount,
-    totalFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free').reduce((acc, si) => acc + si.quantity, 0) || 0,
-    auditedFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free' && isVerified((si.sales as any).staff_id, (si.sales as any).created_at)).reduce((acc, si) => acc + si.quantity, 0) || 0,
+    totalFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free').reduce((acc: number, si) => acc + si.quantity, 0) || 0,
+    auditedFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free' && isVerified((si.sales as any).staff_id, (si.sales as any).created_at)).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
     outstandingBalance, 
     expectedRevenue: auditedCollected + creditSalesAmount 
   }
@@ -211,8 +211,8 @@ export async function getDetailedReport(type: string, filters: {
       const { data: payments } = await supabase.from('payments').select('amount, sales!inner(customer_id)').eq('payment_method', 'debt_repayment')
 
       return (customers || []).map(c => {
-        const totalDebt = (sales || []).filter(s => s.customer_id === c.id).reduce((acc, s) => acc + Number(s.total_amount), 0)
-        const totalPaid = (payments || []).filter(p => (p.sales as any).customer_id === c.id).reduce((acc, p) => acc + Number(p.amount), 0)
+        const totalDebt = (sales || []).filter(s => s.customer_id === c.id).reduce((acc: number, s) => acc + Number(s.total_amount), 0)
+        const totalPaid = (payments || []).filter(p => (p.sales as any).customer_id === c.id).reduce((acc: number, p) => acc + Number(p.amount), 0)
         return {
           id: c.id,
           name: c.name,

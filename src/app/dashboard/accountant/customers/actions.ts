@@ -64,17 +64,17 @@ export async function getCustomerDetailedData(id: string) {
 
     // 4. Calculate Financial Metrics
     const totalSalesValue = (sales || [])
-      .reduce((acc, s) => acc + Number(s.total_amount), 0)
+      .reduce((acc: number, s) => acc + Number(s.total_amount), 0)
 
     const totalPaid = (filteredPayments || [])
-      .reduce((acc, p) => acc + Number(p.amount), 0)
+      .reduce((acc: number, p) => acc + Number(p.amount), 0)
 
     // Debt = (Initial Debt) + (Total New Sales) - (Total Paid)
     const currentDebt = (Number(customer.debt) || 0) + totalSalesValue - totalPaid
 
     const totalFreeTanks = (sales || [])
       .filter(s => s.sale_type === 'free')
-      .reduce((acc, s) => acc + (s.items as any).reduce((a: number, i: any) => a + i.quantity, 0), 0)
+      .reduce((acc: number, s) => acc + (s.items as any).reduce((a: number, i: any) => a + i.quantity, 0), 0)
 
     return {
       profile: customer,
@@ -86,7 +86,7 @@ export async function getCustomerDetailedData(id: string) {
         currentDebt,
         totalFreeTanks,
         totalSalesCount: sales?.length || 0,
-        totalTanksBought: (sales || []).reduce((acc, s) => acc + (s.items as any).reduce((a: number, i: any) => a + i.quantity, 0), 0)
+        totalTanksBought: (sales || []).reduce((acc: number, s) => acc + (s.items as any).reduce((a: number, i: any) => a + i.quantity, 0), 0)
       }
     }
   } catch (e) {

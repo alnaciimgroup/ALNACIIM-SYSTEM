@@ -93,11 +93,11 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
   } = metrics
 
   // Period stats (aggregated distributions, sales, payments for the selected window)
-  const distributedInPeriod = periodDist?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
-  const soldInPeriod = periodSales?.reduce((acc, curr) => acc + ((curr.sale_items as any)?.reduce((a: number, i: any) => a + i.quantity, 0) || 0), 0) || 0
-  const collectedInPeriod = periodPayments?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
-  const creditInPeriod = periodSales?.filter(s => s.sale_type === 'credit')?.reduce((acc, curr) => acc + Number(curr.total_amount), 0) || 0
-  const freeInPeriod = periodSales?.filter(s => s.sale_type === 'free')?.reduce((acc, curr) => acc + ((curr.sale_items as any)?.reduce((a: number, i: any) => a + i.quantity, 0) || 0), 0) || 0
+  const distributedInPeriod = periodDist?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const soldInPeriod = periodSales?.reduce((acc: number, curr) => acc + ((curr.sale_items as any)?.reduce((a: number, i: any) => a + i.quantity, 0) || 0), 0) || 0
+  const collectedInPeriod = periodPayments?.reduce((acc: number, curr) => acc + Number(curr.amount), 0) || 0
+  const creditInPeriod = periodSales?.filter(s => s.sale_type === 'credit')?.reduce((acc: number, curr) => acc + Number(curr.total_amount), 0) || 0
+  const freeInPeriod = periodSales?.filter(s => s.sale_type === 'free')?.reduce((acc: number, curr) => acc + ((curr.sale_items as any)?.reduce((a: number, i: any) => a + i.quantity, 0) || 0), 0) || 0
   const expectedInPeriod = collectedInPeriod + creditInPeriod
 
   const pendingCount = submissionsData?.filter(s => s.status === 'pending').length || 0
