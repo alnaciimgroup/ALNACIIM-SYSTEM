@@ -16,7 +16,7 @@ export default async function AccountantSubmissionsPage({
   await verifySession(['accountant'])
   const { staff, date, status } = await searchParams
   const supabase = await createClient()
-  const summary = await getReviewSummary()
+  const summary = await getReviewSummary(date, staff)
   
   // 1. Fetch raw submissions first (Bulletproof)
   let query = supabase

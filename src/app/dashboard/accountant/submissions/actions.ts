@@ -5,33 +5,29 @@ import { revalidatePath } from 'next/cache'
 import { verifySession } from '@/utils/auth'
 import { ReviewSubmissionSchema } from '@/utils/validation'
 import { logAction } from '@/utils/audit'
+import { getReportsSummary } from '../reports/actions'
 
-export async function getReviewSummary() {
+export async function getReviewSummary(date?: string, staffId?: string) {
   await verifySession(['accountant'])
-  const supabase = await createClient()
-
-  // 1. Fetch only what is needed (Verified totals and Pending count)
-  const [
-    { data: verifiedSubmissions },
-    { data: pendingSubmissions }
-  ] = await Promise.all([
-    supabase.from('cash_submissions').select('amount').eq('status', 'verified'),
-    supabase.from('cash_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending')
-  ])
-
-  const totalSubmitted = verifiedSubmissions?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
-  const pendingCount = pendingSubmissions?.length || 0 // If head: true is used, length is of data which is [] but we want count
   
-  // Refetching count properly if head: true was confusing
-  const { count: realPending } = await supabase.from('cash_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+  // Use the central analytics engine to ensure "Twin View" sync with Dashboard/Reports
+  const metrics = await getReportsSummary({
+    startDate: date,
+    endDate: date,
+    staffId
+  })
 
-  const totalCollected = totalSubmitted 
-  const totalDifference = totalCollected - totalSubmitted
+  // Fetch pending count separately
+  const supabase = await createClient()
+  const { count: realPending } = await supabase
+    .from('cash_submissions')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending')
 
   return {
-    totalCollected,
-    totalSubmitted,
-    totalDifference,
+    totalCollected: metrics.totalCollected,
+    totalSubmitted: metrics.totalSubmitted,
+    totalDifference: metrics.totalDifference,
     pendingCount: realPending || 0
   }
 }
@@ -76,10 +72,16 @@ export async function updateSubmissionStatus(id: string, status: string, note?: 
   const { error } = await supabase
     .from('cash_submissions')
     .update(updateData)
-    .eq('id', validated.data.id)
+    .eq(validated.data.id ? 'id' : '', validated.data.id) // Fallback to avoid updating all if ID is missing
 
-  if (error) {
-    console.error('Update Status Error:', error)
+  // Simplified update call to avoid complex field matching issues
+  const { error: realError } = await supabase
+    .from('cash_submissions')
+    .update(updateData)
+    .eq('id', id)
+
+  if (realError) {
+    console.error('Update Status Error:', realError)
     throw new Error('Failed to update submission status')
   }
 
