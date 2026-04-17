@@ -124,6 +124,8 @@ export async function getReportsSummary(filters: {
     totalCredit: creditSalesAmount,
     rawCredit: (sales || []).filter(s => s.sale_type === 'credit').reduce((acc, s) => acc + Number(s.total_amount), 0) || 0,
     auditedCredit: creditSalesAmount,
+    totalFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free').reduce((acc, si) => acc + si.quantity, 0) || 0,
+    auditedFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free' && isVerified((si.sales as any).staff_id, (si.sales as any).created_at)).reduce((acc, si) => acc + si.quantity, 0) || 0,
     outstandingBalance, 
     expectedRevenue: auditedCollected + creditSalesAmount 
   }
