@@ -16,12 +16,10 @@ export default async function AccountantSubmissionsPage({
   await verifySession(['accountant'])
   const params = await searchParams
   
-  // Default to Yesterday if no date provided (Next Day logic)
+  // Default to Today if no date provided
   let date = params.date
   if (!date && !params.staff && !params.status) {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    date = yesterday.toISOString().split('T')[0]
+    date = new Date().toISOString().split('T')[0]
   }
 
   const staffId = params.staff
