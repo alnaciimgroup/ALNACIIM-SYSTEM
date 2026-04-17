@@ -137,7 +137,7 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       return d >= startDate! && d <= endDate!
     }) : verifiedSales
 
-    const revenue = periodVerifiedSales.reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
+    const revenue = periodVerifiedSales.reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0
     return {
       id: staff.id,
       name: staff.full_name,

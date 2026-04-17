@@ -96,12 +96,12 @@ export async function getAgentDashboardData() {
     supabase.from('distributions').select('quantity, free_quantity').gte('created_at', sevenDaysAgo.toISOString())
   ])
 
-  const weeklyTotal = weeklyData?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
-  const weeklyFree = weeklyData?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
+  const weeklyTotal = weeklyData?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const weeklyFree = weeklyData?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
 
   // Calculate some real metrics
-  const sumQuantity = distributions?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
-  const sumFree = distributions?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
+  const sumQuantity = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const sumFree = distributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
   const uniqueStaff = new Set(distributions?.map(d => (d.staff as any)?.full_name)).size
 
   // Normalize staff join type for the UI

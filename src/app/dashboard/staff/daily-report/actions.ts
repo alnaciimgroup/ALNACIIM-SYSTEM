@@ -21,7 +21,7 @@ export async function getDailySummary(selectedDate?: string) {
     .gte('created_at', startOfDay)
     .lte('created_at', endOfDay)
 
-  const tanksReceived = receivedData?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
+  const tanksReceived = receivedData?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
 
   // 2. Fetch Sales Today (Tanks Sold & Revenue)
   const { data: salesData } = await supabase
@@ -63,9 +63,9 @@ export async function getDailySummary(selectedDate?: string) {
 
   const debtPayments = paymentsData
     ?.filter(p => p.payment_method === 'debt_repayment')
-    ?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
+    ?.reduce((acc: number, curr) => acc + Number(curr.amount), 0) || 0
 
-  const totalMoneyCollected = paymentsData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
+  const totalMoneyCollected = paymentsData?.reduce((acc: number, curr) => acc + Number(curr.amount), 0) || 0
 
   // Optional: Also calculate Outstanding Debt for the daily report context
   const { data: customers } = await supabase
@@ -73,7 +73,7 @@ export async function getDailySummary(selectedDate?: string) {
     .select('debt')
     .eq('staff_id', user.id)
     
-  const outstandingDebt = customers?.reduce((acc, c) => acc + Number(c.debt || 0), 0) || 0
+  const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
 
   // 4. Fetch Submission Status for Today
   const { data: submissionData } = await supabase

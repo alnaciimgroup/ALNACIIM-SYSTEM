@@ -66,31 +66,31 @@ export async function getStaffDashboardData(date?: string) {
     supabase.from('customers').select('debt').eq('staff_id', user.id)
   ])
 
-  const totalReceived = distributions?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
+  const totalReceived = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
 
-  const totalSold = sales?.reduce((acc, s) => {
+  const totalSold = sales?.reduce((acc: number, s) => {
     const itemQty = s.sale_items?.reduce((a: number, i: any) => a + i.quantity, 0) || 0
     return acc + itemQty
   }, 0) || 0
 
   const cashSalesToday = sales
     ?.filter(s => s.sale_type === 'cash')
-    ?.reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
+    ?.reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0
 
   const creditSalesToday = sales
     ?.filter(s => s.sale_type === 'credit')
-    ?.reduce((acc, s) => acc + Number(s.total_amount), 0) || 0
+    ?.reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0
 
   const debtPaymentsToday = payments
     ?.filter(p => p.payment_method === 'debt_repayment')
-    ?.reduce((acc, p) => acc + Number(p.amount), 0) || 0
+    ?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
 
-  const moneyCollectedToday = payments?.reduce((acc, p) => acc + Number(p.amount), 0) || 0
+  const moneyCollectedToday = payments?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
 
-  const outstandingDebt = customers?.reduce((acc, c) => acc + Number(c.debt || 0), 0) || 0
+  const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
   
-  const globalReceived = allTimeDistributions?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
-  const globalFreeReceived = allTimeDistributions?.reduce((acc, curr) => acc + (curr.free_quantity || 0), 0) || 0
+  const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const globalFreeReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
   
   const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
   const globalFreeSold = allTimeSales?.filter((s: any) => {
@@ -103,7 +103,7 @@ export async function getStaffDashboardData(date?: string) {
 
   const freeTanksToday = sales
     ?.filter(s => s.sale_type === 'free')
-    ?.reduce((acc, s) => {
+    ?.reduce((acc: number, s) => {
       const itemQty = s.sale_items?.reduce((a: number, i: any) => a + i.quantity, 0) || 0
       return acc + itemQty
     }, 0) || 0
