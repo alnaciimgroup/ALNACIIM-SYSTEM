@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { verifySession } from '@/utils/auth'
 import { getReportsSummary } from './reports/actions'
 import { getWorkDate } from '@/utils/date-utils'
+import { ReportsSummary } from '@/types/reports'
 
 export async function getAccountantOverview(dateFilter?: string, customDate?: string) {
   await verifySession(['accountant'])
@@ -32,8 +33,8 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     endDate = customDate
   }
 
-  // 1. Fetch Core Metrics via Analytics Engine (Isolated for exact Type Inference)
-  const metrics = await getReportsSummary({ startDate, endDate })
+  // 1. Fetch Core Metrics via Analytics Engine (Isolated and Explicitly Cast)
+  const metrics = await getReportsSummary({ startDate, endDate }) as ReportsSummary
   
   const periodStart = startDate ? `${startDate}T00:00:00.000Z` : '2000-01-01T00:00:00.000Z'
   const periodEnd = endDate ? `${endDate}T23:59:59.999Z` : '2099-12-31T23:59:59.999Z'

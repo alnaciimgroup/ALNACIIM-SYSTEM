@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { getReportsSummary } from '../../reports/actions'
+import { ReportsSummary } from '@/types/reports'
 
 export async function getStaffDetailReport(staffId: string, targetDate?: string) {
   const supabase = await createClient()
@@ -9,7 +10,7 @@ export async function getStaffDetailReport(staffId: string, targetDate?: string)
     staffId,
     startDate: targetDate, 
     endDate: targetDate 
-  })
+  }) as ReportsSummary
 
   const [
     { data: staff },

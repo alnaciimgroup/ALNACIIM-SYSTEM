@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { verifySession } from '@/utils/auth'
+import { ReportsSummary } from '@/types/reports'
 import { ReviewSubmissionSchema } from '@/utils/validation'
 import { logAction } from '@/utils/audit'
 import { getReportsSummary } from '../reports/actions'
@@ -35,7 +36,7 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     startDate: date,
     endDate: date,
     staffId
-  })
+  }) as ReportsSummary
 
   // Fetch pending count separately
   const { count: realPending } = await supabase

@@ -1,13 +1,14 @@
 import { getReportsSummary } from '../reports/actions'
 import { createClient } from '@/utils/supabase/server'
 import { verifySession } from '@/utils/auth'
+import { ReportsSummary } from '@/types/reports'
 
 export async function getFinancialOverview() {
   await verifySession(['accountant'])
   
   // 1. Fetch high level audited totals from the central engine
   // This ensures the $115, $100, and $15 metrics are perfectly synced
-  const metrics = await getReportsSummary({})
+  const metrics = await getReportsSummary({}) as ReportsSummary
 
   const supabase = await createClient()
 
