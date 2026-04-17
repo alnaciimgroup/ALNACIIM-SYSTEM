@@ -88,7 +88,9 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     auditedCredit,
     outstandingBalance,
     totalFreeTanks,
-    auditedFreeTanks
+    auditedFreeTanks,
+    totalSubmitted,
+    totalDifference
   } = metrics
 
   // Period stats (aggregated distributions, sales, payments for the selected window)
