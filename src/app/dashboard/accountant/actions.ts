@@ -43,6 +43,7 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     { data: periodDist },
     { data: periodSales },
     { data: periodPayments },
+    { data: submissionsData },
     { data: recentDist },
     { data: recentSales },
     { data: staffPerformance },
@@ -52,6 +53,7 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     supabase.from('distributions').select('quantity, staff_id, created_at').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('sales').select('total_amount, sale_type, staff_id, created_at, sale_items(quantity)').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('payments').select('amount, created_at, sales!inner(staff_id)').gte('created_at', periodStart).lte('created_at', periodEnd),
+    supabase.from('cash_submissions').select('id, amount, status, created_at').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(20),
     supabase.from('distributions').select('id, quantity, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
     supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
     supabase.from('users').select('id, full_name, sales:sales(total_amount, created_at)').eq('role', 'staff'),
@@ -91,6 +93,17 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     totalDifference
   } = metrics
 
+  // Period stats (aggregated distributions, sales, payments for the selected window)
+  const distributedInPeriod = periodDist?.reduce((acc, curr) => acc + curr.quantity, 0) || 0
+  const soldInPeriod = periodSales?.reduce((acc, curr) => acc + ((curr.sale_items as any)?.reduce((a: number, i: any) => a + i.quantity, 0) || 0), 0) || 0
+  const collectedInPeriod = periodPayments?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0
+  const creditInPeriod = periodSales?.filter(s => s.sale_type === 'credit')?.reduce((acc, curr) => acc + Number(curr.total_amount), 0) || 0
+  const freeInPeriod = periodSales?.filter(s => s.sale_type === 'free')?.reduce((acc, curr) => acc + ((curr.sale_items as any)?.reduce((a: number, i: any) => a + i.quantity, 0) || 0), 0) || 0
+  const expectedInPeriod = collectedInPeriod + creditInPeriod
+
+  const pendingCount = submissionsData?.filter(s => s.status === 'pending').length || 0
+  const flaggedDiscrepancies = submissionsData?.filter(s => s.status === 'disputed') || []
+
   // Activity log should show verification status
   const recentActivity = [
     ...(recentDist?.map(d => ({ 
@@ -106,6 +119,13 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       date: s.created_at, 
       label: `Sale (${s.sale_type})`,
       isVerified: isVerified(s.staff_id, s.created_at)
+    })) || []),
+    ...(submissionsData?.slice(0, 5).map(s => ({ 
+      type: 'submission', 
+      amount: Number(s.amount), 
+      date: s.created_at, 
+      label: 'Cash Submission',
+      isVerified: s.status === 'verified'
     })) || [])
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
 
@@ -141,7 +161,8 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       totalFreeTanks,
       auditedFreeTanks,
       totalSubmitted,
-      totalDifference
+      totalDifference,
+      pendingReviews: pendingCount
     },
     todayStats: {
       distributedToday: metrics.totalDistributed, 
@@ -152,6 +173,8 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       expectedToday: metrics.expectedRevenue
     },
     topStaff,
-    recentActivity
+    recentActivity,
+    latestSubmissions: submissionsData?.slice(0, 5) || [],
+    flaggedDiscrepancies: flaggedDiscrepancies.slice(0, 5)
   }
 }
