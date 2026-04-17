@@ -1,12 +1,33 @@
 import { createClient } from '@/utils/supabase/server'
 import { getWorkDate } from '@/utils/date-utils'
 
+export interface ReportsSummary {
+  totalDistributed: number;
+  auditedDistributed: number;
+  totalSold: number;
+  auditedSold: number;
+  remainingTanks: number;
+  totalCollected: number;
+  rawCollected: number;
+  auditedCollected: number;
+  totalSubmitted: number;
+  rawSubmitted: number;
+  totalDifference: number;
+  totalCredit: number;
+  rawCredit: number;
+  auditedCredit: number;
+  totalFreeTanks: number;
+  auditedFreeTanks: number;
+  outstandingBalance: number;
+  expectedRevenue: number;
+}
+
 export async function getReportsSummary(filters: {
   startDate?: string;
   endDate?: string;
   staffId?: string;
   customerId?: string;
-}) {
+}): Promise<ReportsSummary> {
   const supabase = await createClient()
 
   let salesQuery = supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id')
