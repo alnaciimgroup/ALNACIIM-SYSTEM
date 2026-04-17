@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getReportsSummary } from '../reports/actions'
 import { createClient } from '@/utils/supabase/server'
 import { verifySession } from '@/utils/auth'

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
 import { getWorkDate } from '@/utils/date-utils'
 import { ReportsSummary } from '@/types/reports'

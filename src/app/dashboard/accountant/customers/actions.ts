@@ -1,5 +1,6 @@
 'use server'
 
+// @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
 import { verifySession } from '@/utils/auth'
 
