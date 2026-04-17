@@ -258,26 +258,6 @@ export default async function ReportsPage({
                 <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary?.totalCollected?.toLocaleString() ?? 0}</div>
              </div>
 
-             {/* 5. Submitted */}
-             <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-[12px] bg-[#f0fdf4] text-[#16a34a] flex items-center justify-center mb-4">
-                   <Banknote size={20} />
-                </div>
-                <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Money Submitted</span>
-                <div className="text-[24px] font-black text-[#0f172a] tracking-tight">${summary?.totalSubmitted?.toLocaleString() ?? 0}</div>
-             </div>
-
-             {/* 6. Difference */}
-             <div className={`p-6 rounded-[24px] border shadow-sm flex flex-col hover:shadow-md transition-all ${summary.totalDifference !== 0 ? 'bg-[#fef2f2] border-red-200' : 'bg-white border-[#e2e8f0]'}`}>
-                <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center mb-4 ${summary.totalDifference !== 0 ? 'bg-[#ef4444] text-white' : 'bg-[#f8fafc] text-[#64748b]'}`}>
-                   <AlertCircle size={20} />
-                </div>
-                <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Difference</span>
-                <div className={`text-[24px] font-black tracking-tight ${summary.totalDifference !== 0 ? 'text-[#ef4444]' : 'text-[#0f172a]'}`}>
-                  ${summary?.totalDifference?.toLocaleString() ?? 0}
-                </div>
-             </div>
-
              {/* 7. Outstanding */}
              <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
                 <div className="w-10 h-10 rounded-[12px] bg-[#fffbeb] text-[#d97706] flex items-center justify-center mb-4">

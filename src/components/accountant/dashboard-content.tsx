@@ -186,45 +186,7 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
           </div>
         </Link>
 
-        {/* 8. Money Submitted */}
-        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-[16px] bg-[#f0fdf4] text-[#16a34a] flex items-center justify-center">
-              <Banknote size={24} strokeWidth={2.5} />
-            </div>
-            <div className="flex flex-col items-end gap-1">
-               <div className="bg-[#f0fdf4] text-[#16a34a] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#dcfce7]">Verified</div>
-               <div className="text-[10px] font-bold text-[#16a34a] uppercase tracking-tighter">{periodLabel}</div>
-            </div>
-          </div>
-          <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Money Submitted</span>
-            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${metrics.totalSubmitted?.toLocaleString() ?? 0}</div>
-          </div>
-        </div>
-
-        {/* 9. Audit Difference */}
-        <div className={`p-6 rounded-[24px] border shadow-sm flex flex-col hover:shadow-md transition-all duration-300 ${metrics.totalDifference !== 0 ? 'bg-red-50 border-red-200' : 'bg-white border-[#e2e8f0]'}`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center ${metrics.totalDifference !== 0 ? 'bg-[#ef4444] text-white' : 'bg-[#f8fafc] text-[#64748b]'}`}>
-              <AlertCircle size={24} strokeWidth={2.5} />
-            </div>
-            <div className="flex flex-col items-end gap-1">
-               <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${metrics.totalDifference !== 0 ? 'bg-[#ef4444] text-white border-red-400' : 'bg-[#f1f5f9] text-[#64748b] border-[#e2e8f0]'}`}>
-                 {metrics.totalDifference === 0 ? 'Balanced' : 'Audit Required'}
-               </div>
-               <div className="text-[10px] font-bold text-[#64748b] uppercase tracking-tighter">{periodLabel}</div>
-            </div>
-          </div>
-          <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Audit Difference</span>
-            <div className={`text-[32px] font-black leading-none tracking-tighter ${metrics.totalDifference !== 0 ? 'text-[#ef4444]' : 'text-[#0f172a]'}`}>
-              ${metrics.totalDifference?.toLocaleString() ?? 0}
-            </div>
-          </div>
-        </div>
-
-        {/* 10. Pending Submissions */}
+        {/* 8. Unverified Items */}
         <Link 
           href="/dashboard/accountant/submissions?status=pending"
           className="bg-[#0f172a] rounded-[24px] p-6 shadow-xl flex flex-col hover:shadow-2xl transition-all duration-300 text-white group cursor-pointer"
