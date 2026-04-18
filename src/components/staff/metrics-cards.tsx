@@ -13,8 +13,6 @@ interface StaffMetricsProps {
 }
 
 export function StaffMetricsCards({ metrics }: { metrics: StaffMetricsProps }) {
-  const totalMoneyToday = metrics.cashSalesToday + metrics.creditSalesToday
-
   const cards = [
     { title: 'Tanks Received', value: metrics.tanksReceived, icon: ArrowDownToLine, color: 'text-blue-500', bg: 'bg-blue-50' },
     { title: 'Tanks Sold', value: metrics.tanksSold, icon: ShoppingBag, color: 'text-emerald-500', bg: 'bg-emerald-50' },
@@ -22,7 +20,6 @@ export function StaffMetricsCards({ metrics }: { metrics: StaffMetricsProps }) {
     { title: 'Cash Collected', value: `$${metrics.moneyCollectedToday}`, icon: Banknote, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { title: 'Credit (Debt)', value: `$${metrics.creditSalesToday}`, icon: CreditCard, color: 'text-orange-500', bg: 'bg-orange-50' },
     { title: 'Debt Payments', value: `$${metrics.debtPaymentsToday}`, icon: ArrowDownCircle, color: 'text-teal-500', bg: 'bg-teal-50' },
-    { title: 'Total Money Today', value: `$${totalMoneyToday}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { title: 'Total Money in Debt', value: `$${metrics.outstandingDebt}`, icon: Wallet, color: 'text-red-500', bg: 'bg-red-50' }
   ]
 
