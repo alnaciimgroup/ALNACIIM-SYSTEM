@@ -1,6 +1,7 @@
 'use server'
 
 // @ts-nocheck
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { verifySession } from '@/utils/auth'
@@ -87,12 +88,14 @@ export async function getAgentDashboardData() {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   sevenDaysAgo.setHours(0,0,0,0)
 
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
   const [
     { data: staffList },
     { data: distributions },
     { data: weeklyData }
   ] = await Promise.all([
-    supabase.from('users').select('id, full_name').eq('role', 'staff').order('full_name'),
+    supabaseAdmin.from('users').select('id, full_name').eq('role', 'staff').order('full_name'),
     supabase.from('distributions').select('id, created_at, quantity, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
     supabase.from('distributions').select('quantity, free_quantity').gte('created_at', sevenDaysAgo.toISOString())
   ])
@@ -282,9 +285,10 @@ export async function getAgentReportsData() {
 export async function getStaffNetworkDetails() {
   const { user } = await verifySession(['agent'])
   const supabase = await createClient()
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
   // 1. Fetch all staff members
-  const { data: staffList } = await supabase
+  const { data: staffList } = await supabaseAdmin
     .from('users')
     .select('id, full_name, email, is_active')
     .eq('role', 'staff')
