@@ -118,27 +118,49 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
 
   const supabaseAdmin = createAdminClient()
 
-  const { error } = await supabaseAdmin
+  // NEW DEEP FIX: 
+  // 1. Check if a submission already exists for this staff/date 
+  // (We do this manually because the DB is missing the required unique index for a single 'upsert' command)
+  const { data: existingSubmission } = await supabaseAdmin
     .from('cash_submissions')
-    .upsert({
-      staff_id: user.id,
-      submission_date,
-      tanks_sold,
-      money_collected,
-      submitted_amount,
-      amount: submitted_amount, // Legacy compatibility
-      difference_amount,
-      note,
-      status: 'pending'
-    }, { 
-      onConflict: 'staff_id, submission_date',
-      ignoreDuplicates: false 
-    })
+    .select('id')
+    .eq('staff_id', user.id)
+    .eq('submission_date', submission_date)
+    .single()
 
-  if (error) {
-    console.error('CRITICAL SUBMISSION ERROR:', error)
+  const submissionPayload = {
+    staff_id: user.id,
+    submission_date,
+    tanks_sold,
+    money_collected,
+    submitted_amount,
+    amount: submitted_amount, // Legacy compatibility
+    difference_amount,
+    note,
+    status: 'pending'
+  }
+
+  let finalError = null
+
+  if (existingSubmission?.id) {
+    // 2a. If found, update the existing entry
+    const { error } = await supabaseAdmin
+      .from('cash_submissions')
+      .update(submissionPayload)
+      .eq('id', existingSubmission.id)
+    finalError = error
+  } else {
+    // 2b. If not found, create a brand new entry
+    const { error } = await supabaseAdmin
+      .from('cash_submissions')
+      .insert(submissionPayload)
+    finalError = error
+  }
+
+  if (finalError) {
+    console.error('FINAL SUBMISSION ERROR:', finalError)
     return { 
-      message: `Database Error: ${error.message}${error.hint ? ' - ' + error.hint : ''}`, 
+      message: `Failed to finalize: ${finalError.message}`, 
       error: true 
     }
   }
