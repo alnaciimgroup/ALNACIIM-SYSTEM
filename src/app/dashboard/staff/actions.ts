@@ -88,7 +88,7 @@ export async function getStaffDashboardData(date?: string) {
     ?.filter(p => p.payment_method === 'debt_repayment')
     ?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
 
-  const moneyCollectedToday = payments?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
+  const moneyCollectedToday = (payments?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0) || cashSalesToday + debtPaymentsToday
 
   const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
   
