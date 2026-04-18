@@ -1,7 +1,7 @@
 'use server'
 
 // @ts-nocheck
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { verifySession } from '@/utils/auth'
@@ -88,17 +88,23 @@ export async function getAgentDashboardData() {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   sevenDaysAgo.setHours(0,0,0,0)
 
-  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const supabaseAdmin = createAdminClient()
 
   const [
-    { data: staffList },
-    { data: distributions },
-    { data: weeklyData }
+    staffResponse,
+    distributionsResponse,
+    weeklyResponse
   ] = await Promise.all([
     supabaseAdmin.from('users').select('id, full_name').eq('role', 'staff').order('full_name'),
     supabase.from('distributions').select('id, created_at, quantity, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
     supabase.from('distributions').select('quantity, free_quantity').gte('created_at', sevenDaysAgo.toISOString())
   ])
+
+  const staffList = staffResponse.data || []
+  const distributions = distributionsResponse.data || []
+  const weeklyData = weeklyResponse.data || []
+
+  if (staffResponse.error) console.error('Agent Dashboard Staff Fetch Error:', staffResponse.error)
 
   const weeklyTotal = weeklyData?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
   const weeklyFree = weeklyData?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
@@ -285,14 +291,20 @@ export async function getAgentReportsData() {
 export async function getStaffNetworkDetails() {
   const { user } = await verifySession(['agent'])
   const supabase = await createClient()
-  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const supabaseAdmin = createAdminClient()
 
-  // 1. Fetch all staff members
-  const { data: staffList } = await supabaseAdmin
+  // 1. Fetch all staff members 
+  // IMPORTANT: We only select 'id' and 'full_name' because 'email' and 'is_active' may not exist in public.users
+  const { data: staffList, error } = await supabaseAdmin
     .from('users')
-    .select('id, full_name, email, is_active')
+    .select('id, full_name')
     .eq('role', 'staff')
     .order('full_name')
+
+  if (error) {
+    console.error('Staff Network Fetch Error:', error)
+    return []
+  }
 
   if (!staffList) return []
 
@@ -323,8 +335,8 @@ export async function getStaffNetworkDetails() {
     return {
       id: staff.id,
       name: staff.full_name || 'Unknown',
-      phone: staff.email || 'N/A', // Using email since phone isn't standard in pure auth unless added
-      status: staff.is_active !== false ? 'Active' : 'Inactive',
+      phone: 'Field Personnel', 
+      status: 'Active',
       tanksReceived: lifetimeReceived,
       currentStock: currentStock
     }
