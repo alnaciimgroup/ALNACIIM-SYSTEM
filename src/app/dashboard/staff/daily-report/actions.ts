@@ -118,15 +118,14 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
 
   const supabaseAdmin = createAdminClient()
 
-  // NEW DEEP FIX: 
-  // 1. Check if a submission already exists for this staff/date 
-  // (We do this manually because the DB is missing the required unique index for a single 'upsert' command)
-  const { data: existingSubmission } = await supabaseAdmin
+  // SCORCHED EARTH FIX: 
+  // We proactively delete any entry for this staff/date pairs to ensure 100% clean insert.
+  // This bypasses any and all 'ON CONFLICT' or 'Duplicate' errors from the database.
+  await supabaseAdmin
     .from('cash_submissions')
-    .select('id')
+    .delete()
     .eq('staff_id', user.id)
     .eq('submission_date', submission_date)
-    .single()
 
   const submissionPayload = {
     staff_id: user.id,
@@ -140,27 +139,14 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
     status: 'pending'
   }
 
-  let finalError = null
+  const { error } = await supabaseAdmin
+    .from('cash_submissions')
+    .insert(submissionPayload)
 
-  if (existingSubmission?.id) {
-    // 2a. If found, update the existing entry
-    const { error } = await supabaseAdmin
-      .from('cash_submissions')
-      .update(submissionPayload)
-      .eq('id', existingSubmission.id)
-    finalError = error
-  } else {
-    // 2b. If not found, create a brand new entry
-    const { error } = await supabaseAdmin
-      .from('cash_submissions')
-      .insert(submissionPayload)
-    finalError = error
-  }
-
-  if (finalError) {
-    console.error('FINAL SUBMISSION ERROR:', finalError)
+  if (error) {
+    console.error('FINAL SCORCHED EARTH ERROR:', error)
     return { 
-      message: `Failed to finalize: ${finalError.message}`, 
+      message: `Critial Failure: ${error.message}. Please contact support.`, 
       error: true 
     }
   }
