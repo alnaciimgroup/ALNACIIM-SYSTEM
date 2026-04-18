@@ -48,7 +48,7 @@ export default async function DailyReportPage({
             )}
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-6 mb-10">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
             <div className="col-span-1 lg:col-span-1 bg-white p-5 rounded-[24px] border border-[#e5e7eb] shadow-sm flex flex-col items-center justify-center gap-2 text-center">
               <div className="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#3b82f6]">
                 <ShoppingBag size={20} strokeWidth={2.5} />
@@ -89,15 +89,7 @@ export default async function DailyReportPage({
               </div>
             </div>
 
-            <div className="col-span-1 lg:col-span-1 bg-white p-5 rounded-[24px] border border-[#e5e7eb] shadow-sm flex flex-col items-center justify-center gap-2 text-center">
-              <div className="w-10 h-10 rounded-full bg-[#fef2f2] flex items-center justify-center text-[#ef4444]">
-                <TrendingUp size={20} strokeWidth={2.5} />
-              </div>
-              <div>
-                <span className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest block mb-0.5">Total Debt</span>
-                <span className="text-[20px] font-black text-[#ef4444] leading-none">${summary.outstandingDebt.toFixed(2)}</span>
-              </div>
-            </div>
+
 
             <div className="col-span-1 lg:col-span-1 bg-white p-5 rounded-[24px] border border-[#e5e7eb] shadow-sm flex flex-col items-center justify-center gap-2 text-center">
               <div className="w-10 h-10 rounded-full bg-[#f8fafc] flex items-center justify-center text-[#64748b]">
@@ -119,7 +111,6 @@ export default async function DailyReportPage({
                   cashSales: summary.cashSalesTotal,
                   debtPayments: summary.debtPayments,
                   creditSold: summary.creditSalesTotal,
-                  outstandingDebt: summary.outstandingDebt,
                   freeTanksSold: dashboardData.metrics.freeTanksToday || 0,
                   status: summary.submissionStatus === 'verified' ? 'VERIFIED' : (summary.submissionStatus === 'submitted' || summary.submissionStatus === 'disputed' ? 'SUBMITTED' : 'PENDING'),
                   date: summary.date
