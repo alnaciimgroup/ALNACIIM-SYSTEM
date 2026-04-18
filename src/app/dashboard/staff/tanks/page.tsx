@@ -25,7 +25,7 @@ export default async function MyTanksPage() {
                 <span className="text-[11px] font-black text-[#3b82f6] bg-[#eff6ff] px-3 py-1 rounded-full uppercase">Total In</span>
               </div>
               <div>
-                <span className="text-[36px] font-black text-[#0f172a] leading-none">{metrics.tanksReceived}</span>
+                <span className="text-[36px] font-black text-[#0f172a] leading-none">{metrics.tanksReceivedLifetime}</span>
                 <p className="text-[14px] text-[#64748b] font-medium mt-1">Tanks Received Lifetime</p>
               </div>
             </div>
@@ -38,7 +38,7 @@ export default async function MyTanksPage() {
                 <span className="text-[11px] font-black text-[#10b981] bg-[#ecfdf5] px-3 py-1 rounded-full uppercase">Total Out</span>
               </div>
               <div>
-                <span className="text-[36px] font-black text-[#0f172a] leading-none">{metrics.tanksSold}</span>
+                <span className="text-[36px] font-black text-[#0f172a] leading-none">{metrics.tanksSoldLifetime}</span>
                 <p className="text-[14px] text-[#64748b] font-medium mt-1">Tanks Sold Lifetime</p>
               </div>
             </div>
