@@ -1,8 +1,10 @@
 import { Header } from '@/components/layout/header'
 import { Search, UserCheck } from 'lucide-react'
 
-export default function StaffListPage() {
-  const dummyStaff: any[] = []
+import { getStaffNetworkDetails } from '../actions'
+
+export default async function StaffListPage() {
+  const staffList = await getStaffNetworkDetails()
 
   return (
     <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
@@ -46,7 +48,7 @@ export default function StaffListPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f1f5f9]">
-                  {dummyStaff.map(staff => (
+                  {staffList.map(staff => (
                     <tr key={staff.id} className="hover:bg-[#f8fafc]/50 transition-colors">
                       <td className="py-4 font-bold text-[#0f172a] text-[15px]">{staff.name}</td>
                       <td className="py-4 text-[14px] text-[#64748b] font-medium">{staff.phone}</td>
@@ -68,7 +70,7 @@ export default function StaffListPage() {
                       </td>
                     </tr>
                   ))}
-                  {dummyStaff.length === 0 && (
+                  {staffList.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-[14px] font-medium text-[#94a3b8]">
                         No staff members found.
