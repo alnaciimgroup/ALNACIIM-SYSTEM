@@ -2,6 +2,7 @@
 
 // @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -66,7 +67,7 @@ export async function getDailySummary(selectedDate?: string) {
     ?.filter(p => p.payment_method === 'debt_repayment')
     ?.reduce((acc: number, curr) => acc + Number(curr.amount), 0) || 0
 
-  const totalMoneyCollected = paymentsData?.reduce((acc: number, curr) => acc + Number(curr.amount), 0) || 0
+  const totalMoneyCollected = (paymentsData?.reduce((acc: number, curr) => acc + Number(curr.amount), 0) || 0) || cashSalesTotal + debtPayments
 
   // Optional: Also calculate Outstanding Debt for the daily report context
   const { data: customers } = await supabase
@@ -115,9 +116,11 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
 
   const difference_amount = money_collected - submitted_amount
 
-  const { error } = await supabase
+  const supabaseAdmin = createAdminClient()
+
+  const { error } = await supabaseAdmin
     .from('cash_submissions')
-    .insert({
+    .upsert({
       staff_id: user.id,
       submission_date,
       tanks_sold,
@@ -127,6 +130,9 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
       difference_amount,
       note,
       status: 'pending'
+    }, { 
+      onConflict: 'staff_id, submission_date',
+      ignoreDuplicates: false 
     })
 
   if (error) {
