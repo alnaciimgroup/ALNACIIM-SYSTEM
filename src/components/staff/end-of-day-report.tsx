@@ -11,7 +11,6 @@ interface ReportProps {
   cashSales: number
   debtPayments: number
   creditSold: number
-  outstandingDebt: number
   freeTanksSold: number
   status: 'PENDING' | 'SUBMITTED' | 'VERIFIED'
   date: string
@@ -73,13 +72,7 @@ export function EndOfDayReport({ report }: { report: ReportProps }) {
           <span className="text-[16px] font-bold text-gray-400">${report.creditSold.toFixed(2)}</span>
         </div>
 
-        <div className="flex items-center justify-between border-b border-gray-800 pb-4">
-          <div className="flex items-center gap-3">
-            <Wallet size={16} className="text-red-400" />
-            <span className="text-[14px] text-gray-400 font-medium">Total Outstanding Debt</span>
-          </div>
-          <span className="text-[16px] font-bold text-red-400">${report.outstandingDebt.toFixed(2)}</span>
-        </div>
+
 
         <div className="flex items-center justify-between border-b border-gray-800 pb-5">
           <div className="flex items-center gap-3">
