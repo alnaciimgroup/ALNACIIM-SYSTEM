@@ -261,41 +261,7 @@ export async function recordSale(prevState: any, formData: FormData) {
   redirect('/dashboard/staff/history?success=true&message=Sale+recorded+successfully')
 }
 
-/**
- * Submit Daily Report (Cash Submission)
- */
-export async function submitDailyReport(prevState: any, formData: FormData) {
-  const { user } = await verifySession(['staff'])
-  const supabase = await createClient()
 
-  const amount = parseFloat(formData.get('amount') as string)
-  
-  const validated = SubmissionSchema.safeParse({ amount })
-  if (!validated.success) {
-    return { message: validated.error.issues[0].message, errors: true }
-  }
-
-  const workDay = getCurrentWorkDate()
-
-  const { error } = await supabase
-    .from('cash_submissions')
-    .insert({
-      staff_id: user.id,
-      amount: validated.data.amount,
-      submission_date: workDay,
-      status: 'pending'
-    })
-
-  if (error) {
-    console.error('Report Error:', error)
-    return { message: 'Failed to submit report.', errors: true }
-  }
-
-  await logAction('SUBMIT_CASH', { details: { amount: validated.data.amount } })
-
-  revalidatePath('/dashboard/staff')
-  return { message: 'Report submitted successfully!', errors: false }
-}
 
 /**
  * Check if a sale is locked (submitted or verified)
