@@ -136,8 +136,11 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
     })
 
   if (error) {
-    console.error('Submission Error:', error)
-    return { message: 'Failed to submit report. Please try again.', error: true }
+    console.error('CRITICAL SUBMISSION ERROR:', error)
+    return { 
+      message: `Database Error: ${error.message}${error.hint ? ' - ' + error.hint : ''}`, 
+      error: true 
+    }
   }
 
   revalidatePath('/dashboard/staff/daily-report')
