@@ -56,7 +56,8 @@ export async function getStaffDashboardData(date?: string) {
     { data: payments },
     { data: allTimeDistributions },
     { data: allTimeSales },
-    { data: customers }
+    { data: customers },
+    { data: recentDistributionsList }
   ] = await Promise.all([
     supabase.from('customers').select('id', { count: 'exact', head: true }).eq('staff_id', user.id),
     distributionsQuery.select('id, created_at, quantity'),
@@ -64,7 +65,8 @@ export async function getStaffDashboardData(date?: string) {
     paymentsQuery.select('amount, payment_method, created_at'),
     supabase.from('distributions').select('quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
     supabase.from('sale_items').select('quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
-    supabase.from('customers').select('debt').eq('staff_id', user.id)
+    supabase.from('customers').select('debt').eq('staff_id', user.id),
+    supabase.from('distributions').select('id, created_at, quantity').eq('staff_id', user.id).eq('status', 'completed').order('created_at', { ascending: true }).limit(5)
   ])
 
   const totalReceived = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
@@ -113,6 +115,8 @@ export async function getStaffDashboardData(date?: string) {
     metrics: {
       tanksReceived: totalReceived,
       tanksSold: totalSold,
+      tanksReceivedLifetime: globalReceived,
+      tanksSoldLifetime: globalSold,
       freeTanksToday,
       remainingTanks,
       remainingFreeTanks,
@@ -124,7 +128,7 @@ export async function getStaffDashboardData(date?: string) {
       customerCount: customerCount || 0
     },
     recentSales: sales?.slice(0, 5) || [],
-    recentDistributions: distributions?.slice(0, 5) || []
+    recentDistributions: recentDistributionsList?.reverse() || []
   }
 }
 
