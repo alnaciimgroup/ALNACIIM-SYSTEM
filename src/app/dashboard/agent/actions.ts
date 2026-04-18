@@ -278,3 +278,53 @@ export async function getAgentReportsData() {
     }
   }
 }
+
+export async function getStaffNetworkDetails() {
+  const { user } = await verifySession(['agent'])
+  const supabase = await createClient()
+
+  // 1. Fetch all staff members
+  const { data: staffList } = await supabase
+    .from('users')
+    .select('id, full_name, email, is_active')
+    .eq('role', 'staff')
+    .order('full_name')
+
+  if (!staffList) return []
+
+  // 2. Fetch all distributions to calculate lifetime received
+  const { data: distributions } = await supabase
+    .from('distributions')
+    .select('staff_id, quantity, free_quantity')
+    .eq('status', 'completed')
+
+  // 3. Fetch all sale items to calculate lifetime sold
+  const { data: sales } = await supabase
+    .from('sale_items')
+    .select('quantity, sales!inner(staff_id, status)')
+    .eq('sales.status', 'completed')
+
+  // Map the calculations
+  const staffNetwork = staffList.map(staff => {
+    // Sum distributions for this staff
+    const staffDistributions = distributions?.filter(d => d.staff_id === staff.id) || []
+    const lifetimeReceived = staffDistributions.reduce((acc, curr) => acc + curr.quantity + (curr.free_quantity || 0), 0)
+
+    // Sum sales for this staff
+    const staffSales = sales?.filter((s: any) => s.sales?.staff_id === staff.id) || []
+    const lifetimeSold = staffSales.reduce((acc: number, curr: any) => acc + curr.quantity, 0)
+
+    const currentStock = lifetimeReceived - lifetimeSold
+
+    return {
+      id: staff.id,
+      name: staff.full_name || 'Unknown',
+      phone: staff.email || 'N/A', // Using email since phone isn't standard in pure auth unless added
+      status: staff.is_active !== false ? 'Active' : 'Inactive',
+      tanksReceived: lifetimeReceived,
+      currentStock: currentStock
+    }
+  })
+
+  return staffNetwork
+}
