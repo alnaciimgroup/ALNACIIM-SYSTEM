@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, CheckCircle2, ShieldAlert, Clock, AlertCircle, Save, Loader2, Banknote, User, Calendar, MessageSquare, Calculator, ListChecks } from 'lucide-react'
+import { X, CheckCircle2, ShieldAlert, Clock, AlertCircle, Save, Loader2, Banknote, User, Calendar, MessageSquare, Calculator, ListChecks, TrendingUp } from 'lucide-react'
 import { updateSubmissionStatus, getSubmissionBreakdown } from '@/app/dashboard/accountant/submissions/actions'
 import { useToast } from '@/components/ui/toast'
 import { useEffect } from 'react'
