@@ -1,6 +1,7 @@
 import { Header } from '@/components/layout/header'
 import { getAccountantOverview } from './actions'
 import { StaffPerformanceTable } from '@/components/accountant/staff-performance-table'
+import { ExportDataButton } from '@/components/accountant/export-button'
 import Link from 'next/link'
 import { Truck, Tag, ClipboardList, Banknote, TrendingUp, Building2, AlertCircle, ShoppingCart, Wallet, Clock, ShieldAlert, Users, ChevronRight, ArrowUpRight, Activity, Download } from 'lucide-react'
 
@@ -22,7 +23,12 @@ export default async function AccountantDashboardPage(props: {
     <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
       <Header 
         title="Accountant Overview"
-        actions={<DashboardFilter />}
+        actions={
+          <div className="flex items-center gap-4">
+            <ExportDataButton />
+            <DashboardFilter />
+          </div>
+        }
       />
       
       <main className="flex-1 overflow-y-auto px-8 pt-6 pb-8">

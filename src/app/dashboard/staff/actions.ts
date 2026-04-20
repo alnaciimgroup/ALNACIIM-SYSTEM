@@ -26,13 +26,13 @@ export async function getStaffDashboardData(date?: string) {
     nextDay.setDate(nextDay.getDate() + 1)
     const nextDateStr = nextDay.toISOString().split('T')[0]
     endOfDay = `${nextDateStr}T03:59:59.999Z`
-    
+
     // Start of day should actually start at 4 AM of current calendar day
     startOfDay = `${date}T04:00:00.000Z`
   } else if (!date) {
     const todayWorkDate = getCurrentWorkDate()
     startOfDay = `${todayWorkDate}T04:00:00.000Z`
-    
+
     const tomorrow = new Date(todayWorkDate)
     tomorrow.setDate(tomorrow.getDate() + 1)
     const tomorrowStr = tomorrow.toISOString().split('T')[0]
@@ -94,16 +94,16 @@ export async function getStaffDashboardData(date?: string) {
   const moneyCollectedToday = (payments?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0) || cashSalesToday + debtPaymentsToday
 
   const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
-  
+
   const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
   const globalFreeReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
-  
+
   const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
   const globalFreeSold = allTimeSales?.filter((s: any) => {
     const sale = Array.isArray(s.sales) ? s.sales[0] : s.sales;
     return sale?.sale_type === 'free';
   })?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
-  
+
   const remainingTanks = globalReceived - globalSold
   const remainingFreeTanks = globalFreeReceived - globalFreeSold
 
@@ -180,7 +180,7 @@ export async function recordSale(prevState: any, formData: FormData) {
     .single()
 
   if (custError || !customer) return { message: 'Customer not found.', errors: true }
-  
+
   // Security Check: Ensure staff owns this customer
   if (customer.staff_id !== user.id) {
     await logAction('CANCEL_SALE', { details: { reason: 'Unauthorized customer access attempt', customer_id } })
@@ -194,9 +194,9 @@ export async function recordSale(prevState: any, formData: FormData) {
   // 4. Validate Inventory (Stock Verification)
   const { metrics } = await getStaffDashboardData()
   if (quantity > metrics.remainingTanks) {
-    return { 
-      message: `Insufficient Stock. You only have ${metrics.remainingTanks} units available.`, 
-      errors: true 
+    return {
+      message: `Insufficient Stock. You only have ${metrics.remainingTanks} units available.`,
+      errors: true
     }
   }
 
@@ -255,10 +255,10 @@ export async function recordSale(prevState: any, formData: FormData) {
   }
 
   // 8. Log Success
-  await logAction('CREATE_SALE', { 
-    targetTable: 'sales', 
-    targetId: sale.id, 
-    details: { customer_id, total_amount, sale_type } 
+  await logAction('CREATE_SALE', {
+    targetTable: 'sales',
+    targetId: sale.id,
+    details: { customer_id, total_amount, sale_type }
   })
 
   revalidatePath('/dashboard/staff')
@@ -307,9 +307,9 @@ export async function updateSale(id: string, quantity: number, unitPrice: number
     .select('total_amount, sale_type, customer_id')
     .eq('id', id)
     .single()
-    
+
   if (!oldSale) throw new Error('Sale not found')
-  
+
   const oldTotal = Number(oldSale.total_amount)
   const totalAmount = quantity * unitPrice
   const delta = totalAmount - oldTotal
@@ -325,10 +325,10 @@ export async function updateSale(id: string, quantity: number, unitPrice: number
   // 2. Update Sale Total
   const { error: saleError } = await supabase
     .from('sales')
-    .update({ 
-      total_amount: totalAmount, 
+    .update({
+      total_amount: totalAmount,
       sale_type: unitPrice === 0 ? 'free' : oldSale.sale_type, // Auto-update to free if price is 0
-      updated_at: new Date().toISOString() 
+      updated_at: new Date().toISOString()
     })
     .eq('id', id)
 
