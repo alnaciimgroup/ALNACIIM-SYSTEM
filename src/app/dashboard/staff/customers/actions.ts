@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { verifySession } from '@/utils/auth'
@@ -9,7 +10,7 @@ import { logAction } from '@/utils/audit'
 
 export async function getCustomers(search?: string, statusFilter?: string) {
   const { user } = await verifySession(['staff', 'accountant', 'agent'])
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   let query = supabase
     .from('customers')
@@ -37,7 +38,7 @@ export async function getCustomers(search?: string, statusFilter?: string) {
 
 export async function createCustomer(prevState: any, formData: FormData) {
   const { user } = await verifySession(['staff'])
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const rawData = {
     name: formData.get('name') as string,
@@ -85,7 +86,7 @@ export async function createCustomer(prevState: any, formData: FormData) {
 
 export async function toggleCustomerStatus(id: string, currentStatus: string) {
   const { user } = await verifySession(['staff'])
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
 
@@ -110,7 +111,7 @@ export async function toggleCustomerStatus(id: string, currentStatus: string) {
 }
 
 export async function getCustomerById(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
@@ -132,7 +133,7 @@ export async function getCustomerById(id: string) {
 
 export async function updateCustomer(id: string, prevState: any, formData: FormData) {
   const { user } = await verifySession(['staff'])
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const rawData = {
     name: formData.get('name') as string,
@@ -180,7 +181,7 @@ export async function updateCustomer(id: string, prevState: any, formData: FormD
 
 export async function recordDebtPayment(prevState: any, formData: FormData) {
   const { user } = await verifySession(['staff'])
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const customer_id = formData.get('customer_id') as string
   const amountStr = formData.get('amount') as string
