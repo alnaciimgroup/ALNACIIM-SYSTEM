@@ -324,7 +324,7 @@ export async function getStaffNetworkDetails() {
   const staffNetwork = staffList.map(staff => {
     // Sum distributions for this staff
     const staffDistributions = distributions?.filter(d => d.staff_id === staff.id) || []
-    const lifetimeReceived = staffDistributions.reduce((acc, curr) => acc + curr.quantity + (curr.free_quantity || 0), 0)
+    const lifetimeReceived = staffDistributions.reduce((acc, curr) => acc + curr.quantity, 0)
 
     // Sum sales for this staff
     const staffSales = sales?.filter((s: any) => s.sales?.staff_id === staff.id) || []

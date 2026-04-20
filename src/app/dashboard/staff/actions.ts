@@ -56,18 +56,21 @@ export async function getStaffDashboardData(date?: string) {
     { data: payments },
     { data: allTimeDistributions },
     { data: allTimeSales },
-    { data: customers },
-    { data: recentDistributionsList }
+    { data: customers }
   ] = await Promise.all([
     supabase.from('customers').select('id', { count: 'exact', head: true }).eq('staff_id', user.id),
     distributionsQuery.select('id, created_at, quantity'),
     salesQuery.select('id, sale_type, total_amount, created_at, sale_items (quantity)'),
     paymentsQuery.select('amount, payment_method, created_at'),
-    supabase.from('distributions').select('quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
+    supabase.from('distributions').select('id, created_at, quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
     supabase.from('sale_items').select('quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
-    supabase.from('customers').select('debt').eq('staff_id', user.id),
-    supabase.from('distributions').select('id, created_at, quantity').eq('staff_id', user.id).eq('status', 'completed').order('created_at', { ascending: true }).limit(5)
+    supabase.from('customers').select('debt').eq('staff_id', user.id)
   ])
+
+  // Use allTimeDistributions for the recent list as well (no need for 3rd query)
+  const recentDistributionsList = [...(allTimeDistributions || [])]
+    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5)
 
   const totalReceived = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
 
