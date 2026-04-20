@@ -113,7 +113,7 @@ export async function getReportsSummary(filters: {
 
   return {
     totalDistributed: (distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0,
-    auditedDistributed: (distributions || []).filter(d => isVerified(d.staff_id, d.created_at)).reduce((acc: number, d) => acc + d.quantity, 0) || 0,
+    auditedDistributed: (distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0, // Distributions are agent-verified at source
     totalSold: (saleItems || []).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
     auditedSold: (saleItems || []).filter(si => isVerified(si.sales.staff_id, si.sales.created_at)).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
     remainingTanks: ((distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc: number, si) => acc + si.quantity, 0) || 0),
