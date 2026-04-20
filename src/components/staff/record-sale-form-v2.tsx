@@ -16,6 +16,15 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const { showToast } = useToast()
   const [salesType, setSalesType] = useState('cash')
   const [qty, setQty] = useState<number>(0)
+  const [price, setPrice] = useState<number>(5.00)
+
+  useEffect(() => {
+    if (salesType === 'free') {
+      setPrice(0.00)
+    } else if (price === 0) {
+      setPrice(5.00)
+    }
+  }, [salesType])
 
   useEffect(() => {
     if (state) {
@@ -120,18 +129,38 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           )}
         </div>
 
-        {/* Total Amount (Auto-Calculated) */}
+        {/* Unit Price (Editable) */}
         <div className="flex flex-col gap-2.5">
-          <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Total Amount ($)</label>
+          <label htmlFor="unit_price" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Price per Tank ($)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <DollarSign size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
             </div>
-            <div className={`w-full h-[50px] pl-[44px] pr-4 bg-[#eff6ff] border rounded-[12px] text-[18px] font-black flex items-center transition-all ${salesType === 'free' ? 'border-[#10b981]/20 text-[#10b981] bg-[#ecfdf5]' : 'border-[#3b82f6]/20 text-[#3b82f6] bg-[#eff6ff]'}`}>
-              {salesType === 'free' ? '0.00' : (qty * 5).toFixed(2)}
+            <input 
+              type="number" 
+              id="unit_price" 
+              name="unit_price" 
+              step="0.01"
+              min="0"
+              required
+              value={price}
+              onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+              disabled={salesType === 'free'}
+              className={`w-full h-[50px] pl-[44px] pr-4 bg-[#f8fafc] border rounded-[12px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all ${salesType === 'free' ? 'bg-gray-100 opacity-60' : 'border-[#e2e8f0]'}`}
+            />
+          </div>
+        </div>
+
+        {/* Total Amount (Auto-Calculated) */}
+        <div className="flex flex-col gap-2.5">
+          <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Total Transaction Amount ($)</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <Hash size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
             </div>
-            {/* Hidden Input for Server Action Validation */}
-            <input type="hidden" name="unit_price" value={salesType === 'free' ? '0.00' : '5.00'} />
+            <div className={`w-full h-[50px] pl-[44px] pr-4 bg-[#eff6ff] border rounded-[12px] text-[20px] font-black flex items-center transition-all ${salesType === 'free' ? 'border-[#10b981]/20 text-[#10b981] bg-[#ecfdf5]' : 'border-[#3b82f6]/20 text-[#3b82f6] bg-[#eff6ff]'}`}>
+              {(qty * price).toFixed(2)}
+            </div>
           </div>
         </div>
 

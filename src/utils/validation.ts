@@ -48,6 +48,6 @@ export const DistributionSchema = z.object({
   staff_id: z.string().uuid(),
   item_id: z.string().uuid(),
   quantity: z.number().int().positive('Quantity must be greater than 0'),
-  free_quantity: z.number().int().min(0).default(0).optional(),
+  free_quantity: z.number().int().min(0).optional().default(0),
   zone: z.string().max(100).optional(),
 })

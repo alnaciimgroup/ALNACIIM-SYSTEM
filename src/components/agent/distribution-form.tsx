@@ -82,22 +82,7 @@ export function DistributionForm({ staffList }: { staffList: StaffMember[] }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="free_quantity" className="text-[14px] font-bold text-[#1e293b]">Free Tanks Included (Optional)</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <PlusCircle size={14} className="text-[#10b981]" />
-            </div>
-            <input 
-              type="number" 
-              id="free_quantity" 
-              name="free_quantity" 
-              min="0"
-              defaultValue="0"
-              className="w-full h-[46px] pl-[38px] pr-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-[10px] text-[15px] font-medium text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:bg-white focus:border-[#10b981] transition-all"
-            />
-          </div>
-        </div>
+
 
         <div className="flex flex-col gap-2">
           <label htmlFor="zone" className="text-[14px] font-bold text-[#1e293b]">Location / Zone</label>

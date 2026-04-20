@@ -15,7 +15,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   const rawData = {
     staff_id: formData.get('staff_id') as string,
     quantity: parseInt(formData.get('quantity') as string),
-    free_quantity: parseInt(formData.get('free_quantity') as string) || 0,
+    free_quantity: 0,
     zone: formData.get('zone') as string,
     item_id: '' // Will be resolved
   }
