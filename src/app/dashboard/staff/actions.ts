@@ -169,8 +169,8 @@ export async function recordSale(prevState: any, formData: FormData) {
     return { message: validated.error.issues[0].message, errors: true }
   }
 
-  const { customer_id, sale_type, items: saleItems, total_amount } = validated.data
-  const { quantity, unit_price } = saleItems[0]
+  const { customer_id, sale_type, total_amount } = validated.data
+  // quantity and unit_price are already defined above and used in building rawData
 
   // 3. Validate Customer Ownership & Status
   const { data: customer, error: custError } = await supabase
