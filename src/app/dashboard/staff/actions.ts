@@ -144,23 +144,24 @@ export async function recordSale(prevState: any, formData: FormData) {
   const supabase = await createClient()
 
   const saleType = formData.get('sale_type') as string
-  const rawData = {
-    customer_id: formData.get('customer_id') as string,
-    sale_type: saleType,
-    items: [{
-      item_id: '', // Will be resolved below
-      quantity: parseInt(formData.get('quantity') as string),
-      unit_price: saleType === 'free' ? 0.00 : 5.00, // Globally enforced unit price
-    }],
-    total_amount: 0 // Will be calculated
-  }
+  const quantity = parseInt(formData.get('quantity') as string)
+  const unit_price = saleType === 'free' ? 0.00 : parseFloat(formData.get('unit_price') as string || '5.00')
 
   // 1. Get default item (Water Tank)
   const { data: items } = await supabase.from('items').select('id').limit(1)
   const item_id = items?.[0]?.id
   if (!item_id) return { message: 'System Error: No items found.', errors: true }
-  rawData.items[0].item_id = item_id
-  rawData.total_amount = rawData.items[0].quantity * rawData.items[0].unit_price
+
+  const rawData = {
+    customer_id: formData.get('customer_id') as string,
+    sale_type: saleType,
+    items: [{
+      item_id: item_id,
+      quantity: quantity,
+      unit_price: unit_price,
+    }],
+    total_amount: quantity * unit_price
+  }
 
   // 2. Validate with Zod
   const validated = SaleSchema.safeParse(rawData)
@@ -324,7 +325,11 @@ export async function updateSale(id: string, quantity: number, unitPrice: number
   // 2. Update Sale Total
   const { error: saleError } = await supabase
     .from('sales')
-    .update({ total_amount: totalAmount, updated_at: new Date().toISOString() })
+    .update({ 
+      total_amount: totalAmount, 
+      sale_type: unitPrice === 0 ? 'free' : oldSale.sale_type, // Auto-update to free if price is 0
+      updated_at: new Date().toISOString() 
+    })
     .eq('id', id)
 
   if (saleError) throw new Error('Failed to update sale total')
