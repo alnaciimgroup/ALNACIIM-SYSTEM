@@ -39,43 +39,83 @@ export async function generateFinancialExport(range: string, custom?: { start: s
   const startStr = startDate ? `${startDate}T00:00:00.000Z` : '2000-01-01T00:00:00.000Z'
   const endStr = endDate ? `${endDate}T23:59:59.999Z` : '2099-12-31T23:59:59.999Z'
 
-  // Fetch all 4 data types
-  const [
-    { data: sales, error: salesError },
-    { data: payments, error: paymentsError },
-    { data: submissions, error: submissionsError },
-    { data: distributions, error: distributionsError }
-  ] = await Promise.all([
-    supabase
-      .from('sales')
-      .select('id, created_at, sale_type, total_amount, staff:users!sales_staff_id_fkey(full_name), customer:customers(name), sale_items(quantity)')
-      .gte('created_at', startStr)
-      .lte('created_at', endStr)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('payments')
-      .select('id, created_at, amount, payment_method, sales!inner(staff:users!sales_staff_id_fkey(full_name), customer:customers(name))')
-      .gte('created_at', startStr)
-      .lte('created_at', endStr)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('cash_submissions')
-      .select('id, created_at, submission_date, submitted_amount, money_collected, difference_amount, status, staff:users(full_name), note')
-      .gte('created_at', startStr)
-      .lte('created_at', endStr)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('distributions')
-      .select('id, created_at, quantity, status, agent:users!agent_id_fkey(full_name), staff:users!staff_id_fkey(full_name)')
-      .gte('created_at', startStr)
-      .lte('created_at', endStr)
-      .order('created_at', { ascending: false })
-  ])
+  try {
+    // Fetch all 4 data types with simplified joins
+    const [
+      { data: sales, error: salesError },
+      { data: payments, error: paymentsError },
+      { data: submissions, error: submissionsError },
+      { data: distributions, error: distributionsError }
+    ] = await Promise.all([
+      supabase
+        .from('sales')
+        .select(`
+          id, 
+          created_at, 
+          sale_type, 
+          total_amount, 
+          staff:users!sales_staff_id_fkey(full_name), 
+          customer:customers(name), 
+          sale_items(quantity)
+        `)
+        .gte('created_at', startStr)
+        .lte('created_at', endStr)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('payments')
+        .select(`
+          id, 
+          created_at, 
+          amount, 
+          payment_method, 
+          sale:sales!inner(
+            staff:users!sales_staff_id_fkey(full_name), 
+            customer:customers(name)
+          )
+        `)
+        .gte('created_at', startStr)
+        .lte('created_at', endStr)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('cash_submissions')
+        .select(`
+          id, 
+          created_at, 
+          submission_date, 
+          submitted_amount, 
+          money_collected, 
+          difference_amount, 
+          status, 
+          staff:users(full_name), 
+          note
+        `)
+        .gte('created_at', startStr)
+        .lte('created_at', endStr)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('distributions')
+        .select(`
+          id, 
+          created_at, 
+          quantity, 
+          status, 
+          agent:users!agent_id_fkey(full_name), 
+          staff:users!staff_id_fkey(full_name)
+        `)
+        .gte('created_at', startStr)
+        .lte('created_at', endStr)
+        .order('created_at', { ascending: false })
+    ])
 
-  if (salesError || paymentsError || submissionsError || distributionsError) {
-    console.error('Export Fetch Error:', { salesError, paymentsError, submissionsError, distributionsError })
-    throw new Error('Failed to fetch export data')
-  }
+    if (salesError || paymentsError || submissionsError || distributionsError) {
+      console.error('EXPORT FETCH ERROR DETAILS:', {
+        sales: salesError?.message,
+        payments: paymentsError?.message,
+        submissions: submissionsError?.message,
+        distributions: distributionsError?.message
+      })
+      throw new Error('Database Error: Failed to retrieve data for export')
+    }
 
   // Normalize into shared CSV records
   const records: any[] = []
@@ -100,8 +140,8 @@ export async function generateFinancialExport(range: string, custom?: { start: s
     records.push({
       Date: new Date(p.created_at).toLocaleString(),
       Type: `Payment-${p.payment_method?.toUpperCase()}`,
-      Staff: p.sales?.staff?.full_name || 'N/A',
-      Customer: p.sales?.customer?.name || 'N/A',
+      Staff: p.sale?.staff?.full_name || 'N/A',
+      Customer: p.sale?.customer?.name || 'N/A',
       Quantity: '-',
       Amount: p.amount || 0,
       Status: 'Recorded',
@@ -161,4 +201,8 @@ export async function generateFinancialExport(range: string, custom?: { start: s
   ]
 
   return csvRows.join('\n')
+  } catch (error: any) {
+    console.error('EXPORT CRITICAL FAILURE:', error)
+    throw error
+  }
 }
