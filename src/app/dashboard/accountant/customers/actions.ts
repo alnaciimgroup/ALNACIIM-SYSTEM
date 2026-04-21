@@ -70,8 +70,8 @@ export async function getCustomerDetailedData(id: string) {
     const totalPaid = (filteredPayments || [])
       .reduce((acc: number, p) => acc + Number(p.amount), 0)
 
-    // Debt = (Initial Debt) + (Total New Sales) - (Total Paid)
-    const currentDebt = (Number(customer.debt) || 0) + totalSalesValue - totalPaid
+    // Debt = The live balance stored in the database (which is already updated by sales/payments)
+    const currentDebt = Number(customer.debt) || 0
 
     const totalFreeTanks = (sales || [])
       .filter(s => s.sale_type === 'free')
