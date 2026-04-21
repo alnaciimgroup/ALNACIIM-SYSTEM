@@ -432,8 +432,6 @@ export default async function ReportsPage({
               </div>
             )}
           </div>
-          </div>
-
         </div>
       </main>
     </div>
