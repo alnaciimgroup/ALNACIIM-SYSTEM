@@ -43,7 +43,7 @@ export async function getTransactions(filters: TransactionFilter = {}) {
   let submissionsQuery = supabase
     .from('cash_submissions')
     .select(`
-      id, amount, status, created_at,
+      id, amount, submitted_amount, status, created_at,
       staff:users!cash_submissions_staff_id_fkey(full_name)
     `)
   
@@ -83,6 +83,7 @@ export async function getTransactions(filters: TransactionFilter = {}) {
       staffName: (s.staff as any)?.full_name || 'System',
       customerName: (s.customer as any)?.name || 'Walk-in',
       amount: Number(s.total_amount),
+      isCurrency: true,
       status: s.status,
       date: new Date(s.created_at)
     })),
@@ -94,6 +95,7 @@ export async function getTransactions(filters: TransactionFilter = {}) {
       staffName: (p.sale as any)?.users?.full_name || 'System',
       customerName: (p.sale as any)?.customers?.name || 'Customer',
       amount: Number(p.amount),
+      isCurrency: true,
       status: p.status,
       date: new Date(p.created_at)
     })),
@@ -104,7 +106,8 @@ export async function getTransactions(filters: TransactionFilter = {}) {
       typeColor: 'text-purple-600 bg-purple-50 border-purple-200',
       staffName: (sub.staff as any)?.full_name || 'Staff Member',
       customerName: 'Accountant Depot',
-      amount: Number(sub.amount),
+      amount: Number(sub.submitted_amount ?? sub.amount ?? 0),
+      isCurrency: true,
       status: sub.status,
       date: new Date(sub.created_at)
     })),
@@ -114,8 +117,9 @@ export async function getTransactions(filters: TransactionFilter = {}) {
       type: 'Stock Received',
       typeColor: 'text-indigo-600 bg-indigo-50 border-indigo-200',
       staffName: (d.staff as any)?.full_name || 'Staff Member',
-      customerName: `${d.quantity}x ${(d.item as any)?.name} (From ${(d.agent as any)?.full_name})`,
-      amount: 0, // Stock doesn't have sales amount in this context
+      customerName: `(From ${(d.agent as any)?.full_name || 'Admin'})`,
+      amount: d.quantity, 
+      isCurrency: false,
       status: 'completed',
       date: new Date(d.created_at)
     }))
