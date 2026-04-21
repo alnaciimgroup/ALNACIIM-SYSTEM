@@ -162,8 +162,11 @@ export default async function TransactionsPage({
                           </div>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <span className={`text-[15px] font-black ${tx.amount > 0 ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>
-                          {tx.amount > 0 ? `$${tx.amount.toLocaleString()}` : '-'}
+                        <span className={`text-[15px] font-black ${tx.amount !== 0 ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>
+                          {tx.isCurrency 
+                            ? `$${Number(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                            : `${tx.amount} Units`
+                          }
                         </span>
                       </td>
                       <td className="px-6 py-5 text-center">
