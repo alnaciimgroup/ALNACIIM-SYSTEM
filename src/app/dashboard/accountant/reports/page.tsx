@@ -177,30 +177,30 @@ export default async function ReportsPage({
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none">Status</label>
+                <label className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none text-[#3b82f6]">Report Type</label>
                 <select 
-                  name="status"
-                  defaultValue={params.status || ''}
-                  className="w-full h-11 px-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-[14px] text-[13px] font-bold text-[#0f172a] focus:outline-none focus:border-[#3b82f6] shadow-sm appearance-none"
+                  name="type"
+                  defaultValue={params.type || ''}
+                  className="w-full h-11 px-4 bg-[#eff6ff] border border-[#3b82f6]/20 rounded-[14px] text-[13px] font-black text-[#0f172a] focus:outline-none focus:border-[#3b82f6] shadow-sm appearance-none"
                 >
-                  <option value="">All Statuses</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                  <option value="verified">Verified</option>
+                  <option value="">Select Report Type</option>
+                  {reportCategories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.title}</option>
+                  ))}
                 </select>
               </div>
 
               <div className="flex flex-col justify-end">
-                <button type="submit" className="h-11 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-black text-[13px] uppercase tracking-widest rounded-[14px] transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-                  Update All Data
+                <button type="submit" className="h-11 bg-[#0f172a] hover:bg-black text-white font-black text-[13px] uppercase tracking-widest rounded-[14px] transition-all shadow-lg shadow-blue-500/10 active:scale-95">
+                  Generate Report
                 </button>
               </div>
             </div>
-            <input type="hidden" name="type" value={params.type || ''} />
           </form>
 
           {/* 7-Metric Header Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+
              {/* 1. Distributed */}
              <div className="bg-white p-6 rounded-[24px] border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all">
                 <div className="flex items-center justify-between mb-4">
@@ -424,32 +424,14 @@ export default async function ReportsPage({
                </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {reportCategories.map(cat => (
-                <div key={cat.id} className={`bg-white border rounded-[24px] p-8 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all group ${params.type === cat.id ? 'ring-2 ring-[#3b82f6] border-[#3b82f6]/30' : 'border-[#e5e7eb]'}`}>
-                  <div className="flex items-start justify-between mb-6">
-                    <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center ${cat.bg} ${cat.color} ${cat.border} border-2`}>
-                      <cat.icon size={26} strokeWidth={2.5} />
-                    </div>
-                    <button className="h-9 px-4 rounded-[12px] bg-white border border-[#e2e8f0] text-[#64748b] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[#f8fafc] hover:text-[#0f172a] transition-all">
-                      <Download size={14} /> CSV
-                    </button>
-                  </div>
-                  
-                  <h3 className="text-[18px] font-black text-[#0f172a] mb-2 uppercase tracking-tight">{cat.title}</h3>
-                  <p className="text-[13px] font-medium text-[#64748b] mb-8 leading-relaxed">
-                    {cat.description}
-                  </p>
-  
-                  <Link 
-                    href={`/dashboard/accountant/reports?${new URLSearchParams({ ...params, type: cat.id }).toString()}`}
-                    className={`flex items-center gap-2 text-[13px] font-black uppercase tracking-widest transition-colors ${params.type === cat.id ? 'text-[#3b82f6]' : 'text-[#94a3b8] group-hover:text-[#3b82f6]'}`}
-                  >
-                    {params.type === cat.id ? 'Active View' : 'Generate Full Report'} <ChevronRight size={16} />
-                  </Link>
-                </div>
-              ))}
-            </div>
+            {params.type && (
+              <div className="flex justify-center mt-8">
+                 <button className="h-10 px-6 rounded-[12px] bg-[#3b82f6] text-white text-[13px] font-bold flex items-center gap-2 hover:bg-[#2563eb] transition-all shadow-md active:scale-95">
+                    <Download size={16} /> Export Current Data (CSV)
+                 </button>
+              </div>
+            )}
+          </div>
           </div>
 
         </div>
