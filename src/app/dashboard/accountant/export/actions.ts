@@ -136,18 +136,22 @@ export async function generateUniversalExport(range: string, custom?: { start: s
     datasets.push({ id: 'sales_summary', label: 'Sales Summary', category: 'Transactions', count: salesR.length, csvContent: [salesH.join(','), ...salesR].join('\n') })
 
     // B. Sale Item Details
-    const saleItemsH = ['Date', 'Sale Ref', 'Item Name', 'Quantity', 'Unit Price', 'Total', 'Customer', 'Staff']
+    const saleItemsH = ['Date', 'Sale Ref', 'Item Name', 'Paid Qty', 'Bonus Qty', 'Total Units', 'Unit Price', 'Total ($)', 'Customer', 'Staff']
     const saleItemsR = (rawSaleItems || [])
       .filter(si => rawSales?.some(s => s.id === si.sale_id))
       .map(si => {
         const sale = rawSales?.find(s => s.id === si.sale_id)
+        const paid = Number(si.quantity || 0)
+        const bonus = Number(si.free_quantity || 0)
         return toCsvRow([
           fmtDate(sale?.created_at),
           si.sale_id, // Full ID
           itemMap.get(si.item_id) || 'Unknown',
-          si.quantity,
+          paid,
+          bonus,
+          paid + bonus,
           fmtCurrency(si.unit_price),
-          fmtCurrency(Number(si.quantity || 0) * Number(si.unit_price || 0)),
+          fmtCurrency(paid * Number(si.unit_price || 0)),
           customerMap.get(sale?.customer_id || '') || 'N/A',
           userMap.get(sale?.staff_id || '') || 'N/A'
         ])
