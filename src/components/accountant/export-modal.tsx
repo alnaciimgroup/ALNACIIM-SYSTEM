@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Download, Calendar, Clock, Filter, AlertCircle, CheckCircle2, Loader2, FileSpreadsheet, Package, ChevronRight, Database, History, UserCheck, ShoppingBag, FolderArchive } from 'lucide-react'
+import { X, Download, Calendar, Clock, Filter, AlertCircle, CheckCircle2, Loader2, FileSpreadsheet, Package, ChevronRight, Database, History, UserCheck, ShoppingBag, FolderArchive, Hash } from 'lucide-react'
 import { generateUniversalExport, DatasetResult, ExportResult } from '@/app/dashboard/accountant/export/actions'
 import { useToast } from '@/components/ui/toast'
 import JSZip from 'jszip'
