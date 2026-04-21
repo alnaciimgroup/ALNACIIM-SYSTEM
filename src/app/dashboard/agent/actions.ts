@@ -26,14 +26,21 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   let defaultItemId = items?.[0]?.id
 
   if (!defaultItemId) {
-    // System was wiped, create a default "Standard Tank" to maintain functionality
-    const { data: newItem, error: createError } = await supabase
+    // System was wiped, use Admin Client to bypass RLS for self-healing
+    const adminSupabase = await createAdminClient()
+    const { data: newItem, error: createError } = await adminSupabase
       .from('items')
-      .insert({ name: 'Standard Water Tank', current_price: 5.00 })
+      .insert({ 
+        name: 'Standard Water Tank', 
+        current_price: 5.00,
+        stock_quantity: 0,
+        low_stock_threshold: 10
+      })
       .select('id')
       .single()
     
     if (createError || !newItem) {
+        console.error('Self-heal failed:', createError)
         return { message: 'Critical Error: System could not self-heal items table.', errors: true }
     }
     defaultItemId = newItem.id
