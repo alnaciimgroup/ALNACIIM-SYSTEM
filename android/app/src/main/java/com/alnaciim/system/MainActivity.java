@@ -13,7 +13,7 @@ public class MainActivity extends BridgeActivity {
   }
 
   @Override
-  protected void onResume() {
+  public void onResume() {
     super.onResume();
     // Force fresh load from server every time app is opened
     WebView webView = getBridge().getWebView();
