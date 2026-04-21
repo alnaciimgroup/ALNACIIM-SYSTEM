@@ -15,6 +15,7 @@ export const SaleItemSchema = z.object({
   item_id: z.string().uuid(),
   quantity: z.number().int().positive('Quantity must be greater than 0'),
   unit_price: z.number().min(0, 'Price cannot be negative'),
+  free_quantity: z.number().int().min(0).optional().default(0),
 })
 
 export const SaleSchema = z.object({

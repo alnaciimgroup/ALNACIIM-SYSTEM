@@ -74,7 +74,7 @@ export async function getDailySummary(selectedDate?: string) {
     .from('customers')
     .select('debt')
     .eq('staff_id', user.id)
-    
+
   const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
 
   // 4. Fetch Submission Status for Today
@@ -145,9 +145,9 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
 
   if (error) {
     console.error('FINAL SCORCHED EARTH ERROR:', error)
-    return { 
-      message: `Critial Failure: ${error.message}. Please contact support.`, 
-      error: true 
+    return {
+      message: `Critial Failure: ${error.message}. Please contact support.`,
+      error: true
     }
   }
 

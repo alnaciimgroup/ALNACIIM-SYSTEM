@@ -60,10 +60,10 @@ export async function getStaffDashboardData(date?: string) {
   ] = await Promise.all([
     supabase.from('customers').select('id', { count: 'exact', head: true }).eq('staff_id', user.id),
     distributionsQuery.select('id, created_at, quantity'),
-    salesQuery.select('id, sale_type, total_amount, created_at, sale_items (quantity)'),
+    salesQuery.select('id, sale_type, total_amount, created_at, sale_items (quantity, free_quantity)'),
     paymentsQuery.select('amount, payment_method, created_at'),
     supabase.from('distributions').select('id, created_at, quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
-    supabase.from('sale_items').select('quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
+    supabase.from('sale_items').select('quantity, free_quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
     supabase.from('customers').select('debt').eq('staff_id', user.id)
   ])
 
@@ -75,7 +75,7 @@ export async function getStaffDashboardData(date?: string) {
   const totalReceived = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
 
   const totalSold = sales?.reduce((acc: number, s) => {
-    const itemQty = s.sale_items?.reduce((a: number, i: any) => a + i.quantity, 0) || 0
+    const itemQty = s.sale_items?.reduce((a: number, i: any) => a + (i.quantity || 0) + (i.free_quantity || 0), 0) || 0
     return acc + itemQty
   }, 0) || 0
 
@@ -98,19 +98,21 @@ export async function getStaffDashboardData(date?: string) {
   const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
   const globalFreeReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
 
-  const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
-  const globalFreeSold = allTimeSales?.filter((s: any) => {
+  const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + (s.quantity || 0) + (s.free_quantity || 0), 0) || 0
+  const globalFreeSold = allTimeSales?.reduce((acc: number, s: any) => {
     const sale = Array.isArray(s.sales) ? s.sales[0] : s.sales;
-    return sale?.sale_type === 'free';
-  })?.reduce((acc: number, s: any) => acc + s.quantity, 0) || 0
+    const isFreeSale = sale?.sale_type === 'free';
+    const bonusQty = s.free_quantity || 0;
+    return acc + (isFreeSale ? (s.quantity || 0) : 0) + bonusQty;
+  }, 0) || 0
 
   const remainingTanks = globalReceived - globalSold
   const remainingFreeTanks = globalFreeReceived - globalFreeSold
 
   const freeTanksToday = sales
-    ?.filter(s => s.sale_type === 'free')
     ?.reduce((acc: number, s) => {
-      const itemQty = s.sale_items?.reduce((a: number, i: any) => a + i.quantity, 0) || 0
+      const isFreeSale = s.sale_type === 'free';
+      const itemQty = s.sale_items?.reduce((a: number, i: any) => a + (isFreeSale ? i.quantity : 0) + (i.free_quantity || 0), 0) || 0
       return acc + itemQty
     }, 0) || 0
 
@@ -144,7 +146,8 @@ export async function recordSale(prevState: any, formData: FormData) {
   const supabase = await createClient()
 
   const saleType = formData.get('sale_type') as string
-  const quantity = parseInt(formData.get('quantity') as string)
+  const quantity = parseInt(formData.get('quantity') as string || '0')
+  const freeQuantity = parseInt(formData.get('free_quantity') as string || '0')
   const unit_price = saleType === 'free' ? 0.00 : parseFloat(formData.get('unit_price') as string || '5.00')
 
   // 1. Get default item (Water Tank)
@@ -158,6 +161,7 @@ export async function recordSale(prevState: any, formData: FormData) {
     items: [{
       item_id: item_id,
       quantity: quantity,
+      free_quantity: freeQuantity,
       unit_price: unit_price,
     }],
     total_amount: quantity * unit_price
@@ -191,9 +195,10 @@ export async function recordSale(prevState: any, formData: FormData) {
     return { message: `Customer "${customer.name}" is INACTIVE and cannot receive new sales.`, errors: true }
   }
 
-  // 4. Validate Inventory (Stock Verification)
+  // 4. Validate Inventory (Stock Verification: Paid + Free)
   const { metrics } = await getStaffDashboardData()
-  if (quantity > metrics.remainingTanks) {
+  const totalDepletion = quantity + freeQuantity
+  if (totalDepletion > metrics.remainingTanks) {
     return {
       message: `Insufficient Stock. You only have ${metrics.remainingTanks} units available.`,
       errors: true
@@ -225,6 +230,7 @@ export async function recordSale(prevState: any, formData: FormData) {
       sale_id: sale.id,
       item_id,
       quantity,
+      free_quantity: freeQuantity,
       unit_price
     })
 
