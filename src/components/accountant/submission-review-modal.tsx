@@ -14,6 +14,8 @@ interface Submission {
   tanks_sold: number
   money_collected: number
   submitted_amount: number
+  system_expected_cash?: number
+  system_expected_credit?: number
   difference_amount: number
   status: string
   note?: string
@@ -122,14 +124,14 @@ export function SubmissionReviewModal({ submission, staffName, onClose }: Props)
               <div className="p-4 rounded-[24px] bg-[#f8fafc] border border-[#e2e8f0]">
                  <div className="flex items-center gap-2 mb-2 text-[#64748b]">
                     <Calculator size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Expected</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">System Expected</span>
                  </div>
-                 <div className="text-[20px] font-black text-[#0f172a] tracking-tighter">${Number(submission.money_collected).toFixed(2)}</div>
+                 <div className="text-[20px] font-black text-[#0f172a] tracking-tighter">${Number(submission.system_expected_cash || 0).toFixed(2)}</div>
               </div>
               <div className="p-4 rounded-[24px] bg-[#f8fafc] border border-[#e2e8f0]">
                  <div className="flex items-center gap-2 mb-2 text-[#64748b]">
                     <Banknote size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Collected</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Handed Over</span>
                  </div>
                  <input 
                     type="number" 
@@ -141,9 +143,9 @@ export function SubmissionReviewModal({ submission, staffName, onClose }: Props)
               <div className="p-4 rounded-[24px] bg-[#fef2f2] border border-[#fecaca]">
                  <div className="flex items-center gap-2 mb-2 text-red-600">
                     <TrendingUp size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Debt</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider leading-none">Audit Debt</span>
                  </div>
-                 <div className="text-[20px] font-black text-red-600 tracking-tighter">${Number((submission as any).debt_amount || 0).toFixed(2)}</div>
+                 <div className="text-[20px] font-black text-red-600 tracking-tighter">${Number(submission.system_expected_credit || 0).toFixed(2)}</div>
               </div>
            </div>
 

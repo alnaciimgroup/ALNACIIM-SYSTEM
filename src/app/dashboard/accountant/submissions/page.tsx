@@ -2,8 +2,9 @@ import { Header } from '@/components/layout/header'
 import { createClient } from '@/utils/supabase/server'
 import { getReviewSummary } from './actions'
 import { SubmissionReviewActions } from '@/components/accountant/submission-review-actions'
-import { Calculator, Banknote, TrendingUp, AlertCircle, User, Calendar, Hash, CheckCircle2, ShieldAlert, Clock } from 'lucide-react'
+import { Calculator, Banknote, TrendingUp, AlertCircle, User, Calendar, Hash } from 'lucide-react'
 import { verifySession } from '@/utils/auth'
+import { SubmissionQueueTable } from '@/components/accountant/submission-queue-table'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -181,10 +182,8 @@ export default async function AccountantSubmissionsPage({
              staffMap={staffMap}
           />
 
-        </div>
+</div>
       </main>
     </div>
   )
 }
-
-import { SubmissionQueueTable } from '@/components/accountant/submission-queue-table'
