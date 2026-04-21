@@ -102,7 +102,18 @@ export async function generateUniversalExport(range: string, custom?: { start: s
 
     const toCsvRow = (arr: any[]) => arr.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(',')
     const fmtCurrency = (val: any) => `$${Number(val || 0).toFixed(2)}`
-    const fmtDate = (val: any) => val ? new Date(val).toLocaleString('en-US', { hour12: true }) : '-'
+    
+    // Professional ISO-like format: YYYY-MM-DD HH:mm
+    const fmtDate = (val: any) => {
+      if (!val) return '-'
+      const d = new Date(val)
+      const Y = d.getFullYear()
+      const M = String(d.getMonth() + 1).padStart(2, '0')
+      const D = String(d.getDate()).padStart(2, '0')
+      const H = String(d.getHours()).padStart(2, '0')
+      const m = String(d.getMinutes()).padStart(2, '0')
+      return `${Y}-${M}-${D} ${H}:${m}`
+    }
 
     const datasets: DatasetResult[] = []
 
@@ -114,7 +125,7 @@ export async function generateUniversalExport(range: string, custom?: { start: s
     const salesH = ['Date', 'Sale ID', 'Customer', 'Staff', 'Type', 'Amount', 'Tanks', 'Status']
     const salesR = (rawSales || []).map(s => toCsvRow([
       fmtDate(s.created_at),
-      s.id.slice(0, 8),
+      s.id, // Full ID
       customerMap.get(s.customer_id) || 'N/A',
       userMap.get(s.staff_id) || 'N/A',
       s.sale_type?.toUpperCase(),
@@ -132,7 +143,7 @@ export async function generateUniversalExport(range: string, custom?: { start: s
         const sale = rawSales?.find(s => s.id === si.sale_id)
         return toCsvRow([
           fmtDate(sale?.created_at),
-          si.sale_id.slice(0, 8),
+          si.sale_id, // Full ID
           itemMap.get(si.item_id) || 'Unknown',
           si.quantity,
           fmtCurrency(si.unit_price),
@@ -149,8 +160,8 @@ export async function generateUniversalExport(range: string, custom?: { start: s
       const sale = rawSales?.find(s => s.id === p.sale_id)
       return toCsvRow([
         fmtDate(p.created_at),
-        p.id.slice(0, 8),
-        sale ? sale.id.slice(0, 8) : 'DEBT-REPAY',
+        p.id, // Full ID
+        sale ? sale.id : 'DEBT-REPAY',
         userMap.get(sale?.staff_id || '') || 'N/A',
         p.payment_method?.toUpperCase(),
         fmtCurrency(p.amount)
@@ -168,7 +179,7 @@ export async function generateUniversalExport(range: string, custom?: { start: s
       fmtCurrency(s.difference_amount),
       s.status?.toUpperCase(),
       s.note,
-      s.id.slice(0, 8)
+      s.id // Full ID
     ]))
     datasets.push({ id: 'submissions', label: 'Staff Cash Submissions', category: 'Transactions', count: subR.length, csvContent: [subH.join(','), ...subR].join('\n') })
 
@@ -180,7 +191,7 @@ export async function generateUniversalExport(range: string, custom?: { start: s
       userMap.get(d.staff_id) || 'N/A',
       d.quantity,
       d.status?.toUpperCase(),
-      d.id.slice(0, 8)
+      d.id // Full ID
     ]))
     datasets.push({ id: 'distributions', label: 'Inventory Movements', category: 'Transactions', count: distR.length, csvContent: [distH.join(','), ...distR].join('\n') })
 
@@ -190,17 +201,17 @@ export async function generateUniversalExport(range: string, custom?: { start: s
     
     // F. Customers
     const custH = ['ID', 'Name', 'Phone', 'Address', 'Debt', 'Joined']
-    const custR = (customers || []).map(c => toCsvRow([c.id.slice(0, 8), c.name, c.phone, c.address, fmtCurrency(c.debt), fmtDate(c.created_at)]))
+    const custR = (customers || []).map(c => toCsvRow([c.id, c.name, c.phone, c.address, fmtCurrency(c.debt), fmtDate(c.created_at)]))
     datasets.push({ id: 'customer_registry', label: 'Customer Registry', category: 'Registry', count: custR.length, csvContent: [custH.join(','), ...custR].join('\n') })
 
     // G. Users
     const userH = ['ID', 'Name', 'Role', 'Status', 'Email']
-    const userR = (users || []).map(u => toCsvRow([u.id.slice(0, 8), u.full_name, u.role?.toUpperCase(), u.status || 'ACTIVE', u.email]))
+    const userR = (users || []).map(u => toCsvRow([u.id, u.full_name, u.role?.toUpperCase(), u.status || 'ACTIVE', u.email]))
     datasets.push({ id: 'user_registry', label: 'User Registry', category: 'Registry', count: userR.length, csvContent: [userH.join(','), ...userR].join('\n') })
 
     // H. Items
     const itemH = ['ID', 'Name', 'Stock', 'Low Level', 'Created']
-    const itemR = (items || []).map(i => toCsvRow([i.id.slice(0, 8), i.name, i.stock_quantity, i.low_stock_threshold, fmtDate(i.created_at)]))
+    const itemR = (items || []).map(i => toCsvRow([i.id, i.name, i.stock_quantity, i.low_stock_threshold, fmtDate(i.created_at)]))
     datasets.push({ id: 'product_catalog', label: 'Product Catalog', category: 'Registry', count: itemR.length, csvContent: [itemH.join(','), ...itemR].join('\n') })
 
     return {
