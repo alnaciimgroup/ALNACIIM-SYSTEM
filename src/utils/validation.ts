@@ -34,7 +34,7 @@ export const PaymentSchema = z.object({
 
 // 4. Submission Schemas
 export const SubmissionSchema = z.object({
-  amount: z.number().positive('Amount must be greater than 0'),
+  amount: z.number().min(0, 'Amount cannot be negative'),
 })
 
 export const ReviewSubmissionSchema = z.object({
