@@ -10,10 +10,11 @@ interface Submission {
   staff_id: string
   submission_date: string
   tanks_sold: number
-  money_collected: number
-  submitted_amount: number
+  money_collected: number // Staff-reported cash
+  submitted_amount: number // Physically handed over cash
+  system_expected_cash?: number
+  system_expected_credit?: number
   difference_amount: number
-  debt_amount?: number
   status: string
   note?: string
   created_at: string
@@ -32,7 +33,7 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
       <div className="bg-white border border-[#e5e7eb] shadow-sm rounded-[28px] overflow-hidden">
         <div className="p-6 border-b border-[#f1f5f9] bg-[#f8fafc]/50 flex justify-between items-center">
            <h3 className="text-[14px] font-black text-[#0f172a] uppercase tracking-widest flex items-center gap-2">
-             <Hash size={16} className="text-[#3b82f6]" /> Daily Audit Queue
+             <Hash size={16} className="text-[#3b82f6]" /> System Audit Trace
            </h3>
         </div>
         <div className="overflow-x-auto">
@@ -40,9 +41,9 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
             <thead>
               <tr className="bg-[#f8fafc]">
                 <th className="py-5 px-8 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Staff Identity</th>
-                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Expected</th>
+                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">System Expected</th>
                 <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Collected Today</th>
-                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Debt</th>
+                <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Credit (Debt)</th>
                 <th className="py-5 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9]">Status</th>
                 <th className="py-5 pr-8 text-[11px] font-black text-[#94a3b8] uppercase tracking-widest border-b border-[#f1f5f9] text-right">Review</th>
               </tr>
@@ -50,6 +51,8 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
             <tbody className="divide-y divide-[#f1f5f9]">
               {submissions.map(sub => {
                 const staffName = staffMap[sub.staff_id] || 'Unknown Staff'
+                const totalExpected = (sub.system_expected_cash || 0) + (sub.system_expected_credit || 0)
+                const hasDiscrepancy = Math.abs((sub.system_expected_cash || 0) - Number(sub.money_collected)) > 0.01
                 
                 return (
                   <tr 
@@ -73,15 +76,26 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
                        </div>
                     </td>
                     <td className="py-6">
-                       <span className="text-[15px] font-bold text-[#64748b]">${Number(sub.money_collected).toFixed(2)}</span>
+                       <div className="flex flex-col">
+                          <span className="text-[16px] font-black text-[#0f172a] tracking-tight">${totalExpected.toFixed(2)}</span>
+                          <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-tighter">System Total</span>
+                       </div>
                     </td>
                     <td className="py-6">
-                       <span className="text-[17px] font-black text-[#0f172a] tracking-tighter">${Number(sub.submitted_amount).toFixed(2)}</span>
+                       <div className="flex flex-col">
+                          <span className={`text-[17px] font-black tracking-tighter ${hasDiscrepancy ? 'text-amber-600' : 'text-[#10b981]'}`}>
+                            ${Number(sub.submitted_amount).toFixed(2)}
+                          </span>
+                          <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-tighter">Cash Handover</span>
+                       </div>
                     </td>
                     <td className="py-6">
-                       <span className="text-[15px] font-black text-red-500">
-                          ${Number(sub.debt_amount || 0).toFixed(2)}
-                       </span>
+                       <div className="flex flex-col">
+                          <span className="text-[15px] font-black text-red-500">
+                             ${Number(sub.system_expected_credit || 0).toFixed(2)}
+                          </span>
+                          <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-tighter">Audit Debt</span>
+                       </div>
                     </td>
                     <td className="py-6">
                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] border-2 ${

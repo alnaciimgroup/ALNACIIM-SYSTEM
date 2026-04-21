@@ -46,10 +46,11 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     .eq('status', 'pending')
 
   return {
-    totalCollected: metrics.rawCollected, // System-expected total
-    totalSubmitted: metrics.rawSubmitted, // Total actual cash received today
+    totalCollected: metrics.rawCollected, // System-expected cash
+    totalSubmitted: metrics.rawSubmitted, // Total actual cash reported by staff
     totalDifference: metrics.totalDifference,
     totalCredit: metrics.rawCredit, // System-expected debt
+    expectedTotal: metrics.expectedRevenue, // Total business value (Cash + Credit)
     pendingCount: realPending || 0
   }
 }
