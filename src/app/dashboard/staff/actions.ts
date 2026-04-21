@@ -195,7 +195,38 @@ export async function recordSale(prevState: any, formData: FormData) {
     return { message: `Customer "${customer.name}" is INACTIVE and cannot receive new sales.`, errors: true }
   }
 
-  // 4. Validate Inventory (Stock Verification: Paid + Free)
+  // 4. Safety Lock: Block if previous reports are missing
+  const currentWorkDate = getCurrentWorkDate()
+  const { data: previousSales } = await supabase
+    .from('sales')
+    .select('created_at')
+    .eq('staff_id', user.id)
+    .lt('created_at', `${currentWorkDate}T00:00:00.000Z`)
+    .limit(100)
+  
+  if (previousSales && previousSales.length > 0) {
+    // Get unique dates that need reports
+    const datesToCheck = [...new Set(previousSales.map(s => s.created_at.split('T')[0]))]
+    
+    // Check which dates have submissions
+    const { data: existingSubmissions } = await supabase
+      .from('cash_submissions')
+      .select('submission_date')
+      .eq('staff_id', user.id)
+      .in('submission_date', datesToCheck)
+    
+    const submittedDates = new Set(existingSubmissions?.map(s => s.submission_date) || [])
+    const missingDate = datesToCheck.find(d => !submittedDates.has(d))
+    
+    if (missingDate) {
+      return { 
+        message: `Safety Lock Active: You have an unsubmitted report from ${new Date(missingDate).toLocaleDateString()}. [Submit Missing Report](/dashboard/staff/daily-report?date=${missingDate}) before recording today's work.`, 
+        errors: true 
+      }
+    }
+  }
+
+  // 5. Validate Inventory (Stock Verification: Paid + Free)
   const { metrics } = await getStaffDashboardData()
   const totalDepletion = quantity + freeQuantity
   if (totalDepletion > metrics.remainingTanks) {

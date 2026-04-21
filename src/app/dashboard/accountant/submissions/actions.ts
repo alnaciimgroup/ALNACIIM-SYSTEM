@@ -32,7 +32,31 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     }
   }
   
-  // Use the central analytics engine to ensure "Twin View" sync
+  // 2. Detect Missing Submissions (Staff with sales but no submission record)
+  const start = date ? `${date}T00:00:00.000Z` : null
+  const end = date ? `${date}T23:59:59.999Z` : null
+  
+  let missingCount = 0
+  if (date) {
+    const { data: activeStaff } = await supabase
+      .from('sales')
+      .select('staff_id')
+      .gte('created_at', start)
+      .lte('created_at', end)
+    
+    const uniqueActiveStaff = [...new Set(activeStaff?.map(s => s.staff_id) || [])]
+    
+    // Get those who DID submit
+    const { data: submittedStaff } = await supabase
+      .from('cash_submissions')
+      .select('staff_id')
+      .eq('submission_date', date)
+    
+    const submittedIds = new Set(submittedStaff?.map(s => s.staff_id) || [])
+    missingCount = uniqueActiveStaff.filter(id => !submittedIds.has(id)).length
+  }
+
+  // Use the central analytics engine for metrics
   const metrics = await getReportsSummary({
     startDate: date,
     endDate: date,
@@ -51,7 +75,8 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     totalDifference: metrics.totalDifference,
     totalCredit: metrics.rawCredit, // System-expected debt
     expectedTotal: metrics.expectedRevenue, // Total business value (Cash + Credit)
-    pendingCount: realPending || 0
+    pendingCount: realPending || 0,
+    missingCount: missingCount
   }
 }
 

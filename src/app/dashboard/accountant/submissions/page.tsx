@@ -158,27 +158,58 @@ export default async function AccountantSubmissionsPage({
               </div>
             </div>
 
-            {/* 4. Pending Queue */}
-            <div className="bg-[#0f172a] p-6 rounded-[24px] shadow-lg flex items-center gap-5 text-white">
-              <div className="w-12 h-12 rounded-[14px] bg-white/10 flex items-center justify-center text-white ring-4 ring-white/5">
+            {/* 4. Missing Reports */}
+            <div className={`p-6 rounded-[24px] shadow-lg flex items-center gap-5 transition-all ${
+              (summary.missingCount || 0) > 0 
+                ? 'bg-red-600 text-white' 
+                : 'bg-[#0f172a] text-white'
+            }`}>
+              <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center ${
+                (summary.missingCount || 0) > 0 ? 'bg-white text-red-600 shadow-xl' : 'bg-white/10 text-white ring-4 ring-white/5'
+              }`}>
                 <AlertCircle size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-white/40 uppercase tracking-widest leading-none mb-1.5">Pending Reports</span>
-                <span className="text-[24px] font-black leading-none text-[#3b82f6] lowercase tracking-tighter">{summary.pendingCount} Pending</span>
+                <span className="text-[11px] font-black uppercase tracking-widest leading-none mb-1.5 opacity-60">
+                  {(summary.missingCount || 0) > 0 ? 'Reports Missing' : 'Pending Review'}
+                </span>
+                <span className="text-[24px] font-black leading-none lowercase tracking-tighter">
+                  {(summary.missingCount || 0) > 0 
+                    ? `${summary.missingCount} Missing` 
+                    : `${summary.pendingCount} Pending`
+                  }
+                </span>
               </div>
             </div>
           </div>
 
           <SubmissionQueueTable 
-             submissions={submissions.map(s => {
-               const exp = expectationMap[s.staff_id] || { cash: 0, credit: 0 }
-               return {
-                 ...s,
-                 system_expected_cash: exp.cash,
-                 system_expected_credit: exp.credit
-               }
-             })} 
+             submissions={[
+               ...submissions.map(s => {
+                 const exp = expectationMap[s.staff_id] || { cash: 0, credit: 0 }
+                 return {
+                   ...s,
+                   system_expected_cash: exp.cash,
+                   system_expected_credit: exp.credit
+                 }
+               }),
+               // Add Virtual rows for missing submissions
+               ...Object.entries(expectationMap)
+                 .filter(([sid]) => !submissions.some(s => s.staff_id === sid))
+                 .map(([sid, exp]) => ({
+                    id: `missing-${sid}`,
+                    staff_id: sid,
+                    submission_date: date || new Date().toISOString().split('T')[0],
+                    tanks_sold: 0,
+                    money_collected: 0,
+                    submitted_amount: 0,
+                    system_expected_cash: exp.cash,
+                    system_expected_credit: exp.credit,
+                    difference_amount: -exp.cash,
+                    status: 'missing',
+                    created_at: new Date().toISOString()
+                 }))
+             ]} 
              staffMap={staffMap}
           />
 

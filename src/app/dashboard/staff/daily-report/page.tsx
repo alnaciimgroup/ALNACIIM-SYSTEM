@@ -22,6 +22,21 @@ export default async function DailyReportPage({
       <main className="flex-1 overflow-y-auto px-8 pt-6 pb-8">
         <div className="w-full max-w-[1200px] mx-auto">
           
+          {/* Missing Report Banner */}
+          {!summary.submissionStatus && summary.date !== new Date().toISOString().split('T')[0] && (
+            <div className="mb-8 p-6 bg-red-600 rounded-[24px] text-white flex items-center justify-between shadow-lg shadow-red-600/20 animate-pulse">
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[16px] bg-white/20 flex items-center justify-center">
+                     <AlertCircle size={28} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                     <h3 className="text-[18px] font-black uppercase tracking-tight">Missing Historical Report</h3>
+                     <p className="text-[13px] font-bold opacity-80">You are submitting data for {new Date(summary.date).toLocaleDateString()}. Your safety lock is active until this is verified.</p>
+                  </div>
+               </div>
+            </div>
+          )}
+          
           <div className="mb-8 flex justify-between items-start">
             <div>
               <Link href="/dashboard/staff" className="flex items-center gap-2 text-[#64748b] hover:text-[#3b82f6] font-bold text-[12px] mb-3 transition-colors uppercase tracking-widest group">
