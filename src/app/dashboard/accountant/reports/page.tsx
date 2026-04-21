@@ -278,8 +278,7 @@ export default async function ReportsPage({
           </div>
 
           {/* Reports Results Section */}
-          <div className="space-y-8">
-            <h3 className="text-[18px] font-extrabold text-[#0f172a] tracking-tight uppercase border-b-2 border-black/5 pb-4 mb-8">Selected Report: {params.type ? reportCategories.find(c => c.id === params.type)?.title : 'Select a category below'}</h3>
+          <div className="space-y-8 mt-4">
             
             {params.type && (
                <div className="bg-white border border-[#e5e7eb] rounded-[24px] shadow-sm overflow-hidden mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
