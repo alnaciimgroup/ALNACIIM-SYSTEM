@@ -33,14 +33,12 @@ export async function submitDistribution(prevState: any, formData: FormData) {
       .insert({ 
         name: 'Standard Water Tank', 
         current_price: 5.00,
-        stock_quantity: 0,
         low_stock_threshold: 10
       })
       .select('id')
       .single()
     
     if (createError || !newItem) {
-        console.error('Self-heal failed:', createError)
         return { message: 'Critical Error: System could not self-heal items table.', errors: true }
     }
     defaultItemId = newItem.id
