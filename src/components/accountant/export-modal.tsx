@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Download, Calendar, Clock, Filter, AlertCircle, CheckCircle2, Loader2, FileSpreadsheet, Package, ChevronRight, Hash, Database, History, UserCheck, ShoppingBag } from 'lucide-react'
-import { generateUniversalExport, DatasetResult } from '@/app/dashboard/accountant/export/actions'
+import { X, Download, Calendar, Clock, Filter, AlertCircle, CheckCircle2, Loader2, FileSpreadsheet, Package, ChevronRight, Database, History, UserCheck, ShoppingBag, FolderArchive } from 'lucide-react'
+import { generateUniversalExport, DatasetResult, ExportResult } from '@/app/dashboard/accountant/export/actions'
 import { useToast } from '@/components/ui/toast'
+import JSZip from 'jszip'
 
 interface ExportModalProps {
   isOpen: boolean
@@ -18,14 +19,14 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [isPending, setIsPending] = useState(false)
-  const [datasets, setDatasets] = useState<DatasetResult[]>([])
+  const [exportData, setExportData] = useState<ExportResult | null>(null)
   const { showToast } = useToast()
 
   if (!isOpen) return null
 
   const handleClose = () => {
     setView('selector')
-    setDatasets([])
+    setExportData(null)
     onClose()
   }
 
@@ -50,10 +51,10 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
 
     setIsPending(true)
     try {
-      const results = await generateUniversalExport(range, range === 'custom' ? { start: customStart, end: customEnd } : undefined)
-      setDatasets(results)
+      const result = await generateUniversalExport(range, range === 'custom' ? { start: customStart, end: customEnd } : undefined)
+      setExportData(result)
       setView('results')
-      showToast(`Export engine processed ${results.length} system datasets.`, 'success')
+      showToast('System audit complete. Data ready for download.', 'success')
     } catch (err: any) {
       console.error(err)
       showToast(err.message || 'Export failed', 'error')
@@ -62,20 +63,47 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
     }
   }
 
-  const handleBatchDownload = async () => {
-    // Only batch download Transactions in the filtered range
-    const filtered = datasets.filter(d => d.category === 'Transactions' && d.count > 0)
+  const handleBatchZip = async () => {
+    if (!exportData) return
     
-    if (filtered.length === 0) {
-      showToast('No transactional data found for this range.', 'error')
-      return
-    }
+    setIsPending(true)
+    try {
+      const zip = new JSZip()
+      const folder = zip.folder(`alnaciim_audit_${exportData.metadata.startDate}_to_${exportData.metadata.endDate}`)
+      
+      let filesAdded = 0
+      exportData.datasets.forEach(ds => {
+        if (ds.count > 0 || ds.category === 'Registry') {
+          const filename = ds.category === 'Transactions' 
+            ? `${ds.id}_${exportData.metadata.startDate}_to_${exportData.metadata.endDate}.csv`
+            : `${ds.id}_current_registry.csv`
+          
+          folder?.file(filename, ds.csvContent)
+          filesAdded++
+        }
+      })
 
-    showToast(`Starting batch download of ${filtered.length} datasets...`, 'success')
-    
-    for (const ds of filtered) {
-      triggerDownload(ds.csvContent, `${ds.label.replace(/\s+/g, '_')}_${range}.csv`)
-      await new Promise(resolve => setTimeout(resolve, 400))
+      if (filesAdded === 0) {
+        showToast('No records found to package.', 'error')
+        return
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' })
+      const zipUrl = URL.createObjectURL(zipBlob)
+      const link = document.createElement('a')
+      link.href = zipUrl
+      link.download = `alnaciim_audit_package_${exportData.metadata.startDate}_to_${exportData.metadata.endDate}.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(zipUrl)
+      
+      showToast('Audit ZIP package generated successfully!', 'success')
+    } catch (err: any) {
+      console.error('ZIP ERROR:', err)
+      showToast('Failed to generate ZIP package.', 'error')
+    } finally {
+      setIsPending(false)
     }
   }
 
@@ -93,7 +121,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={handleClose} />
       
-      <div className="relative bg-white rounded-[32px] shadow-2xl w-full max-w-[600px] max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
+      <div className="relative bg-white rounded-[32px] shadow-2xl w-full max-w-[620px] max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
         
         {/* Header */}
         <div className="px-8 pt-8 pb-6 bg-[#f8fafc] border-b border-[#e2e8f0] flex items-center justify-between shrink-0">
@@ -103,10 +131,10 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
             </div>
             <div>
               <h3 className="text-[20px] font-black text-[#0f172a] leading-tight uppercase tracking-tight">
-                {view === 'selector' ? 'Data Export Station' : 'Download Dashboard'}
+                {view === 'selector' ? 'Universal Export' : 'Audit Package'}
               </h3>
-              <p className="text-[13px] font-bold text-[#64748b] uppercase tracking-widest mt-0.5">
-                {view === 'selector' ? 'Select Audit Timeframe' : `${range.toUpperCase()} System Snapshot`}
+              <p className="text-[12px] font-bold text-[#64748b] uppercase tracking-widest mt-0.5">
+                {view === 'selector' ? 'Select Audit Window' : `${exportData?.metadata.startDate} TO ${exportData?.metadata.endDate}`}
               </p>
             </div>
           </div>
@@ -118,12 +146,11 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
           </button>
         </div>
 
-        {/* View Switcher: Selector */}
         {view === 'selector' ? (
           <>
             <div className="p-8 space-y-8 overflow-y-auto">
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-[#94a3b8] uppercase tracking-[0.2em] block text-center mb-6">Choose Date Range</label>
+                <label className="text-[11px] font-black text-[#94a3b8] uppercase tracking-[0.2em] block text-center mb-6">Auditing Period</label>
                 <div className="grid grid-cols-2 gap-3">
                   {presets.map((p) => (
                     <button
@@ -170,35 +197,22 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
                   </div>
                 </div>
               )}
-
-              <div className="flex gap-4 p-5 bg-[#eff6ff]/50 rounded-[24px] border border-[#3b82f6]/10">
-                <AlertCircle size={20} className="text-[#3b82f6] shrink-0" />
-                <p className="text-[12px] font-medium text-[#1e40af] leading-relaxed">
-                  The engine will scan all system tables for matching records using the **Somalia 4:00 AM work-day window** for maximum audit accuracy.
-                </p>
-              </div>
             </div>
 
             <div className="bg-[#f8fafc] px-8 py-6 flex gap-4 border-t border-[#e2e8f0] shrink-0">
               <button
-                onClick={handleClose}
-                className="flex-1 px-4 py-4 text-[14px] font-black text-[#64748b] hover:bg-[#e2e8f0] rounded-[18px] transition-all uppercase tracking-widest"
-              >
-                Cancel
-              </button>
-              <button
                 onClick={handleGenerate}
                 disabled={isPending}
-                className="flex-[2] px-6 py-4 bg-[#3b82f6] text-white text-[14px] font-black rounded-[18px] shadow-xl shadow-blue-500/20 transition-all hover:bg-[#2563eb] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 uppercase tracking-widest"
+                className="w-full px-6 py-4 bg-[#3b82f6] text-white text-[14px] font-black rounded-[18px] shadow-xl shadow-blue-500/20 transition-all hover:bg-[#2563eb] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 uppercase tracking-widest"
               >
                 {isPending ? (
                   <>
                     <Loader2 className="animate-spin" size={20} strokeWidth={3} />
-                    Scanning System...
+                    Packing Data...
                   </>
                 ) : (
                   <>
-                    Generate Summary
+                    Review Datasets
                     <ChevronRight size={18} strokeWidth={3} />
                   </>
                 )}
@@ -209,52 +223,48 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
           /* View Switcher: Results Dashboard */
           <>
             <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
-              {/* Transactions Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <History size={16} className="text-[#3b82f6]" />
-                    <label className="text-[11px] font-black text-[#3b82f6] uppercase tracking-[0.2em]">Transaction Datasets</label>
+                    <label className="text-[11px] font-black text-[#3b82f6] uppercase tracking-[0.2em]">Transaction Sets</label>
                   </div>
-                  <span className="text-[10px] font-bold text-[#94a3b8] uppercase">Matches found</span>
                 </div>
                 
-                <div className="space-y-2">
-                  {datasets.filter(d => d.category === 'Transactions').map(ds => (
+                <div className="grid grid-cols-1 gap-2">
+                  {exportData?.datasets.filter(d => d.category === 'Transactions').map(ds => (
                     <div key={ds.id} className="flex items-center justify-between p-4 bg-[#f8fafc] rounded-2xl border border-[#e2e8f0] hover:border-[#3b82f6]/30 transition-all group">
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${ds.count > 0 ? 'bg-white text-[#0f172a] shadow-sm' : 'bg-gray-100 text-[#94a3b8] opacity-50'}`}>
-                          {ds.id.includes('sale') ? <ShoppingBag size={18} /> : ds.id.includes('pay') ? <CheckCircle2 size={18} /> : <FileSpreadsheet size={18} />}
+                          {ds.id.includes('sale') ? <ShoppingBag size={18} /> : ds.id.includes('pay') ? <Hash size={18} /> : <FileSpreadsheet size={18} />}
                         </div>
                         <div>
                           <p className={`text-[14px] font-black ${ds.count > 0 ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>{ds.label}</p>
-                          <p className="text-[11px] font-bold text-[#64748b] flex items-center gap-1.5 mt-0.5">
+                          <p className="text-[11px] font-bold text-[#64748b] flex items-center gap-1.5 mt-0.5 uppercase tracking-tighter">
                             <span className={ds.count > 0 ? 'text-[#10b981]' : ''}>{ds.count} records</span>
-                            {ds.count > 0 && <span className="w-1 h-1 rounded-full bg-[#10b981]" />}
                           </p>
                         </div>
                       </div>
                       <button 
-                        onClick={() => triggerDownload(ds.csvContent, `${ds.id}_${range}.csv`)}
+                        onClick={() => triggerDownload(ds.csvContent, `${ds.id}_${exportData.metadata.startDate}_to_${exportData.metadata.endDate}.csv`)}
                         disabled={ds.count === 0}
                         className="px-4 py-2 bg-white border border-[#e2e8f0] rounded-xl text-[12px] font-black text-[#3b82f6] hover:bg-[#3b82f6] hover:text-white transition-all disabled:opacity-30 disabled:pointer-events-none active:scale-95 flex items-center gap-2 uppercase tracking-tight"
                       >
                         <Download size={14} strokeWidth={2.5} />
-                        Save
+                        CSV
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Master Data Section */}
               <div className="space-y-4 pt-4 border-t border-[#e2e8f0]">
                 <div className="flex items-center gap-2 mb-2">
                   <UserCheck size={16} className="text-[#64748b]" />
-                  <label className="text-[11px] font-black text-[#64748b] uppercase tracking-[0.2em]">Registry & Master Data</label>
+                  <label className="text-[11px] font-black text-[#64748b] uppercase tracking-[0.2em]">Registry Datasets</label>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  {datasets.filter(d => d.category === 'Registry').map(ds => (
+                  {exportData?.datasets.filter(d => d.category === 'Registry').map(ds => (
                     <div key={ds.id} className="flex items-center justify-between p-4 bg-white border border-[#e2e8f0] rounded-2xl hover:bg-[#f8fafc] transition-all group">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-[#f1f5f9] text-[#64748b] flex items-center justify-center group-hover:bg-[#e2e8f0]">
@@ -262,7 +272,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
                         </div>
                         <div>
                           <p className="text-[14px] font-black text-[#0f172a]">{ds.label}</p>
-                          <p className="text-[11px] font-bold text-[#94a3b8] uppercase tracking-tight">{ds.count} total entries</p>
+                          <p className="text-[11px] font-bold text-[#94a3b8] uppercase tracking-tight">{ds.count} entries</p>
                         </div>
                       </div>
                       <button 
@@ -270,7 +280,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
                         className="px-4 py-2 bg-white border border-[#e2e8f0] rounded-xl text-[12px] font-black text-[#64748b] hover:bg-[#0f172a] hover:text-white transition-all active:scale-95 flex items-center gap-2 uppercase tracking-tight"
                       >
                         <Download size={14} strokeWidth={2.5} />
-                        Download Full
+                        CSV
                       </button>
                     </div>
                   ))}
@@ -278,26 +288,27 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
               </div>
             </div>
 
-            {/* Sticky Footers for Results */}
             <div className="bg-[#f8fafc] px-8 py-6 flex flex-col gap-4 border-t border-[#e2e8f0] shrink-0">
               <div className="flex gap-4">
                 <button
                   onClick={() => setView('selector')}
                   className="flex-1 px-4 py-4 text-[14px] font-black text-[#64748b] hover:bg-[#e2e8f0] rounded-[18px] transition-all uppercase tracking-widest whitespace-nowrap"
                 >
-                  Change Range
+                  Back
                 </button>
                 <button
-                  onClick={handleBatchDownload}
-                  className="flex-[2] px-6 py-4 bg-[#0f172a] text-white text-[14px] font-black rounded-[18px] shadow-xl shadow-black/10 transition-all hover:bg-black active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+                  onClick={handleBatchZip}
+                  disabled={isPending}
+                  className="flex-[2] px-6 py-4 bg-[#3b82f6] text-white text-[14px] font-black rounded-[18px] shadow-xl shadow-blue-500/20 transition-all hover:bg-[#2563eb] active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 uppercase tracking-widest"
                 >
-                  <Package size={20} strokeWidth={3} />
-                  Batch Download All
+                  {isPending ? (
+                    <Loader2 className="animate-spin" size={20} strokeWidth={3} />
+                  ) : (
+                    <FolderArchive size={20} strokeWidth={3} />
+                  )}
+                  {isPending ? 'Packaging ZIP...' : 'Full Audit ZIP'}
                 </button>
               </div>
-              <p className="text-center text-[10px] font-bold text-[#94a3b8] uppercase tracking-[0.1em]">
-                Files are downloaded in sequence to avoid browser blocking
-              </p>
             </div>
           </>
         )}
