@@ -3,7 +3,15 @@
 import { createClient } from '@/utils/supabase/server'
 import { verifySession } from '@/utils/auth'
 
-export async function generateFinancialExport(range: string, custom?: { start: string, end: string }) {
+export type DatasetResult = {
+  id: string
+  label: string
+  category: 'Transactions' | 'Registry'
+  count: number
+  csvContent: string
+}
+
+export async function generateUniversalExport(range: string, custom?: { start: string, end: string }) {
   await verifySession(['accountant'])
   const supabase = await createClient()
 
@@ -36,53 +44,65 @@ export async function generateFinancialExport(range: string, custom?: { start: s
     endDate = custom.end
   }
 
-  const startStr = startDate ? `${startDate}T00:00:00.000Z` : '2000-01-01T00:00:00.000Z'
-  const endStr = endDate ? `${endDate}T23:59:59.999Z` : '2099-12-31T23:59:59.999Z'
+  // Somalia Work-Day Window Logic (4 AM Rollover)
+  // Work Day 'D' starts at D 01:00:00 UTC and ends at (D+1) 00:59:59 UTC
+  const startUTC = startDate ? `${startDate}T01:00:00.000Z` : '2000-01-01T00:00:00.000Z'
+  
+  let endUTC = '2099-12-31T23:59:59.999Z'
+  if (endDate) {
+    const nextDay = new Date(endDate)
+    nextDay.setDate(nextDay.getDate() + 1)
+    endUTC = `${nextDay.toISOString().split('T')[0]}T00:59:59.999Z`
+  }
 
   try {
-    // 1. Fetch RAW records (No complex joins)
+    // 1. Fetch All Raw Transactional Data
     const [
-      { data: rawSales, error: salesError },
-      { data: rawPayments, error: paymentsError },
-      { data: rawSubmissions, error: submissionsError },
-      { data: rawDistributions, error: distributionsError },
-      { data: rawSaleItems, error: itemsError }
+      { data: rawSales },
+      { data: rawPayments },
+      { data: rawSubmissions },
+      { data: rawDistributions },
+      { data: rawSaleItems }
     ] = await Promise.all([
-      supabase.from('sales').select('*').gte('created_at', startStr).lte('created_at', endStr),
-      supabase.from('payments').select('*').gte('created_at', startStr).lte('created_at', endStr),
-      supabase.from('cash_submissions').select('*').gte('created_at', startStr).lte('created_at', endStr),
-      supabase.from('distributions').select('*').gte('created_at', startStr).lte('created_at', endStr),
-      supabase.from('sale_items').select('sale_id, quantity')
+      supabase.from('sales').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
+      supabase.from('payments').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
+      supabase.from('cash_submissions').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
+      supabase.from('distributions').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
+      supabase.from('sale_items').select('*')
     ])
 
-    if (salesError || paymentsError || submissionsError || distributionsError || itemsError) {
-      console.error('Export Fetch Error:', { salesError, paymentsError, submissionsError, distributionsError, itemsError })
-      throw new Error('Database Error: Failed to retrieve data for export')
-    }
-
-    // 2. Fetch Lookup Tables (Users & Customers)
+    // 2. Fetch All Master/Registry Data
     const [
       { data: users },
-      { data: customers }
+      { data: customers },
+      { data: items }
     ] = await Promise.all([
-      supabase.from('users').select('id, full_name'),
-      supabase.from('customers').select('id, name')
+      supabase.from('users').select('*'),
+      supabase.from('customers').select('*'),
+      supabase.from('items').select('*')
     ])
 
+    // 3. Build Lookup Maps
     const userMap = new Map(users?.map(u => [u.id, u.full_name]))
     const customerMap = new Map(customers?.map(c => [c.id, c.name]))
-    const itemQtyMap = new Map<string, number>()
+    const itemMap = new Map(items?.map(i => [i.id, i.name]))
+    
+    // Quantity aggregation for sales summary
+    const salesQtyMap = new Map<string, number>()
     rawSaleItems?.forEach(si => {
-      itemQtyMap.set(si.sale_id, (itemQtyMap.get(si.sale_id) || 0) + (si.quantity || 0))
+      salesQtyMap.set(si.sale_id, (salesQtyMap.get(si.sale_id) || 0) + (si.quantity || 0))
     })
 
-    // Utility: Helper to build CSV line
     const toCsvRow = (arr: any[]) => arr.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(',')
 
+    const results: DatasetResult[] = []
+
     // -------------------------------------------------------------------------
-    // 3. Generate SALES CSV
+    // CATEGORY: TRANSACTIONS
     // -------------------------------------------------------------------------
-    const salesHeader = ['Date', 'Sale ID', 'Customer', 'Staff Member', 'Type', 'Total Amount (USD)', 'Volume (Tanks)', 'Status']
+
+    // A. Sales Summary
+    const salesHeader = ['Date (Local)', 'Sale ID', 'Customer', 'Staff Member', 'Type', 'Total Amount', 'Total Qty', 'Status']
     const salesRows = (rawSales || []).map(s => toCsvRow([
       new Date(s.created_at).toLocaleString(),
       s.id.slice(0, 8),
@@ -90,32 +110,64 @@ export async function generateFinancialExport(range: string, custom?: { start: s
       userMap.get(s.staff_id) || 'N/A',
       s.sale_type?.toUpperCase(),
       s.total_amount,
-      itemQtyMap.get(s.id) || 0,
+      salesQtyMap.get(s.id) || 0,
       s.status?.toUpperCase()
     ]))
-    const salesCsv = [salesHeader.join(','), ...salesRows].join('\n')
+    results.push({
+      id: 'sales_summary',
+      label: 'Sales Summary',
+      category: 'Transactions',
+      count: salesRows.length,
+      csvContent: [salesHeader.join(','), ...salesRows].join('\n')
+    })
 
-    // -------------------------------------------------------------------------
-    // 4. Generate PAYMENTS CSV
-    // -------------------------------------------------------------------------
+    // B. Detailed Sale Items
+    const saleItemsHeader = ['Date', 'Sale Ref', 'Item Name', 'Quantity', 'Unit Price', 'Customer', 'Staff']
+    const saleItemsRows = (rawSaleItems || [])
+      .filter(si => rawSales?.some(s => s.id === si.sale_id))
+      .map(si => {
+        const sale = rawSales?.find(s => s.id === si.sale_id)
+        return toCsvRow([
+          sale ? new Date(sale.created_at).toLocaleString() : '-',
+          si.sale_id.slice(0, 8),
+          itemMap.get(si.item_id) || 'Unknown Item',
+          si.quantity,
+          si.unit_price,
+          customerMap.get(sale?.customer_id || '') || 'N/A',
+          userMap.get(sale?.staff_id || '') || 'N/A'
+        ])
+      })
+    results.push({
+      id: 'sale_item_details',
+      label: 'Sale Item Details',
+      category: 'Transactions',
+      count: saleItemsRows.length,
+      csvContent: [saleItemsHeader.join(','), ...saleItemsRows].join('\n')
+    })
+
+    // C. Payment Registry
     const paymentsHeader = ['Date', 'Payment ID', 'Sale Ref', 'Staff Member', 'Method', 'Amount (USD)']
     const paymentsRows = (rawPayments || []).map(p => {
       const sale = rawSales?.find(s => s.id === p.sale_id)
       return toCsvRow([
         new Date(p.created_at).toLocaleString(),
         p.id.slice(0, 8),
-        sale ? sale.id.slice(0, 8) : 'Direct',
+        sale ? sale.id.slice(0, 8) : 'Direct/Credit',
         userMap.get(sale?.staff_id || '') || 'N/A',
         p.payment_method?.toUpperCase(),
         p.amount
       ])
     })
-    const paymentsCsv = [paymentsHeader.join(','), ...paymentsRows].join('\n')
+    results.push({
+      id: 'payments',
+      label: 'Payments Received',
+      category: 'Transactions',
+      count: paymentsRows.length,
+      csvContent: [paymentsHeader.join(','), ...paymentsRows].join('\n')
+    })
 
-    // -------------------------------------------------------------------------
-    // 5. Generate SUBMISSIONS CSV
-    // -------------------------------------------------------------------------
-    const subHeader = ['Report Date', 'Staff Member', 'Collected (Expect)', 'Submitted (Actual)', 'Difference', 'Status', 'Note', 'Submission ID']
+    // D. Cash Submissions
+    const subHeader = ['Report Date', 'Staff Member', 'Expected Collections', 'Actual Submitted', 'Difference', 'Status', 'Note', 'ID']
     const subRows = (rawSubmissions || []).map(s => toCsvRow([
       s.submission_date,
       userMap.get(s.staff_id) || 'N/A',
@@ -126,12 +178,16 @@ export async function generateFinancialExport(range: string, custom?: { start: s
       s.note,
       s.id.slice(0, 8)
     ]))
-    const submissionsCsv = [subHeader.join(','), ...subRows].join('\n')
+    results.push({
+      id: 'submissions',
+      label: 'Staff Cash Submissions',
+      category: 'Transactions',
+      count: subRows.length,
+      csvContent: [subHeader.join(','), ...subRows].join('\n')
+    })
 
-    // -------------------------------------------------------------------------
-    // 6. Generate DISTRIBUTIONS CSV
-    // -------------------------------------------------------------------------
-    const distHeader = ['Date', 'Agent (Source)', 'Staff (Recipient)', 'Quantity (Tanks)', 'Status', 'Dist ID']
+    // E. Inventory Movements
+    const distHeader = ['Date', 'Agent (Source)', 'Staff (Recipient)', 'Quantity', 'Status', 'ID']
     const distRows = (rawDistributions || []).map(d => toCsvRow([
       new Date(d.created_at).toLocaleString(),
       userMap.get(d.agent_id) || 'N/A',
@@ -140,33 +196,74 @@ export async function generateFinancialExport(range: string, custom?: { start: s
       d.status?.toUpperCase(),
       d.id.slice(0, 8)
     ]))
-    const distributionsCsv = [distHeader.join(','), ...distRows].join('\n')
+    results.push({
+      id: 'distributions',
+      label: 'Inventory Distributions',
+      category: 'Transactions',
+      count: distRows.length,
+      csvContent: [distHeader.join(','), ...distRows].join('\n')
+    })
 
     // -------------------------------------------------------------------------
-    // 7. Generate COMBINED LEDGER (Summary)
+    // CATEGORY: REGISTRY (MASTER DATA)
     // -------------------------------------------------------------------------
-    const ledgerHeader = ['Date', 'Type', 'Entity', 'Staff Member', 'Amount/Qty', 'Status', 'Ref ID']
-    const ledgerRecords: any[] = []
 
-    rawSales?.forEach(s => ledgerRecords.push([new Date(s.created_at), 'SALE', customerMap.get(s.customer_id), userMap.get(s.staff_id), `$${s.total_amount}`, 'COMPLETED', s.id.slice(0,8)]))
-    rawPayments?.forEach(p => ledgerRecords.push([new Date(p.created_at), 'PAYMENT', 'REPAYMENT', '-', `$${p.amount}`, 'RECORDED', p.id.slice(0,8)]))
-    rawSubmissions?.forEach(s => ledgerRecords.push([new Date(s.created_at), 'SUBMISSION', '-', userMap.get(s.staff_id), `$${s.submitted_amount}`, s.status?.toUpperCase(), s.id.slice(0,8)]))
-    rawDistributions?.forEach(d => ledgerRecords.push([new Date(d.created_at), 'DISTRIBUTION', userMap.get(d.agent_id), userMap.get(d.staff_id), d.quantity, d.status?.toUpperCase(), d.id.slice(0,8)]))
+    // F. Customer Registry
+    const customerHeader = ['ID', 'Name', 'Phone', 'Address', 'Current Debt', 'Created At']
+    const customerRows = (customers || []).map(c => toCsvRow([
+      c.id.slice(0, 8),
+      c.name,
+      c.phone,
+      c.address,
+      c.debt,
+      new Date(c.created_at).toLocaleDateString()
+    ]))
+    results.push({
+      id: 'customer_registry',
+      label: 'Customer Registry',
+      category: 'Registry',
+      count: customerRows.length,
+      csvContent: [customerHeader.join(','), ...customerRows].join('\n')
+    })
 
-    ledgerRecords.sort((a,b) => b[0].getTime() - a[0].getTime())
-    const ledgerRows = ledgerRecords.map(r => toCsvRow([r[0].toLocaleString(), r[1], r[2], r[3], r[4], r[5], r[6]]))
-    const ledgerCsv = [ledgerHeader.join(','), ...ledgerRows].join('\n')
+    // G. User Registry
+    const userHeader = ['ID', 'Full Name', 'Role', 'Status', 'Email']
+    const userRows = (users || []).map(u => toCsvRow([
+      u.id.slice(0, 8),
+      u.full_name,
+      u.role?.toUpperCase(),
+      u.status || 'ACTIVE',
+      u.email || '-'
+    ]))
+    results.push({
+      id: 'user_registry',
+      label: 'Staff & Agent Registry',
+      category: 'Registry',
+      count: userRows.length,
+      csvContent: [userHeader.join(','), ...userRows].join('\n')
+    })
 
-    return {
-      sales: salesCsv,
-      payments: paymentsCsv,
-      submissions: submissionsCsv,
-      distributions: distributionsCsv,
-      ledger: ledgerCsv
-    }
+    // H. Product Catalog
+    const itemHeader = ['ID', 'Name', 'Description', 'Current Stock', 'Alert Level']
+    const itemRows = (items || []).map(i => toCsvRow([
+      i.id.slice(0, 8),
+      i.name,
+      i.description || '-',
+      i.stock_quantity || 0,
+      i.low_stock_threshold || 10
+    ]))
+    results.push({
+      id: 'product_catalog',
+      label: 'System Product Catalog',
+      category: 'Registry',
+      count: itemRows.length,
+      csvContent: [itemHeader.join(','), ...itemRows].join('\n')
+    })
+
+    return results
 
   } catch (error: any) {
-    console.error('EXPORT FATAL FAILURE:', error)
-    throw new Error(error.message || 'System Error during data export')
+    console.error('FATAL EXPORT FAILURE:', error)
+    throw new Error(error.message || 'System error during generation')
   }
 }
