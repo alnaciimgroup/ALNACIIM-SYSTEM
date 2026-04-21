@@ -86,8 +86,8 @@ export default async function AccountantCustomersPage({
                       <td className="px-6 py-4 text-[14px] font-bold text-[#475569]">
                         {(customer.staff as any)?.full_name || 'System Auto'}
                       </td>
-                      <td className="px-6 py-4 text-[14px] font-black text-[#3b82f6]">
-                        $0.00
+                      <td className="px-6 py-4 text-[14px] font-black text-[#10b981]">
+                        ${Number((customer as any).collected || 0).toFixed(2)}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className={`inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[10px] font-black uppercase tracking-wider ${
@@ -98,7 +98,7 @@ export default async function AccountantCustomersPage({
                           {customer.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[14px] font-black text-right">
+                      <td className="px-6 py-4 text-[15px] font-black text-right">
                         <span className={Number(customer.debt) > 0 ? 'text-[#ef4444]' : 'text-[#94a3b8]'}>
                           ${Number(customer.debt || 0).toFixed(2)}
                         </span>
