@@ -24,10 +24,25 @@ export async function getAccountantCustomers(search?: string) {
       return []
     }
 
-    // Map users to staff for consistency
+    // 2. Fetch all payments for these customers to calculate "Collected" amount
+    const customerIds = (data || []).map(c => c.id)
+    const { data: allPayments } = await supabase
+      .from('payments')
+      .select('amount, sales!inner(customer_id)')
+      .in('sales.customer_id', customerIds)
+
+    // 3. Map payments to customer IDs
+    const paymentMap = (allPayments || []).reduce((acc: Record<string, number>, p) => {
+      const cid = (p.sales as any).customer_id
+      acc[cid] = (acc[cid] || 0) + Number(p.amount)
+      return acc
+    }, {})
+
+    // 4. Map users to staff and attach collected data
     const mappedData = (data || []).map(c => ({
       ...c,
-      staff: c.users
+      staff: c.users,
+      collected: paymentMap[c.id] || 0
     }))
 
     return mappedData
