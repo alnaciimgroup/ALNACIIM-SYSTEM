@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/header'
 import { getDailySummary } from './actions'
 import { EndOfDayReport } from '@/components/staff/end-of-day-report'
-import { ShoppingBag, Banknote, ArrowLeft, ArrowRight, Package, TrendingUp, HandCoins, CheckCircle2, ShieldAlert, Clock } from 'lucide-react'
+import { ShoppingBag, Banknote, ArrowLeft, ArrowRight, Package, TrendingUp, HandCoins, CheckCircle2, ShieldAlert, Clock, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { getStaffDashboardData } from '../actions'
 
