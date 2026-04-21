@@ -49,18 +49,35 @@ export default async function AccountantSubmissionsPage({
   const { data: rawSubmissions, error } = await query
   const submissions = rawSubmissions || []
 
-  // 2. Fetch Credit Sales (Debt) for these submissions to show in table
-  // We fetch all credit sales for the period/staff to map them
-  let creditQuery = supabase.from('sales').select('staff_id, created_at, total_amount').eq('sale_type', 'credit')
-  if (date) {
-    creditQuery = creditQuery.gte('created_at', `${date}T00:00:00.000Z`).lte('created_at', `${date}T23:59:59.999Z`)
-  }
-  const { data: creditSales } = await creditQuery
+  // 2. Fetch ALL transactions for the period to calculate SYSTEM EXPECTATIONS
+  // This is the "Truth" we compare submissions against
+  const start = date ? `${date}T00:00:00.000Z` : '2000-01-01T00:00:00.000Z'
+  const end = date ? `${date}T23:59:59.999Z` : '2099-12-31T23:59:59.999Z'
 
-  const staffDebtMap: Record<string, number> = {}
-  creditSales?.forEach(s => {
-    const key = `${s.staff_id}_${s.created_at.split('T')[0]}`
-    staffDebtMap[key] = (staffDebtMap[key] || 0) + Number(s.total_amount)
+  const [
+    { data: salesByStaff },
+    { data: paymentsByStaff }
+  ] = await Promise.all([
+    supabase.from('sales').select('staff_id, total_amount, sale_type').gte('created_at', start).lte('created_at', end),
+    supabase.from('payments').select('amount, payment_method, sales!inner(staff_id)').gte('created_at', start).lte('created_at', end)
+  ])
+
+  // Calculation Map: Staff ID -> { cashExpected: number, creditExpected: number }
+  const expectationMap: Record<string, { cash: number, credit: number }> = {}
+  
+  // Track Credit Sales
+  salesByStaff?.forEach(s => {
+    if (!expectationMap[s.staff_id]) expectationMap[s.staff_id] = { cash: 0, credit: 0 }
+    if (s.sale_type === 'credit') {
+      expectationMap[s.staff_id].credit += Number(s.total_amount)
+    }
+  })
+
+  // Track Cash Collections (Cash Sales + Debt Repayments)
+  paymentsByStaff?.forEach(p => {
+    const sid = (p.sales as any).staff_id
+    if (!expectationMap[sid]) expectationMap[sid] = { cash: 0, credit: 0 }
+    expectationMap[sid].cash += Number(p.amount)
   })
 
   // 3. Fetch staff names
@@ -110,8 +127,8 @@ export default async function AccountantSubmissionsPage({
                 <Calculator size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Expected Money</span>
-                <span className="text-[24px] font-black text-[#0f172a] leading-none">${summary.totalCollected.toFixed(2)}</span>
+                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Expected Revenue</span>
+                <span className="text-[24px] font-black text-[#0f172a] leading-none">${(summary.expectedTotal || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -121,10 +138,11 @@ export default async function AccountantSubmissionsPage({
                 <Banknote size={22} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Collected Today</span>
+                <span className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest leading-none mb-1.5">Cash Reported</span>
                 <span className="text-[24px] font-black text-[#10b981] leading-none">${summary.totalSubmitted.toFixed(2)}</span>
               </div>
             </div>
+
 
             {/* 3. Debt */}
             <div className="bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm flex items-center gap-5">
@@ -152,10 +170,14 @@ export default async function AccountantSubmissionsPage({
           </div>
 
           <SubmissionQueueTable 
-             submissions={submissions.map(s => ({
-               ...s,
-               debt_amount: staffDebtMap[`${s.staff_id}_${s.submission_date?.split('T')[0]}`] || 0
-             }))} 
+             submissions={submissions.map(s => {
+               const exp = expectationMap[s.staff_id] || { cash: 0, credit: 0 }
+               return {
+                 ...s,
+                 system_expected_cash: exp.cash,
+                 system_expected_credit: exp.credit
+               }
+             })} 
              staffMap={staffMap}
           />
 
