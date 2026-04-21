@@ -32,8 +32,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
       .from('items')
       .insert({ 
         name: 'Standard Water Tank', 
-        current_price: 5.00,
-        low_stock_threshold: 10
+        current_price: 5.00
       })
       .select('id')
       .single()

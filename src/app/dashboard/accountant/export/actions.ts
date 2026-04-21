@@ -210,8 +210,8 @@ export async function generateUniversalExport(range: string, custom?: { start: s
     datasets.push({ id: 'user_registry', label: 'User Registry', category: 'Registry', count: userR.length, csvContent: [userH.join(','), ...userR].join('\n') })
 
     // H. Items
-    const itemH = ['ID', 'Name', 'Low Level', 'Created']
-    const itemR = (items || []).map(i => toCsvRow([i.id, i.name, i.low_stock_threshold, fmtDate(i.created_at)]))
+    const itemH = ['ID', 'Name', 'Created']
+    const itemR = (items || []).map(i => toCsvRow([i.id, i.name, fmtDate(i.created_at)]))
     datasets.push({ id: 'product_catalog', label: 'Product Catalog', category: 'Registry', count: itemR.length, csvContent: [itemH.join(','), ...itemR].join('\n') })
 
     return {
