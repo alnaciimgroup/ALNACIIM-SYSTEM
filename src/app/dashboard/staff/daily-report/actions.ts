@@ -12,8 +12,12 @@ export async function getDailySummary(selectedDate?: string) {
   if (!user) throw new Error('Unauthorized')
 
   const date = selectedDate || new Date().toISOString().split('T')[0]
-  const startOfDay = `${date}T00:00:00.000Z`
-  const endOfDay = `${date}T23:59:59.999Z`
+  
+  // 4 AM Rollover Logic (matches getStaffDashboardData)
+  const startOfDay = `${date}T04:00:00.000Z`
+  const nextDay = new Date(date)
+  nextDay.setDate(nextDay.getDate() + 1)
+  const endOfDay = `${nextDay.toISOString().split('T')[0]}T03:59:59.999Z`
 
   // 1. Fetch Tanks Received Today
   const { data: receivedData } = await supabase
