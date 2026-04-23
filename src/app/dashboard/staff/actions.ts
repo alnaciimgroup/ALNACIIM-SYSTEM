@@ -116,6 +116,14 @@ export async function getStaffDashboardData(date?: string) {
       return acc + itemQty
     }, 0) || 0
 
+  const targetDate = date && date !== 'all' ? date : getCurrentWorkDate()
+  const { data: submissionData } = await supabase
+    .from('cash_submissions')
+    .select('status')
+    .eq('staff_id', user.id)
+    .eq('submission_date', targetDate)
+    .single()
+
   return {
     metrics: {
       tanksReceived: totalReceived,
@@ -130,7 +138,8 @@ export async function getStaffDashboardData(date?: string) {
       debtPaymentsToday,
       moneyCollectedToday,
       outstandingDebt,
-      customerCount: customerCount || 0
+      customerCount: customerCount || 0,
+      submissionStatus: submissionData?.status || null
     },
     recentSales: sales?.slice(0, 5) || [],
     recentDistributions: recentDistributionsList?.reverse() || []

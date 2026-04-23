@@ -17,7 +17,7 @@ export async function StaffDashboardContent({ date }: { date: string }) {
     creditSold: metrics.creditSalesToday,
     outstandingDebt: metrics.outstandingDebt,
     freeTanksSold: metrics.freeTanksToday,
-    status: 'PENDING' as const,
+    status: (metrics.submissionStatus === 'verified' ? 'VERIFIED' : (metrics.submissionStatus === 'submitted' || metrics.submissionStatus === 'disputed' || metrics.submissionStatus === 'pending' ? 'SUBMITTED' : 'PENDING')) as 'PENDING' | 'SUBMITTED' | 'VERIFIED',
     date: date === 'all' ? today : date
   }
 
