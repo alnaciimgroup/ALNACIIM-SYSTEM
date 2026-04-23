@@ -118,14 +118,17 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
 
   const supabaseAdmin = createAdminClient()
 
-  // SCORCHED EARTH FIX: 
-  // We proactively delete any entry for this staff/date pairs to ensure 100% clean insert.
-  // This bypasses any and all 'ON CONFLICT' or 'Duplicate' errors from the database.
-  await supabaseAdmin
+  // Prevent multiple submissions for the same day
+  const { data: existing } = await supabaseAdmin
     .from('cash_submissions')
-    .delete()
+    .select('id')
     .eq('staff_id', user.id)
     .eq('submission_date', submission_date)
+    .single()
+
+  if (existing) {
+    return { message: 'You have already submitted a report for this date. It cannot be changed once submitted.', error: true }
+  }
 
   const submissionPayload = {
     staff_id: user.id,
