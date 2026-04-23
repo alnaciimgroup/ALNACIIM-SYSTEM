@@ -213,21 +213,30 @@ export function SubmissionReviewModal({ submission, staffName, onClose }: Props)
 
         {/* Fixed Action Bar Footer */}
         <div className="shrink-0 p-8 border-t border-[#f1f5f9] bg-white flex gap-4">
-           <button 
-             onClick={() => handleAction('disputed')}
-             disabled={isPending}
-             className="flex-1 h-14 rounded-[20px] border-2 border-red-200 text-red-600 font-black text-[13px] uppercase tracking-widest hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
-           >
-             Deny & Dispute
-           </button>
-           <button 
-             onClick={() => handleAction('verified')}
-             disabled={isPending}
-             className="flex-[2] h-14 rounded-[20px] bg-[#10b981] hover:bg-[#059669] text-white font-black text-[14px] uppercase tracking-[0.1em] shadow-lg shadow-[#10b981]/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
-           >
-             {isPending ? <Loader2 className="animate-spin" /> : <Save size={18} />}
-             Update & Verify
-           </button>
+           {submission.status === 'missing' ? (
+             <div className="flex-1 h-14 flex items-center justify-center rounded-[20px] bg-amber-50 text-amber-600 font-bold text-[13px] uppercase tracking-widest border border-amber-200">
+               <ShieldAlert size={16} className="mr-2" />
+               Awaiting Staff Submission
+             </div>
+           ) : (
+             <>
+               <button 
+                 onClick={() => handleAction('disputed')}
+                 disabled={isPending || submission.status === 'disputed'}
+                 className="flex-1 h-14 rounded-[20px] border-2 border-red-200 text-red-600 font-black text-[13px] uppercase tracking-widest hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
+               >
+                 Deny & Dispute
+               </button>
+               <button 
+                 onClick={() => handleAction('verified')}
+                 disabled={isPending || (submission.status === 'verified' && amount === submission.submitted_amount)}
+                 className="flex-[2] h-14 rounded-[20px] bg-[#10b981] hover:bg-[#059669] text-white font-black text-[14px] uppercase tracking-[0.1em] shadow-lg shadow-[#10b981]/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+               >
+                 {isPending ? <Loader2 className="animate-spin" /> : <Save size={18} />}
+                 {submission.status === 'verified' && amount !== submission.submitted_amount ? 'Update Correction' : 'Update & Verify'}
+               </button>
+             </>
+           )}
         </div>
 
       </div>
