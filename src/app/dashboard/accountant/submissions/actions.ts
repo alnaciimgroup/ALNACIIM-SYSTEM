@@ -46,7 +46,6 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     
     const uniqueActiveStaff = [...new Set(activeStaff?.map(s => s.staff_id) || [])]
     
-    // Get those who DID submit
     const { data: submittedStaff } = await supabase
       .from('cash_submissions')
       .select('staff_id')
@@ -63,22 +62,68 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     staffId
   }) as ReportsSummary
 
-  // Fetch pending count separately
-  const { count: realPending } = await supabase
+  // Pending = actual pending submissions + unsubmitted staff
+  const { count: dbPending } = await supabase
     .from('cash_submissions')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'pending')
 
   return {
-    totalCollected: metrics.rawCollected, // System-expected cash
-    totalSubmitted: metrics.rawSubmitted, // Total actual cash reported by staff
+    totalCollected: metrics.rawCollected,
+    totalSubmitted: metrics.rawSubmitted,
     totalDifference: metrics.totalDifference,
-    totalCredit: metrics.rawCredit, // System-expected debt
-    expectedTotal: metrics.expectedRevenue, // Total business value (Cash + Credit)
-    pendingCount: realPending || 0,
+    totalCredit: metrics.rawCredit,
+    expectedTotal: metrics.expectedRevenue,
+    pendingCount: (dbPending || 0) + missingCount, // Include missing rows in count
     missingCount: missingCount
   }
 }
+
+export async function approveAndCreateMissingSubmission(
+  staffId: string,
+  submissionDate: string,
+  systemExpectedCash: number,
+  systemExpectedCredit: number
+) {
+  await verifySession(['accountant'])
+  const supabase = await createClient()
+  const adminClient = (await import('@/utils/supabase/admin')).createAdminClient()
+
+  // Delete any existing incomplete record first (safety)
+  await adminClient
+    .from('cash_submissions')
+    .delete()
+    .eq('staff_id', staffId)
+    .eq('submission_date', submissionDate)
+
+  // Create a verified submission on behalf of the accountant
+  const { error } = await adminClient
+    .from('cash_submissions')
+    .insert({
+      staff_id: staffId,
+      submission_date: submissionDate,
+      tanks_sold: 0,
+      money_collected: systemExpectedCash,
+      submitted_amount: 0, // No cash handover recorded
+      amount: 0,
+      difference_amount: -systemExpectedCash,
+      note: `Auto-verified by accountant. System expected: $${systemExpectedCash.toFixed(2)} cash + $${systemExpectedCredit.toFixed(2)} credit.`,
+      status: 'verified'
+    })
+
+  if (error) {
+    console.error('approveAndCreateMissingSubmission error:', error)
+    throw new Error('Failed to create and verify submission: ' + error.message)
+  }
+
+  await logAction('VERIFY_MISSING_SUBMISSION', {
+    targetTable: 'cash_submissions',
+    details: { staffId, submissionDate, systemExpectedCash, systemExpectedCredit }
+  })
+
+  revalidatePath('/dashboard/accountant/submissions')
+}
+
 
 export async function updateSubmissionStatus(id: string, status: string, note?: string, submittedAmount?: number) {
   const { role } = await verifySession(['accountant'])
