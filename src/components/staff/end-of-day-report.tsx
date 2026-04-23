@@ -101,12 +101,12 @@ export function EndOfDayReport({ report }: { report: ReportProps }) {
         <input type="hidden" name="submitted_amount" value={report.moneyCollected} />
         <button
           type="submit"
-          disabled={isPending || state?.error === false}
+          disabled={isPending || state?.error === false || report.status !== 'PENDING'}
           className="w-full bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-[14px] transition-colors flex items-center justify-center gap-2"
         >
           {isPending
             ? <><Loader2 size={18} className="animate-spin" /> Submitting...</>
-            : state?.error === false
+            : state?.error === false || report.status !== 'PENDING'
             ? <><CheckCircle2 size={18} /> Report Submitted</>
             : <><Send size={18} /> Submit Daily Report</>
           }
