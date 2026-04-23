@@ -193,8 +193,8 @@ export default async function AccountantSubmissionsPage({
                    system_expected_credit: exp.credit
                  }
                }),
-               // Add Virtual rows for missing submissions
-               ...Object.entries(expectationMap)
+               // Add Virtual rows for missing submissions (ONLY if viewing a specific date)
+               ...(params.date || (!params.staff && !params.status) ? Object.entries(expectationMap)
                  .filter(([sid]) => !submissions.some(s => s.staff_id === sid))
                  .map(([sid, exp]) => ({
                     id: `missing-${sid}`,
@@ -208,7 +208,7 @@ export default async function AccountantSubmissionsPage({
                     difference_amount: -exp.cash,
                     status: 'missing',
                     created_at: new Date().toISOString()
-                 }))
+                 })) : [])
              ]} 
              staffMap={staffMap}
           />

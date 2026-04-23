@@ -103,31 +103,20 @@ export function SubmissionQueueTable({ submissions, staffMap }: Props) {
                            ? 'bg-[#ecfdf5] text-[#10b981] border-[#10b981]/10' 
                            : sub.status === 'disputed'
                            ? 'bg-red-50 text-red-600 border-red-100'
-                           : sub.status === 'missing'
-                           ? 'bg-amber-50 text-amber-600 border-amber-200'
                            : 'bg-[#f8fafc] text-[#64748b] border-[#e2e8f0]'
                        }`}>
-                         {sub.status === 'verified' ? <CheckCircle2 size={14} /> : sub.status === 'disputed' ? <ShieldAlert size={14} /> : sub.status === 'missing' ? <AlertCircle size={14} /> : <Clock size={14} />}
+                         {sub.status === 'verified' ? <CheckCircle2 size={14} /> : sub.status === 'disputed' ? <ShieldAlert size={14} /> : <Clock size={14} />}
                          <span className="text-[10px] font-black uppercase tracking-widest">{sub.status}</span>
                        </div>
                     </td>
                     <td className="py-6 pr-8 text-right">
                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          <SubmissionReviewActions 
-                            submissionId={sub.id} 
-                            currentStatus={sub.status}
-                            isMissingRow={sub.status === 'missing'}
-                            staffId={sub.staff_id}
-                            submissionDate={sub.submission_date}
-                            systemExpectedCash={sub.system_expected_cash}
-                            systemExpectedCredit={sub.system_expected_credit}
-                          />
+                          <SubmissionReviewActions submissionId={sub.id} currentStatus={sub.status} />
                           <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#e2e8f0] text-[#94a3b8] transition-colors cursor-pointer" onClick={() => setSelectedSub(sub)}>
                              <ChevronRight size={18} />
                           </div>
                        </div>
                     </td>
-
                   </tr>
                 )
               })}
