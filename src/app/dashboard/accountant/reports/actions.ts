@@ -15,7 +15,7 @@ export async function getReportsSummary(filters: {
   let paymentsQuery: any = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)')
   let submissionsQuery = supabase.from('cash_submissions').select('amount, submitted_amount, status, submission_date, staff_id')
   let distQuery = supabase.from('distributions').select('quantity, created_at, staff_id')
-  let saleItemsQuery = supabase.from('sale_items').select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
+  let saleItemsQuery = supabase.from('sale_items').select('quantity, free_quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
 
   // Apply Specific Filters
   if (filters.startDate) {
@@ -61,7 +61,7 @@ export async function getReportsSummary(filters: {
     paymentsQuery,
     submissionsQuery,
     distQuery.select('quantity, created_at, staff_id'),
-    saleItemsQuery.select('quantity, sales!inner(created_at, staff_id, customer_id, sale_type)'),
+    saleItemsQuery.select('quantity, free_quantity, sales!inner(created_at, staff_id, customer_id, sale_type)'),
     supabase.from('sales').select('total_amount').eq('sale_type', 'credit'),
     supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment'),
     supabase.from('cash_submissions').select('staff_id, submission_date, status')
@@ -114,9 +114,9 @@ export async function getReportsSummary(filters: {
   return {
     totalDistributed: (distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0,
     auditedDistributed: (distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0, // Distributions are agent-verified at source
-    totalSold: (saleItems || []).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
-    auditedSold: (saleItems || []).filter(si => isVerified(si.sales.staff_id, si.sales.created_at)).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
-    remainingTanks: ((distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc: number, si) => acc + si.quantity, 0) || 0),
+    totalSold: (saleItems || []).reduce((acc: number, si) => acc + si.quantity + (si.free_quantity || 0), 0) || 0,
+    auditedSold: (saleItems || []).filter(si => isVerified((si.sales as any).staff_id, (si.sales as any).created_at)).reduce((acc: number, si) => acc + si.quantity + (si.free_quantity || 0), 0) || 0,
+    remainingTanks: ((distributions || []).reduce((acc: number, d) => acc + d.quantity, 0) || 0) - ((saleItems || []).reduce((acc: number, si) => acc + si.quantity + (si.free_quantity || 0), 0) || 0),
     totalCollected: auditedCollected, 
     rawCollected: totalMoneyCollected,
     auditedCollected,
@@ -126,8 +126,14 @@ export async function getReportsSummary(filters: {
     totalCredit: creditSalesAmount,
     rawCredit: (sales || []).filter(s => s.sale_type === 'credit').reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0,
     auditedCredit: creditSalesAmount,
-    totalFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free').reduce((acc: number, si) => acc + si.quantity, 0) || 0,
-    auditedFreeTanks: (saleItems || []).filter(si => (si.sales as any).sale_type === 'free' && isVerified((si.sales as any).staff_id, (si.sales as any).created_at)).reduce((acc: number, si) => acc + si.quantity, 0) || 0,
+    totalFreeTanks: (saleItems || []).reduce((acc: number, si) => {
+      const isFreeSale = (si.sales as any).sale_type === 'free';
+      return acc + (isFreeSale ? si.quantity : 0) + (si.free_quantity || 0);
+    }, 0) || 0,
+    auditedFreeTanks: (saleItems || []).filter(si => isVerified((si.sales as any).staff_id, (si.sales as any).created_at)).reduce((acc: number, si) => {
+      const isFreeSale = (si.sales as any).sale_type === 'free';
+      return acc + (isFreeSale ? si.quantity : 0) + (si.free_quantity || 0);
+    }, 0) || 0,
     outstandingBalance, 
     expectedRevenue: auditedCollected + creditSalesAmount 
   }
