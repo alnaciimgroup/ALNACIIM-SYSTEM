@@ -88,7 +88,7 @@ export default async function StaffDetailReportPage({
                 <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Tanks Received</div>
                 <div className="mb-1 flex items-end gap-2">
                   <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.auditedDistributed}</span>
-                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">{stats.auditedFreeTanks || 0} Free</span>
+
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default async function StaffDetailReportPage({
                 <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Tanks Sold</div>
                 <div className="mb-1 flex items-end gap-2">
                   <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.auditedSold}</span>
-                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">Period</span>
+                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">{stats.auditedFreeTanks || 0} Free</span>
                 </div>
               </div>
             </div>
