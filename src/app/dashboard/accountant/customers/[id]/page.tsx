@@ -87,6 +87,11 @@ export default async function CustomerDetailPage({
                       <PackageCheck size={13} strokeWidth={2.5} /> Tank ID: {profile.tank_number || 'N/A'}
                     </span>
                     <span className="flex items-center gap-2 opacity-70"><MapPin size={13} strokeWidth={2.5} /> {profile.address || 'Location Unknown'}</span>
+                    {(profile.guarantor || profile.guarantor_phone) && (
+                      <span className="flex items-center gap-2 text-[#8b5cf6] bg-[#f5f3ff] px-3 py-1 rounded-[8px] border border-[#ede9fe] font-black tracking-wide uppercase">
+                        <UserIcon size={13} strokeWidth={2.5} /> Guarantor: {profile.guarantor || 'N/A'} {profile.guarantor_phone ? `(${profile.guarantor_phone})` : ''}
+                      </span>
+                    )}
                     <span className={`px-3 py-1 rounded-[6px] text-[10px] font-black uppercase tracking-wider border ${
                       profile.status === 'active' ? 'bg-[#ecfdf5] text-[#10b981] border-[#d1fae5]' : 'bg-[#fef2f2] text-[#ef4444] border-[#fee2e2]'
                     }`}>{profile.status}</span>
