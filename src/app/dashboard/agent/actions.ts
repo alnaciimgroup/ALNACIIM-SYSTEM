@@ -143,6 +143,10 @@ export async function getAgentDashboardData() {
 
   if (staffResponse.error) console.error('Agent Dashboard Staff Fetch Error:', staffResponse.error)
 
+  // SECURITY CHECK / INVENTORY FETCH
+  const { data: prodLogs } = await supabase.from('production_logs').select('liters_produced')
+  const totalProduced = (prodLogs || []).reduce((acc, log) => acc + Number(log.liters_produced), 0)
+  
   const weeklyTotal = weeklyData?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
   const weeklyFree = weeklyData?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
 
@@ -150,6 +154,11 @@ export async function getAgentDashboardData() {
   const sumQuantity = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
   const sumFree = distributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
   const uniqueStaff = new Set(distributions?.map(d => (d.staff as any)?.full_name)).size
+
+  // Calculate total distributed liters for reservoir balance
+  const { data: allDists } = await supabase.from('distributions').select('liters')
+  const totalDistributedLiters = (allDists || []).reduce((acc, curr) => acc + Number(curr.liters || 0), 0)
+  const availableLiters = totalProduced - totalDistributedLiters
 
   // Normalize staff join type for the UI
   const normalizedDistributions = (distributions || []).map(d => ({
@@ -177,7 +186,8 @@ export async function getAgentDashboardData() {
       staffServed: uniqueStaff,
       totalThisWeek: weeklyTotal,
       freeThisWeek: weeklyFree,
-      activeStaffCount: staffList?.length || 0
+      activeStaffCount: staffList?.length || 0,
+      availableLiters
     }
   }
 }

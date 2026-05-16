@@ -7,19 +7,23 @@ interface MetricsProps {
   totalThisWeek: number
   freeThisWeek?: number
   activeStaffCount: number
+  availableLiters?: number
 }
 
 export function AgentMetricsCards({ metrics }: { metrics: MetricsProps }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {/* Registered Staff */}
+      {/* Available Liters */}
       <div className="p-6 rounded-[16px] bg-[#4B9EF9] shadow-lg shadow-blue-500/20 flex flex-col justify-between h-[160px] text-white">
         <div className="flex justify-between items-start">
-          <h3 className="text-white font-medium text-[15px] leading-snug opacity-95 tracking-wide">Registered<br/>Operational Staff</h3>
+          <h3 className="text-white font-medium text-[15px] leading-snug opacity-95 tracking-wide">Main Reservoir<br/>Available Liters</h3>
+          <Droplet size={20} className="opacity-80" />
         </div>
         <div className="mb-2">
-          <span className="text-[44px] font-extrabold tracking-tight leading-none block mb-1.5">{metrics.activeStaffCount}</span>
-          <p className="text-[12px] text-white font-medium opacity-80">Active identities in registry</p>
+          <span className="text-[38px] font-extrabold tracking-tight leading-none block mb-1.5">
+            {metrics.availableLiters?.toLocaleString() || 0} <span className="text-[18px]">L</span>
+          </span>
+          <p className="text-[12px] text-white font-medium opacity-80">Call Superadmin for refill if low.</p>
         </div>
       </div>
 
