@@ -162,12 +162,20 @@ export default async function TransactionsPage({
                           </div>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <span className={`text-[15px] font-black ${tx.amount !== 0 ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>
-                          {tx.isCurrency 
-                            ? `$${Number(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
-                            : `${tx.amount} Units`
-                          }
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-[15px] font-black ${tx.amount !== 0 ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>
+                            {tx.isCurrency 
+                              ? `$${Number(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                              : `${tx.amount} Units`
+                            }
+                          </span>
+                          {(tx as any).discountAmount > 0 && (
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-red-50 border border-red-100 text-red-600 text-[9px] font-black uppercase tracking-widest">
+                              <Tag size={10} /> 
+                              Discount: ${(tx as any).discountAmount.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-5 text-center">
                         <span className={`px-2 py-0.5 rounded-[6px] text-[10px] font-black uppercase tracking-widest border ${

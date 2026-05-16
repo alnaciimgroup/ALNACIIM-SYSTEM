@@ -159,9 +159,10 @@ export async function recordSale(prevState: any, formData: FormData) {
   const freeQuantity = parseInt(formData.get('free_quantity') as string || '0')
   const unit_price = saleType === 'free' ? 0.00 : parseFloat(formData.get('unit_price') as string || '5.00')
 
-  // 1. Get default item (Water Tank)
-  const { data: items } = await supabase.from('items').select('id').limit(1)
+  // 1. Get default item (Water Tank) and its standard price
+  const { data: items } = await supabase.from('items').select('id, current_price').limit(1)
   const item_id = items?.[0]?.id
+  const standard_price = items?.[0]?.current_price || 5.00
   if (!item_id) return { message: 'System Error: No items found.', errors: true }
 
   const rawData = {
@@ -245,7 +246,13 @@ export async function recordSale(prevState: any, formData: FormData) {
     }
   }
 
-  // 5. Create Sale
+  // 5. Calculate Background Discount
+  let discount_amount = 0
+  if (sale_type !== 'free' && unit_price < standard_price) {
+    discount_amount = (standard_price - unit_price) * quantity
+  }
+
+  // 6. Create Sale
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .insert({
@@ -253,6 +260,7 @@ export async function recordSale(prevState: any, formData: FormData) {
       customer_id,
       sale_type,
       total_amount,
+      discount_amount,
       status: 'completed'
     })
     .select()

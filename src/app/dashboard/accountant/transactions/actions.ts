@@ -14,7 +14,7 @@ export async function getTransactions(filters: TransactionFilter = {}) {
   let salesQuery = supabase
     .from('sales')
     .select(`
-      id, total_amount, sale_type, status, created_at, custom_sale_id,
+      id, total_amount, sale_type, status, created_at, custom_sale_id, discount_amount,
       staff:users!sales_staff_id_fkey(full_name),
       customer:customers(name)
     `)
@@ -85,7 +85,8 @@ export async function getTransactions(filters: TransactionFilter = {}) {
       amount: Number(s.total_amount),
       isCurrency: true,
       status: s.status,
-      date: new Date(s.created_at)
+      date: new Date(s.created_at),
+      discountAmount: Number(s.discount_amount || 0)
     })),
     ...(payments || []).map(p => ({
       id: p.id,
