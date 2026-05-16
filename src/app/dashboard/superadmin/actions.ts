@@ -1,13 +1,13 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { verifySession } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
 
 export async function logProduction(prevState: any, formData: FormData) {
   try {
     const { user } = await verifySession(['superadmin'])
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const litersStr = formData.get('liters') as string
     const liters = parseInt(litersStr, 10)
