@@ -14,7 +14,9 @@ export async function submitDistribution(prevState: any, formData: FormData) {
 
   const rawData = {
     staff_id: formData.get('staff_id') as string,
-    quantity: parseInt(formData.get('quantity') as string),
+    truck_id: formData.get('truck_id') as string,
+    liters: parseInt(formData.get('liters') as string),
+    quantity: 0,
     free_quantity: 0,
     zone: formData.get('zone') as string,
     item_id: '' // Will be resolved
@@ -50,15 +52,29 @@ export async function submitDistribution(prevState: any, formData: FormData) {
     return { message: validated.error.issues[0].message, errors: true }
   }
 
-  const { staff_id, item_id, quantity, free_quantity, zone } = validated.data
+  const { staff_id, truck_id, item_id, quantity, liters, free_quantity, zone } = validated.data
+
+  // SECURITY CHECK: Verify enough water exists in the Main Reservoir
+  const { data: prodLogs } = await supabase.from('production_logs').select('liters_produced')
+  const { data: distLogs } = await supabase.from('distributions').select('liters')
+  
+  const totalProduced = (prodLogs || []).reduce((acc, log) => acc + Number(log.liters_produced), 0)
+  const totalDistributed = (distLogs || []).reduce((acc, log) => acc + Number(log.liters || 0), 0)
+  const currentLiquidInventory = totalProduced - totalDistributed
+
+  if (liters > currentLiquidInventory) {
+    return { message: `Insufficient water! Only ${currentLiquidInventory.toLocaleString()} Liters available in the Main Reservoir.`, errors: true }
+  }
 
   const { data: distribution, error } = await supabase
     .from('distributions')
     .insert({
       agent_id: user.id,
       staff_id,
+      truck_id,
       item_id,
       quantity,
+      liters,
       free_quantity,
       zone,
       status: 'completed' 
@@ -74,7 +90,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   await logAction('DISTRIBUTE_STOCK', { 
     targetTable: 'distributions', 
     targetId: distribution.id, 
-    details: { staff_id, quantity, zone } 
+    details: { staff_id, truck_id, liters, zone } 
   })
 
   revalidatePath('/dashboard/agent')
@@ -97,16 +113,19 @@ export async function getAgentDashboardData() {
   const [
     staffResponse,
     distributionsResponse,
-    weeklyResponse
+    weeklyResponse,
+    trucksResponse
   ] = await Promise.all([
     supabaseAdmin.from('users').select('id, full_name').eq('role', 'staff').order('full_name'),
-    supabase.from('distributions').select('id, created_at, quantity, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
-    supabase.from('distributions').select('quantity, free_quantity').gte('created_at', sevenDaysAgo.toISOString())
+    supabase.from('distributions').select('id, created_at, quantity, liters, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name), truck:trucks(plate_number)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
+    supabase.from('distributions').select('quantity, liters, free_quantity').gte('created_at', sevenDaysAgo.toISOString()),
+    supabase.from('trucks').select('id, plate_number, capacity_liters').eq('status', 'active')
   ])
 
   const staffList = staffResponse.data || []
   const distributions = distributionsResponse.data || []
   const weeklyData = weeklyResponse.data || []
+  const truckList = trucksResponse.data || []
 
   if (staffResponse.error) console.error('Agent Dashboard Staff Fetch Error:', staffResponse.error)
 
@@ -123,15 +142,20 @@ export async function getAgentDashboardData() {
     id: d.id,
     created_at: d.created_at,
     quantity: d.quantity,
+    liters: d.liters || 0,
     free_quantity: d.free_quantity || 0,
     status: d.status,
     staff: {
       full_name: Array.isArray(d.staff) ? d.staff[0]?.full_name : (d.staff as any)?.full_name || 'Unknown'
+    },
+    truck: {
+      plate_number: (d.truck as any)?.plate_number || 'N/A'
     }
   }))
 
   return {
     staffList: staffList || [],
+    truckList: truckList,
     distributions: normalizedDistributions,
     metrics: {
       distributedToday: sumQuantity,

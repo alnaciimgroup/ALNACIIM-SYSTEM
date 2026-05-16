@@ -31,7 +31,7 @@ export default async function TankDistributionPage() {
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
-            <DistributionForm staffList={data.staffList} />
+            <DistributionForm staffList={data.staffList} truckList={data.truckList || []} />
             <DistributionHistory distributions={data.distributions} />
           </section>
         </div>

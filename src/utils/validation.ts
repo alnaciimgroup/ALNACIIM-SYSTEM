@@ -47,8 +47,10 @@ export const ReviewSubmissionSchema = z.object({
 // 5. Distribution Schemas
 export const DistributionSchema = z.object({
   staff_id: z.string().uuid(),
+  truck_id: z.string().uuid('Please select a valid truck'),
   item_id: z.string().uuid(),
-  quantity: z.number().int().positive('Quantity must be greater than 0'),
+  liters: z.number().int().positive('Liters must be greater than 0'),
+  quantity: z.number().int().min(0).optional().default(0),
   free_quantity: z.number().int().min(0).optional().default(0),
   zone: z.string().max(100).optional(),
 })
