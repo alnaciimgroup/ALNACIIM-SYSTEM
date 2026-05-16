@@ -41,7 +41,7 @@ export default async function HistoryPage() {
                   <tr className="border-b border-[#f1f5f9]">
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">ID</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Staff Name</th>
-                    <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider text-center">Quantity</th>
+                    <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider text-center">Volume Load</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider text-center">Zone</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider text-right">Date & Time</th>
                   </tr>
@@ -56,7 +56,7 @@ export default async function HistoryPage() {
                            <span className="font-bold text-[#0f172a] text-[14px]">{record.staff}</span>
                         </div>
                       </td>
-                      <td className="py-4 text-center font-black text-[#0f172a] text-[15px]">{record.quantity} tanks</td>
+                      <td className="py-4 text-center font-black text-[#0f172a] text-[15px]">{record.liters ? `${record.liters.toLocaleString()} Liters` : `${record.quantity} tanks`}</td>
                       <td className="py-4 text-center">
                         <span className="px-3 py-1 bg-gray-100 text-[#475569] text-[11px] font-bold rounded-full uppercase tracking-tight">{record.zone}</span>
                       </td>

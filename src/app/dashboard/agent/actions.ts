@@ -202,6 +202,7 @@ export async function getDistributionHistory() {
       id,
       created_at,
       quantity,
+      liters,
       zone,
       staff:users!distributions_staff_id_fkey (full_name)
     `)
@@ -217,6 +218,7 @@ export async function getDistributionHistory() {
     id: d.id,
     staff: (d.staff as any)?.full_name || 'Unknown',
     quantity: d.quantity,
+    liters: d.liters,
     date: new Date(d.created_at).toLocaleString(),
     zone: d.zone
   }))

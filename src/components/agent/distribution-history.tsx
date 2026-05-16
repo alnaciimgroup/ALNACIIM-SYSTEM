@@ -12,6 +12,7 @@ export type DistributionRecord = {
   id: string
   created_at: string
   quantity: number
+  liters?: number
   status: string
   zone?: string
   staff: {
@@ -64,7 +65,7 @@ export function DistributionHistory({ distributions }: { distributions: Distribu
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="pb-4 text-[11px] lg:text-[13px] font-semibold text-gray-400 uppercase tracking-wider">Staff Member</th>
-                <th className="pb-4 text-[11px] lg:text-[13px] font-semibold text-gray-400 uppercase tracking-wider">Quantity</th>
+                <th className="pb-4 text-[11px] lg:text-[13px] font-semibold text-gray-400 uppercase tracking-wider">Volume Load</th>
                 <th className="pb-4 text-[11px] lg:text-[13px] font-semibold text-gray-400 uppercase tracking-wider hidden sm:table-cell">Time</th>
                 <th className="pb-4 text-[11px] lg:text-[13px] font-semibold text-gray-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -82,7 +83,7 @@ export function DistributionHistory({ distributions }: { distributions: Distribu
                   </td>
                   <td className="py-4">
                     <span className="text-[14px] lg:text-[15px] text-gray-900 font-bold whitespace-nowrap">
-                      {record.quantity} Tanks
+                      {record.liters ? `${record.liters.toLocaleString()} Liters` : `${record.quantity} Tanks`}
                     </span>
                   </td>
                   <td className="py-4 text-[14px] lg:text-[15px] font-medium text-gray-500 hidden sm:table-cell">
