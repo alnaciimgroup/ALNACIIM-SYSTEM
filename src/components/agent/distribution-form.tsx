@@ -22,7 +22,7 @@ const initialState = {
 import { useToast } from '@/components/ui/toast'
 import { useEffect, useRef } from 'react'
 
-export function DistributionForm({ staffList, truckList = [] }: { staffList: StaffMember[], truckList?: Truck[] }) {
+export function DistributionForm({ staffList }: { staffList: StaffMember[] }) {
   const [state, formAction, isPending] = useActionState(submitDistribution, initialState)
   const { showToast } = useToast()
   const formRef = useRef<HTMLFormElement>(null)
@@ -59,29 +59,6 @@ export function DistributionForm({ staffList, truckList = [] }: { staffList: Sta
               <option value="" disabled>Select staff...</option>
               {staffList.map(staff => (
                 <option key={staff.id} value={staff.id}>{staff.full_name}</option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-              <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1L5 5L9 1" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="truck_id" className="text-[14px] font-bold text-[#1e293b]">Select Logistics Truck</label>
-          <div className="relative">
-            <select 
-              id="truck_id" 
-              name="truck_id" 
-              className="w-full h-[46px] px-4 bg-white border border-[#e2e8f0] rounded-[10px] text-[14px] font-medium text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all appearance-none"
-              required
-              defaultValue=""
-            >
-              <option value="" disabled>Select truck...</option>
-              {truckList.map(truck => (
-                <option key={truck.id} value={truck.id}>Truck: {truck.plate_number}</option>
               ))}
             </select>
             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">

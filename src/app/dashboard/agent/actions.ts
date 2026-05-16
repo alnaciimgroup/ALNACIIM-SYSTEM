@@ -14,13 +14,22 @@ export async function submitDistribution(prevState: any, formData: FormData) {
 
   const rawData = {
     staff_id: formData.get('staff_id') as string,
-    truck_id: formData.get('truck_id') as string,
     liters: parseInt(formData.get('liters') as string),
-    quantity: 0,
+    quantity: 1, // Bypass legacy quantity constraint
     free_quantity: 0,
     zone: formData.get('zone') as string,
-    item_id: '' // Will be resolved
+    item_id: '', // Will be resolved
+    truck_id: ''
   }
+
+  // Automatically find the truck assigned to this staff member
+  const { data: truckData } = await supabase.from('trucks').select('id, capacity_liters').eq('driver_id', rawData.staff_id).single()
+  
+  if (!truckData) {
+    return { message: 'This staff member does not have an assigned truck. Superadmin must assign one first.', errors: true }
+  }
+
+  rawData.truck_id = truckData.id
 
   // Auto-resolve item_id since UI only distributes "Tanks"
   // SELF-HEALING: If no items exist (due to a wipe), create a default one automatically
@@ -54,7 +63,12 @@ export async function submitDistribution(prevState: any, formData: FormData) {
 
   const { staff_id, truck_id, item_id, quantity, liters, free_quantity, zone } = validated.data
 
-  // SECURITY CHECK: Verify enough water exists in the Main Reservoir
+  // SECURITY CHECK 1: Ensure load doesn't exceed physical truck capacity
+  if (liters > truckData.capacity_liters) {
+    return { message: `Load Rejected: This truck's maximum capacity is only ${truckData.capacity_liters.toLocaleString()} Liters.`, errors: true }
+  }
+
+  // SECURITY CHECK 2: Verify enough water exists in the Main Reservoir
   const { data: prodLogs } = await supabase.from('production_logs').select('liters_produced')
   const { data: distLogs } = await supabase.from('distributions').select('liters')
   

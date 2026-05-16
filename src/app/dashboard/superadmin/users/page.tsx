@@ -1,7 +1,7 @@
 'use client'
 
 import { Header } from '@/components/layout/header'
-import { UserPlus, Mail, Lock, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, User, Key, Shield } from 'lucide-react'
+import { UserPlus, Mail, Lock, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, User, Key, Shield, Truck } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { createSystemUser } from '@/app/dashboard/superadmin/users/actions'
@@ -111,6 +111,43 @@ export default function CreateUserPage() {
                   ))}
                 </div>
               </div>
+
+              {role === 'staff' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#f8fafc] p-6 rounded-[16px] border border-[#e2e8f0]">
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Truck Plate Number</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                         <Truck className="text-[#94a3b8]" size={18} strokeWidth={2.5} />
+                      </div>
+                      <input 
+                        type="text" 
+                        name="truck_plate" 
+                        placeholder="e.g. TRK-001"
+                        required
+                        className="w-full h-[52px] pl-[44px] pr-4 bg-white border border-[#e2e8f0] rounded-[10px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Truck Capacity (Liters)</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                         <span className="text-[#94a3b8] font-black text-[14px]">L</span>
+                      </div>
+                      <input 
+                        type="number" 
+                        name="truck_capacity" 
+                        placeholder="e.g. 10000"
+                        min="1"
+                        required
+                        className="w-full h-[52px] pl-[44px] pr-4 bg-white border border-[#e2e8f0] rounded-[10px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-2 flex flex-col gap-4">
                 <button 

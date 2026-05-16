@@ -49,6 +49,30 @@ export async function createSystemUser(formData: FormData) {
       return { message: `Account created, but identity sync failed: ${syncError.message}`, error: true }
     }
 
+    // 3. Register Truck if Staff Role
+    if (role === 'staff') {
+      const truckPlate = formData.get('truck_plate') as string
+      const truckCapacityStr = formData.get('truck_capacity') as string
+
+      if (truckPlate && truckCapacityStr) {
+        const capacityLiters = parseInt(truckCapacityStr, 10)
+        if (!isNaN(capacityLiters) && capacityLiters > 0) {
+          const { error: truckError } = await supabase
+            .from('trucks')
+            .insert({
+              plate_number: truckPlate,
+              capacity_liters: capacityLiters,
+              driver_id: data.user.id
+            })
+
+          if (truckError) {
+            console.error('Truck Registration Error:', truckError)
+            return { message: `Account created, but truck registration failed: ${truckError.message}`, error: true }
+          }
+        }
+      }
+    }
+
     await logAction('CREATE_USER', { 
       targetTable: 'users', 
       targetId: data.user.id, 
