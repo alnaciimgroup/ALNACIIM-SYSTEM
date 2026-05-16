@@ -115,7 +115,7 @@ export default function CreateUserPage() {
               {role === 'staff' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#f8fafc] p-6 rounded-[16px] border border-[#e2e8f0]">
                   <div className="flex flex-col gap-3">
-                    <label className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Truck Plate Number</label>
+                    <label className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Truck Number</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                          <Truck className="text-[#94a3b8]" size={18} strokeWidth={2.5} />
