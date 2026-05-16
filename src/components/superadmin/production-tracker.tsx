@@ -3,20 +3,21 @@
 import { useActionState, useEffect } from 'react'
 import { logProduction } from '@/app/dashboard/superadmin/actions'
 import { Droplet, Plus, Factory } from 'lucide-react'
-import { toast } from 'react-hot-toast'
+import { useToast } from '@/components/ui/toast'
 
 export function ProductionTracker({ totalInventory }: { totalInventory: number }) {
   const [state, formAction, isPending] = useActionState(logProduction, null)
+  const { showToast } = useToast()
 
   useEffect(() => {
     if (state?.message) {
       if (state.error) {
-        toast.error(state.message)
+        showToast(state.message, 'error')
       } else {
-        toast.success(state.message)
+        showToast(state.message, 'success')
       }
     }
-  }, [state])
+  }, [state, showToast])
 
   return (
     <div className="bg-white border border-[#e5e7eb] rounded-[24px] p-6 shadow-sm flex flex-col md:flex-row gap-8 items-center justify-between">
