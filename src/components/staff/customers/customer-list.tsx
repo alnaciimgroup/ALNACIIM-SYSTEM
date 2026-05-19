@@ -15,6 +15,10 @@ type Customer = {
   status: string
   debt: number
   created_at: string
+  customer_type?: string
+  isInactiveWarning?: boolean
+  daysInactive?: number
+  lastRefillDate?: string
 }
 
 export function CustomerList({ initialCustomers }: { initialCustomers: Customer[] }) {
@@ -90,6 +94,7 @@ export function CustomerList({ initialCustomers }: { initialCustomers: Customer[
               <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Customer Name</th>
               <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Phone</th>
               <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Zone / Address</th>
+              <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Type / Activity</th>
               <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Guarantor</th>
               <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Unpaid Debt</th>
               <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Status</th>
@@ -99,7 +104,7 @@ export function CustomerList({ initialCustomers }: { initialCustomers: Customer[
           <tbody className="divide-y divide-[#f1f5f9]">
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center">
+                <td colSpan={7} className="py-12 text-center">
                   <div className="flex flex-col items-center justify-center text-[#94a3b8]">
                     <User size={32} className="mb-3 opacity-50" />
                     <span className="text-[14px] font-bold text-[#0f172a] mb-1">No customers found</span>
@@ -117,6 +122,22 @@ export function CustomerList({ initialCustomers }: { initialCustomers: Customer[
                 </td>
                 <td className="py-4 text-[14px] text-[#0f172a] font-medium">{customer.phone}</td>
                 <td className="py-4 text-[13px] text-[#64748b]">{customer.address || '-'}</td>
+                <td className="py-4">
+                  <div className="flex flex-col gap-1.5 items-start">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-black uppercase tracking-widest ${
+                      customer.customer_type === 'irregular' 
+                        ? 'bg-purple-50 text-purple-600 border border-purple-100' 
+                        : 'bg-blue-50 text-blue-600 border border-blue-100'
+                    }`}>
+                      {customer.customer_type || 'regular'}
+                    </span>
+                    {customer.isInactiveWarning && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-red-600 uppercase tracking-widest bg-red-50 px-1.5 py-0.5 rounded-[4px]">
+                        ⚠️ {customer.daysInactive} Days
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="py-4 text-[13px] text-[#64748b] font-medium">{customer.guarantor || '-'}</td>
                 <td className="py-4 text-[14px] font-black text-[#ef4444]">${customer.debt || 0}</td>
                 <td className="py-4">

@@ -14,7 +14,7 @@ export async function getCustomers(search?: string, statusFilter?: string) {
 
   let query = supabase
     .from('customers')
-    .select('*')
+    .select('*, sales(created_at)')
     .eq('staff_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -33,7 +33,28 @@ export async function getCustomers(search?: string, statusFilter?: string) {
     return []
   }
 
-  return customers
+  const now = new Date()
+  const enhancedCustomers = customers.map(c => {
+    let daysInactive = 0
+    let lastRefillDate = null
+
+    if (c.sales && c.sales.length > 0) {
+      // Find the most recent sale
+      const sortedSales = c.sales.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      lastRefillDate = sortedSales[0].created_at
+      const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate).getTime())
+      daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    }
+
+    return {
+      ...c,
+      lastRefillDate,
+      daysInactive,
+      isInactiveWarning: daysInactive > 10
+    }
+  })
+
+  return enhancedCustomers
 }
 
 export async function createCustomer(prevState: any, formData: FormData) {
@@ -46,7 +67,8 @@ export async function createCustomer(prevState: any, formData: FormData) {
     guarantor: formData.get('guarantor') as string,
     guarantor_phone: formData.get('guarantor_phone') as string,
     tank_number: formData.get('tank_number') as string,
-    staff_id: user.id
+    staff_id: user.id,
+    customer_type: formData.get('customer_type') as string || 'regular'
   }
 
   const validated = CustomerSchema.safeParse(rawData)
@@ -64,6 +86,7 @@ export async function createCustomer(prevState: any, formData: FormData) {
       guarantor: validated.data.guarantor,
       guarantor_phone: validated.data.guarantor_phone,
       tank_number: validated.data.tank_number,
+      customer_type: validated.data.customer_type,
       status: 'active'
     })
     .select()
@@ -141,7 +164,8 @@ export async function updateCustomer(id: string, prevState: any, formData: FormD
     guarantor: formData.get('guarantor') as string,
     guarantor_phone: formData.get('guarantor_phone') as string,
     tank_number: formData.get('tank_number') as string,
-    staff_id: user.id
+    staff_id: user.id,
+    customer_type: formData.get('customer_type') as string || 'regular'
   }
 
   const validated = CustomerSchema.safeParse(rawData)
@@ -158,6 +182,7 @@ export async function updateCustomer(id: string, prevState: any, formData: FormD
       guarantor: validated.data.guarantor, 
       guarantor_phone: validated.data.guarantor_phone,
       tank_number: validated.data.tank_number,
+      customer_type: validated.data.customer_type,
       status: formData.get('status') as string, 
       updated_at: new Date().toISOString() 
     })

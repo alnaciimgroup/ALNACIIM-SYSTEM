@@ -40,9 +40,19 @@ export default function CreateCustomerPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="address" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Zone / Address</label>
-                <input type="text" id="address" name="address" placeholder="e.g. Hodan District, Maka Al-Mukarama Road" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="address" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Zone / Address</label>
+                  <input type="text" id="address" name="address" placeholder="e.g. Hodan District, Maka Al-Mukarama Road" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all" />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="customer_type" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider">Customer Classification</label>
+                  <select id="customer_type" name="customer_type" className="h-[48px] px-4 rounded-[12px] border border-[#e2e8f0] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all bg-white appearance-none cursor-pointer font-bold text-[#0f172a]">
+                    <option value="regular">Regular (Fixed Schedule)</option>
+                    <option value="irregular">Irregular (Random Orders)</option>
+                  </select>
+                </div>
               </div>
 
               <div className="flex flex-col gap-2">
