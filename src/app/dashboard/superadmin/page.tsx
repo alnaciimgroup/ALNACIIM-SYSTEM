@@ -34,6 +34,12 @@ export default async function SuperadminDashboard() {
     metrics,
     recentUsers
   }
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
+      <Header title="Superadmin Dashboard" />
+      <main className="flex-1 overflow-y-auto px-8 pt-6 pb-8">
+        <div className="w-full">
           <section className="mb-8">
             <div className="flex justify-between items-end mb-6">
               <div>

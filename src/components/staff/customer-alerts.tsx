@@ -163,7 +163,7 @@ function FollowUpModal({ customer, onClose }: { customer: any, onClose: () => vo
             </button>
             <button 
               type="submit" 
-              disabled={isPending || (state && !state.errors)}
+              disabled={isPending || (state && !state.errors) ? true : undefined}
               className="flex-1 h-[48px] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[13px] rounded-[14px] flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 uppercase tracking-widest"
             >
               {isPending ? <Loader2 className="animate-spin" size={16} /> : <UserCheck size={16} strokeWidth={2.5} />}

@@ -137,8 +137,8 @@ export async function getStaffDashboardData(date?: string) {
       const amount = s.sale_items?.reduce((a: number, i: any) => a + (isFreeSale ? i.quantity : 0) + (i.free_quantity || 0), 0) || 0;
       return {
         id: s.id,
-        customerName: Array.isArray(s.customer) ? s.customer[0]?.name : s.customer?.name || 'Unknown',
-        customerPhone: Array.isArray(s.customer) ? s.customer[0]?.phone : s.customer?.phone || '',
+        customerName: Array.isArray(s.customer) ? (s.customer[0] as any)?.name : (s.customer as any)?.name || 'Unknown',
+        customerPhone: Array.isArray(s.customer) ? (s.customer[0] as any)?.phone : (s.customer as any)?.phone || '',
         amount,
         type: isFreeSale ? '100% Free' : 'Bonus Liters',
         time: s.created_at
@@ -157,11 +157,11 @@ export async function getStaffDashboardData(date?: string) {
   const inactiveCustomersAlerts = (allCustomersRaw || [])
     .map(c => {
       let daysInactive = 0
-      let lastRefillDate = null
+      let lastRefillDate: string | null = null
       if (c.sales && c.sales.length > 0) {
         const sortedSales = c.sales.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         lastRefillDate = sortedSales[0].created_at
-        const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate).getTime())
+        const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate as string).getTime())
         daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
       } else {
         return null

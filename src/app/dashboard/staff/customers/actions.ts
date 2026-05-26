@@ -36,13 +36,13 @@ export async function getCustomers(search?: string, statusFilter?: string) {
   const now = new Date()
   const enhancedCustomers = customers.map(c => {
     let daysInactive = 0
-    let lastRefillDate = null
+    let lastRefillDate: string | null = null
 
     if (c.sales && c.sales.length > 0) {
       // Find the most recent sale
       const sortedSales = c.sales.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       lastRefillDate = sortedSales[0].created_at
-      const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate).getTime())
+      const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate as string).getTime())
       daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     }
 

@@ -10,7 +10,7 @@ export default async function DraftsPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
-      <Header title="Pending Drafts" subtitle="Manage your unresolved sales" />
+      <Header title="Pending Drafts" />
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
           

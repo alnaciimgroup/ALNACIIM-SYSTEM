@@ -20,7 +20,8 @@ export type AuditAction =
   | 'CREATE_USER'
   | 'DELETE_USER'
   | 'LOGIN'
-  | 'LOGOUT';
+  | 'LOGOUT'
+  | 'RESOLVE_DRAFT';
 
 export async function logAction(
   action: AuditAction,

@@ -51,7 +51,7 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     { data: allSubmissions }
   ] = await Promise.all([
     supabase.from('distributions').select('quantity, liters, staff_id, created_at').gte('created_at', periodStart).lte('created_at', periodEnd),
-    supabase.from('sales').select('total_amount, discount_amount, sale_type, staff_id, created_at, sale_items(quantity, free_quantity), customer:customers(name, phone)').gte('created_at', periodStart).lte('created_at', periodEnd),
+    supabase.from('sales').select('id, total_amount, discount_amount, sale_type, staff_id, created_at, sale_items(quantity, free_quantity), customer:customers(name, phone)').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('payments').select('amount, created_at, sales!inner(staff_id)').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('cash_submissions').select('id, amount, status, created_at').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(20),
     supabase.from('distributions').select('id, quantity, liters, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
@@ -115,8 +115,8 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
       const amount = s.sale_items?.reduce((a: number, i: any) => a + (isFreeSale ? i.quantity : 0) + (i.free_quantity || 0), 0) || 0;
       return {
         id: s.id,
-        customerName: Array.isArray(s.customer) ? s.customer[0]?.name : s.customer?.name || 'Unknown',
-        customerPhone: Array.isArray(s.customer) ? s.customer[0]?.phone : s.customer?.phone || '',
+        customerName: Array.isArray(s.customer) ? (s.customer[0] as any)?.name : (s.customer as any)?.name || 'Unknown',
+        customerPhone: Array.isArray(s.customer) ? (s.customer[0] as any)?.phone : (s.customer as any)?.phone || '',
         amount,
         type: isFreeSale ? '100% Free' : 'Bonus Liters',
         time: s.created_at
@@ -222,12 +222,12 @@ export async function getAtRiskCustomers() {
   const inactiveCustomersAlerts = (allCustomersRaw || [])
     .map(c => {
       let daysInactive = 0
-      let lastRefillDate = null
+      let lastRefillDate: string | null = null
       
       if (c.sales && c.sales.length > 0) {
         const sortedSales = c.sales.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         lastRefillDate = sortedSales[0].created_at
-        const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate).getTime())
+        const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate as string).getTime())
         daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
       } else {
         return null // Ignore customers with zero lifetime sales for now

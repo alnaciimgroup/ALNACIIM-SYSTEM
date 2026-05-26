@@ -120,13 +120,13 @@ export default async function DailyReportPage({
           <div className="max-w-[600px] mx-auto">
              <EndOfDayReport 
                 report={{
-                  tanksSold: summary.tanksSold,
+                  litersSold: summary.tanksSold,
                   moneySubmitted: summary.totalMoneyCollected,
                   moneyCollected: summary.totalMoneyCollected,
                   cashSales: summary.cashSalesTotal,
                   debtPayments: summary.debtPayments,
                   creditSold: summary.creditSalesTotal,
-                  freeTanksSold: dashboardData.metrics.freeTanksToday || 0,
+                  freeLitersSold: dashboardData.metrics.freeTanksToday || 0,
                   status: summary.submissionStatus === 'verified' ? 'VERIFIED' : (summary.submissionStatus === 'submitted' || summary.submissionStatus === 'disputed' ? 'SUBMITTED' : 'PENDING'),
                   date: summary.date
                 }}
