@@ -12,7 +12,7 @@ export default async function MyTanksPage() {
         <div className="w-full">
           
           <div className="mb-8">
-            <h2 className="text-[28px] font-black text-[#0f172a] mb-1 tracking-tight">Inventory Management (My Tanks)</h2>
+            <h2 className="text-[28px] font-black text-[#0f172a] mb-1 tracking-tight">Inventory Management (My Liters)</h2>
             <p className="text-[15px] font-medium text-[#64748b]">Track your stock levels, distributions received, and sales depleted.</p>
           </div>
 
@@ -26,7 +26,7 @@ export default async function MyTanksPage() {
               </div>
               <div>
                 <span className="text-[36px] font-black text-[#0f172a] leading-none">{metrics.tanksReceivedLifetime}</span>
-                <p className="text-[14px] text-[#64748b] font-medium mt-1">Tanks Received Lifetime</p>
+                <p className="text-[14px] text-[#64748b] font-medium mt-1">Liters Received Lifetime</p>
               </div>
             </div>
 
@@ -39,7 +39,7 @@ export default async function MyTanksPage() {
               </div>
               <div>
                 <span className="text-[36px] font-black text-[#0f172a] leading-none">{metrics.tanksSoldLifetime}</span>
-                <p className="text-[14px] text-[#64748b] font-medium mt-1">Tanks Sold Lifetime</p>
+                <p className="text-[14px] text-[#64748b] font-medium mt-1">Liters Sold Lifetime</p>
               </div>
             </div>
 
@@ -52,7 +52,7 @@ export default async function MyTanksPage() {
               </div>
               <div>
                 <span className="text-[42px] font-black text-white leading-none">{metrics.remainingTanks}</span>
-                <p className="text-[14px] text-white/70 font-medium mt-1">Tanks Available for Sale</p>
+                <p className="text-[14px] text-white/70 font-medium mt-1">Liters Available for Sale</p>
               </div>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default async function MyTanksPage() {
                       </td>
                       <td className="py-5">
                          <span className="px-3 py-1 bg-[#eff6ff] text-[#3b82f6] text-[13px] font-black rounded-full">
-                            {dist.quantity} TANKS
+                            {dist.liters || dist.quantity} LITERS
                          </span>
                       </td>
                       <td className="py-5 text-[14px] text-[#64748b] font-medium">Standard</td>

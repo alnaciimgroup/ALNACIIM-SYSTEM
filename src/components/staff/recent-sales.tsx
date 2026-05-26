@@ -13,6 +13,7 @@ type SaleRecord = {
   amount: number
   sale_type?: string
   customer_name?: string
+  discount_amount?: number
 }
 
 export function RecentSales({ sales }: { sales: SaleRecord[] }) {
@@ -42,14 +43,19 @@ export function RecentSales({ sales }: { sales: SaleRecord[] }) {
               {sales.map((record) => (
                 <tr key={record.id} className="hover:bg-[#f8fafc] transition-colors group">
                   <td className="py-4">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col items-start">
                       <span className="font-bold text-[#0f172a] text-[13px] lg:text-[14px] leading-tight mb-1">{record.reference}</span>
-                      <span className="text-[10px] lg:text-[11px] font-medium text-[#94a3b8]">{record.time}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] lg:text-[11px] font-medium text-[#94a3b8]">{record.time}</span>
+                        {record.discount_amount && record.discount_amount > 0 ? (
+                          <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-black tracking-widest uppercase">Discount (-${Number(record.discount_amount).toFixed(2)})</span>
+                        ) : null}
+                      </div>
                     </div>
                   </td>
                   <td className="py-4">
                     <span className="px-2 lg:px-3.5 py-1 lg:py-1.5 bg-[#f1f5f9] text-[#475569] text-[12px] lg:text-[13px] font-medium rounded-[8px] whitespace-nowrap">
-                      {record.quantity} tanks
+                      {record.quantity} liters
                     </span>
                   </td>
                   <td className="py-4">

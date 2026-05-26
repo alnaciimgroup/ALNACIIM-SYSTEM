@@ -85,7 +85,7 @@ export default async function StaffDetailReportPage({
                 <div className="bg-[#eff6ff] text-[#3b82f6] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#dbeafe]">Audited</div>
               </div>
               <div>
-                <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Tanks Received</div>
+                <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Liters Received</div>
                 <div className="mb-1 flex items-end gap-2">
                   <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.auditedDistributed}</span>
 
@@ -98,13 +98,15 @@ export default async function StaffDetailReportPage({
                 <div className="w-10 h-10 rounded-[12px] bg-[#ecfdf5] text-[#10b981] flex items-center justify-center">
                   <Tag size={20} strokeWidth={2.5} />
                 </div>
-                <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
+                <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#d1fae5]">
+                  {stats.totalSold === stats.auditedSold ? 'Audited' : 'Live Pending'}
+                </div>
               </div>
               <div>
-                <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Tanks Sold</div>
+                <div className="text-[11px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">Liters Sold</div>
                 <div className="mb-1 flex items-end gap-2">
-                  <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.auditedSold}</span>
-                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">{stats.auditedFreeTanks || 0} Free</span>
+                  <span className="text-[28px] font-black text-[#0f172a] tracking-tighter leading-none block">{stats.totalSold}</span>
+                  <span className="text-[12px] font-black text-[#10b981] mb-1.5 uppercase tracking-widest">{stats.totalFreeTanks || 0} Free</span>
                 </div>
               </div>
             </div>

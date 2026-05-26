@@ -26,7 +26,7 @@ export default async function AccountantSubmissionsPage({
   const staffId = params.staff
   const status = params.status
   const supabase = await createClient()
-  const summary = await getReviewSummary(date, staffId)
+  const summary = await getReviewSummary(date, staffId, status)
   
   // 1. Fetch raw submissions
   let query = supabase

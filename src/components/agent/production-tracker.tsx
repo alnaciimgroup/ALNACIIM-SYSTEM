@@ -1,8 +1,8 @@
 'use client'
 
 import { useActionState, useEffect } from 'react'
-import { logProduction } from '@/app/dashboard/superadmin/actions'
 import { Droplet, Plus, Factory } from 'lucide-react'
+import { logProduction } from '@/app/dashboard/agent/actions'
 import { useToast } from '@/components/ui/toast'
 
 export function ProductionTracker({ totalInventory }: { totalInventory: number }) {

@@ -35,7 +35,7 @@ export default async function ReportsPage({
     {
       id: 'distribution',
       title: 'Inventory & Distribution',
-      description: 'Track tank movements from agents to staff, including inventory balances.',
+      description: 'Track volume movements from agents to staff, including inventory balances.',
       icon: PieChart,
       color: 'text-[#10b981]',
       bg: 'bg-[#ecfdf5]',
@@ -229,7 +229,7 @@ export default async function ReportsPage({
                     <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending</div>
                   )}
                 </div>
-                <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Tanks Sold</span>
+                <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mb-1.5 block">Total Liters Sold</span>
                 <div className="text-[24px] font-black text-[#0f172a] tracking-tight">{summary?.totalSold?.toLocaleString() ?? 0}</div>
              </div>
 
@@ -272,7 +272,7 @@ export default async function ReportsPage({
                 <div className="w-10 h-10 rounded-[12px] bg-blue-500 text-white flex items-center justify-center mb-4">
                    <Gift size={20} />
                 </div>
-                <span className="text-[10px] font-black text-[#0369a1] uppercase tracking-widest mb-1.5 block">Free Tanks Given</span>
+                <span className="text-[10px] font-black text-[#0369a1] uppercase tracking-widest mb-1.5 block">Free Liters Given</span>
                 <div className="text-[24px] font-black text-[#0369a1] tracking-tight">{summary?.totalFreeTanks?.toLocaleString() ?? 0}</div>
              </div>
           </div>

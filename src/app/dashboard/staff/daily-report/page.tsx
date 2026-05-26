@@ -69,7 +69,7 @@ export default async function DailyReportPage({
                 <ShoppingBag size={20} strokeWidth={2.5} />
               </div>
               <div>
-                <span className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest block mb-0.5">Tanks Sold</span>
+                <span className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest block mb-0.5">Liters Sold</span>
                 <span className="text-[20px] font-black text-[#0f172a] leading-none">{summary.tanksSold}</span>
               </div>
             </div>

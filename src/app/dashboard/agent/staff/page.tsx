@@ -14,7 +14,7 @@ export default async function StaffListPage() {
           <section className="mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-[18px] font-bold text-[#0f172a] mb-1">Active Staff List</h2>
-              <p className="text-[14px] font-medium text-[#64748b]">Monitor assigned tanks and distribution activity across your staff network.</p>
+              <p className="text-[14px] font-medium text-[#64748b]">Monitor assigned liters and distribution activity across your staff network.</p>
             </div>
           </section>
 
@@ -42,7 +42,7 @@ export default async function StaffListPage() {
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Staff Member</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Phone</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Status</th>
-                    <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Lifetime Tanks</th>
+                    <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Lifetime Liters</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Current Stock</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider text-right">Action</th>
                   </tr>
@@ -60,7 +60,7 @@ export default async function StaffListPage() {
                       <td className="py-4 font-bold text-[#0f172a]">{staff.tanksReceived}</td>
                       <td className="py-4">
                          <span className={`font-bold ${staff.currentStock < 10 && staff.status === 'Active' ? 'text-[#ef4444]' : 'text-[#3b82f6]'}`}>
-                            {staff.currentStock} tanks
+                            {staff.currentStock} Liters
                          </span>
                       </td>
                       <td className="py-4 text-right">

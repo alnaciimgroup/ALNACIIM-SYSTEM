@@ -17,7 +17,7 @@ export function RecordSaleForm() {
       <hr className="border-[#f1f5f9] mb-6 block" />
 
       <form action={handleSale} className="flex flex-col gap-3">
-        <label htmlFor="quantity" className="text-[14px] font-bold text-[#1e293b]">Number of Tanks Sold</label>
+        <label htmlFor="quantity" className="text-[14px] font-bold text-[#1e293b]">Number of Liters Sold</label>
         
         <div className="flex items-center gap-4 w-full">
           <div className="relative flex-1">

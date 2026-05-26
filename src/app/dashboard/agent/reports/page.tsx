@@ -31,7 +31,7 @@ export default async function ReportsPage() {
                 </div>
                 <div>
                   <span className="text-[28px] font-extrabold text-[#0f172a] tracking-tight leading-none block mb-1">{metrics.highestPeriod}</span>
-                  <p className="text-[13px] text-[#3b82f6] font-semibold">{metrics.highestVolume} tanks assigned</p>
+                  <p className="text-[13px] text-[#3b82f6] font-semibold">{metrics.highestVolume} liters assigned</p>
                 </div>
              </div>
              
@@ -44,7 +44,7 @@ export default async function ReportsPage() {
                 </div>
                 <div>
                   <span className="text-[28px] font-extrabold text-[#0f172a] tracking-tight leading-none block mb-1">{metrics.averageDaily}</span>
-                  <p className="text-[13px] text-[#94a3b8] font-semibold">Tanks per day</p>
+                  <p className="text-[13px] text-[#94a3b8] font-semibold">Liters per day</p>
                 </div>
              </div>
           </div>
@@ -64,7 +64,7 @@ export default async function ReportsPage() {
                 <thead>
                   <tr className="border-b border-[#f1f5f9]">
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Time Period</th>
-                    <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Total Tanks Distributed</th>
+                    <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Total Liters Distributed</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">Active Staff Count</th>
                     <th className="pb-4 text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider text-right">Most Active Zone</th>
                   </tr>

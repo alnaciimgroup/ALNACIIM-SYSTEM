@@ -1,11 +1,22 @@
 import { Header } from '@/components/layout/header'
 import { RecordSaleForm } from '@/components/staff/record-sale-form-v2'
 import { getCustomers } from '../customers/actions'
-import { getStaffDashboardData } from '../actions'
+import { getStaffDashboardData, getMissingReportDate } from '../actions'
 import { Tag, Info, ArrowLeft, ShoppingBag, DollarSign } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { verifySession } from '@/utils/auth'
+import { getCurrentWorkDate } from '@/utils/date-utils'
 
 export default async function RecordSalesPage() {
+  const { user } = await verifySession(['staff'])
+  const currentWorkDate = getCurrentWorkDate()
+  const missingDate = await getMissingReportDate(user.id, currentWorkDate)
+
+  if (missingDate) {
+    redirect(`/dashboard/staff/daily-report?date=${missingDate}`)
+  }
+
   const customers = await getCustomers()
   const { metrics } = await getStaffDashboardData()
 
@@ -27,11 +38,11 @@ export default async function RecordSalesPage() {
             
             <div className="hidden lg:flex flex-col items-end gap-1 px-5 py-3 bg-white border border-[#e2e8f0] rounded-[16px] shadow-sm">
                 <span className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest leading-none">Global Unit Price</span>
-                <span className="text-[18px] font-black text-[#0f172a] leading-none">$5.00 <span className="text-[12px] text-[#64748b]">/ Tank</span></span>
+                <span className="text-[18px] font-black text-[#0f172a] leading-none">$0.0233 <span className="text-[12px] text-[#64748b]">/ Liter</span></span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-10">
              <div className="bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm">
                 <p className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest mb-1 leading-none">Items Received</p>
                 <div className="flex items-center justify-between">
@@ -65,6 +76,15 @@ export default async function RecordSalesPage() {
                    <span className="text-[24px] font-black text-[#10b981] leading-none">${metrics.cashSalesToday.toFixed(2)}</span>
                    <div className="w-9 h-9 rounded-lg bg-[#ecfdf5] text-[#10b981] flex items-center justify-center">
                       <DollarSign size={18} />
+                   </div>
+                </div>
+             </div>
+             <div className="bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm transition-all hover:bg-[#fef2f2]/30">
+                <p className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest mb-1 leading-none text-[#ef4444]">Discounts Given</p>
+                <div className="flex items-center justify-between">
+                   <span className="text-[24px] font-black text-[#ef4444] leading-none">${(metrics.totalDiscountsToday || 0).toFixed(2)}</span>
+                   <div className="w-9 h-9 rounded-lg bg-[#fef2f2] text-[#ef4444] flex items-center justify-center">
+                      <Tag size={18} />
                    </div>
                 </div>
              </div>

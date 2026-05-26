@@ -1,6 +1,6 @@
 'use client'
 
-import { ShoppingBag, User, Hash, DollarSign, CreditCard, Loader2 } from 'lucide-react'
+import { ShoppingBag, User, Hash, DollarSign, CreditCard, Loader2, Clock } from 'lucide-react'
 import { recordSale } from '@/app/dashboard/staff/actions'
 import { useActionState, useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast'
@@ -17,14 +17,14 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [salesType, setSalesType] = useState('cash')
   const [qty, setQty] = useState<number>(0)
   const [freeQty, setFreeQty] = useState<number>(0)
-  const [price, setPrice] = useState<number>(5.00)
+  const [price, setPrice] = useState<number>(0.0233)
 
   useEffect(() => {
     if (salesType === 'free') {
       setPrice(0.00)
       setFreeQty(0)
     } else if (price === 0) {
-      setPrice(5.00)
+      setPrice(0.0233)
     }
   }, [salesType])
 
@@ -105,12 +105,17 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
               <ShoppingBag size={16} className="hidden sm:block" />
               FREE
             </label>
+            <label className={`flex-1 flex items-center justify-center gap-1.5 lg:gap-2 rounded-[12px] border-2 cursor-pointer transition-all font-bold text-[12px] lg:text-[14px] ${salesType === 'draft' ? 'bg-[#f8fafc] border-[#94a3b8] text-[#475569]' : 'bg-white border-[#e2e8f0] text-[#64748b] hover:bg-[#f8fafc]'}`}>
+              <input type="radio" name="sale_type" value="draft" checked={salesType === 'draft'} onChange={() => setSalesType('draft')} className="hidden" />
+              <Clock size={16} className="hidden sm:block" />
+              DRAFT
+            </label>
           </div>
         </div>
 
         {/* Quantity (PAID) */}
         <div className="flex flex-col gap-2.5">
-          <label htmlFor="quantity" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Paid Volume (Tanks)</label>
+          <label htmlFor="quantity" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Paid Volume (Liters)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <ShoppingBag size={18} className="text-[#94a3b8]" />
@@ -131,7 +136,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
 
         {/* Unit Price (Editable) */}
         <div className="flex flex-col gap-2.5">
-          <label htmlFor="unit_price" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Price per Tank ($)</label>
+          <label htmlFor="unit_price" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Price per Liter ($)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <DollarSign size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
@@ -140,7 +145,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
               type="number" 
               id="unit_price" 
               name="unit_price" 
-              step="0.01"
+              step="any"
               min="0"
               required
               value={price}
@@ -153,7 +158,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
 
         {/* Free Quantity (BONUS) */}
         <div className="flex flex-col gap-2.5">
-          <label htmlFor="free_quantity" className="text-[12px] font-extrabold text-[#10b981] uppercase tracking-wider italic">Free Tanks (Bonus)</label>
+          <label htmlFor="free_quantity" className="text-[12px] font-extrabold text-[#10b981] uppercase tracking-wider italic">Free Liters (Bonus)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <ShoppingBag size={18} className="text-[#10b981]" />
@@ -186,7 +191,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
 
         {isOverStock && (
           <div className="md:col-span-2 p-3 bg-red-50 text-red-600 rounded-[10px] text-[11px] font-extrabold border border-red-100 flex items-center gap-2">
-            ⚠️ TOTAL DEPLETION ({totalDepletion} TANKS) EXCEEDS AVAILABLE STOCK!
+            ⚠️ TOTAL DEPLETION ({totalDepletion} LITERS) EXCEEDS AVAILABLE STOCK!
           </div>
         )}
 
@@ -194,7 +199,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           {totalDepletion > 0 && (
             <div className="flex items-center gap-2 py-2 px-4 rounded-[10px] bg-slate-50 border border-slate-200 text-[12px] font-bold text-slate-600">
                <Hash size={14} />
-               Inventory Impact: <span className="text-[#0f172a] font-black">{qty} Paid + {freeQty} Bonus = {totalDepletion} Tanks Total</span>
+               Inventory Impact: <span className="text-[#0f172a] font-black">{qty} Paid + {freeQty} Bonus = {totalDepletion} Liters Total</span>
             </div>
           )}
           <button 

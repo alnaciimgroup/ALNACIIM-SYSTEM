@@ -4,7 +4,6 @@ import { UserList } from '@/components/superadmin/user-list'
 import Link from 'next/link'
 import { PlusCircle } from 'lucide-react'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { ProductionTracker } from '@/components/superadmin/production-tracker'
 
 export default async function SuperadminDashboard() {
   const supabase = createAdminClient()
@@ -35,26 +34,6 @@ export default async function SuperadminDashboard() {
     metrics,
     recentUsers
   }
-
-  // Calculate Total Liquid Inventory
-  const { data: prodLogs } = await supabase.from('production_logs').select('liters_produced')
-  const { data: distLogs } = await supabase.from('distributions').select('liters')
-  
-  const totalProduced = (prodLogs || []).reduce((acc, log) => acc + Number(log.liters_produced), 0)
-  const totalDistributed = (distLogs || []).reduce((acc, log) => acc + Number(log.liters || 0), 0)
-  const currentLiquidInventory = totalProduced - totalDistributed
-
-  return (
-    <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
-      <Header title="Superadmin Control" />
-      <main className="flex-1 overflow-y-auto px-8 pt-6 pb-8">
-        <div className="w-full">
-          
-          <section className="mb-10">
-            <h2 className="text-[18px] font-bold text-[#0f172a] mb-4 tracking-tight">Supply Chain Operations</h2>
-            <ProductionTracker totalInventory={currentLiquidInventory} />
-          </section>
-          
           <section className="mb-8">
             <div className="flex justify-between items-end mb-6">
               <div>

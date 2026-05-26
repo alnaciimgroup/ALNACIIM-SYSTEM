@@ -118,7 +118,7 @@ export function CustomerList({ initialCustomers }: { initialCustomers: Customer[
               <tr key={customer.id} className="hover:bg-[#f8fafc]/50 transition-colors group">
                 <td className="py-4">
                   <span className="font-bold text-[#0f172a] text-[15px] block">{customer.name}</span>
-                  <span className="text-[11px] font-medium text-[#94a3b8]">Created {new Date(customer.created_at).toLocaleDateString()}</span>
+                  <span suppressHydrationWarning className="text-[11px] font-medium text-[#94a3b8]">Created {new Date(customer.created_at).toLocaleDateString()}</span>
                 </td>
                 <td className="py-4 text-[14px] text-[#0f172a] font-medium">{customer.phone}</td>
                 <td className="py-4 text-[13px] text-[#64748b]">{customer.address || '-'}</td>

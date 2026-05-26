@@ -83,7 +83,7 @@ export function DistributionHistory({ distributions }: { distributions: Distribu
                   </td>
                   <td className="py-4">
                     <span className="text-[14px] lg:text-[15px] text-gray-900 font-bold whitespace-nowrap">
-                      {record.liters ? `${record.liters.toLocaleString()} Liters` : `${record.quantity} Tanks`}
+                      {record.liters ? `${record.liters.toLocaleString()} Liters` : `${record.quantity} Liters`}
                     </span>
                   </td>
                   <td className="py-4 text-[14px] lg:text-[15px] font-medium text-gray-500 hidden sm:table-cell">
@@ -138,7 +138,7 @@ export function DistributionHistory({ distributions }: { distributions: Distribu
         onClose={() => setDeletingId(null)}
         onConfirm={handleDelete}
         title="Delete Distribution?"
-        description="This action will permanently remove this tank assignment. This cannot be undone."
+        description="This action will permanently remove this liter assignment. This cannot be undone."
       />
     </div>
   )

@@ -3,6 +3,10 @@ import { getStaffReportsList } from './actions'
 import Link from 'next/link'
 import { Search, ChevronRight, FileSpreadsheet } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
+
 export default async function StaffReportsPage() {
   const reports = await getStaffReportsList()
 
@@ -41,7 +45,7 @@ export default async function StaffReportsPage() {
                 <thead>
                   <tr>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Staff Name</th>
-                    <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Received</th>
+                    <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Received Today</th>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Sold</th>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Cash Sales</th>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Credit Sales</th>

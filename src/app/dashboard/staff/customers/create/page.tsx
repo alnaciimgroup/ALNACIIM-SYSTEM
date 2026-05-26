@@ -56,9 +56,9 @@ export default function CreateCustomerPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="tank_number" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider text-[#3b82f6]">Tank Number / Box ID <span className="text-red-500">*</span></label>
+                <label htmlFor="tank_number" className="text-[13px] font-bold text-[#1e293b] uppercase tracking-wider text-[#3b82f6]">Box ID / Meter Number <span className="text-red-500">*</span></label>
                 <input type="text" id="tank_number" name="tank_number" required placeholder="e.g. T-800 or B-42" className="h-[48px] px-4 rounded-[12px] border border-[#3b82f6]/30 bg-blue-50/10 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all font-black text-[#3b82f6]" />
-                <p className="text-[11px] font-medium text-[#64748b]">This number is permanent and will stay with the customer for all future tanks.</p>
+                <p className="text-[11px] font-medium text-[#64748b]">This number is permanent and will stay with the customer for all future deliveries.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

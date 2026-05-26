@@ -11,6 +11,8 @@ import { AccountantDashboardContent } from '@/components/accountant/dashboard-co
 import { AccountantDashboardSkeleton } from '@/components/accountant/dashboard-skeleton'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
 export default async function AccountantDashboardPage(props: {
   searchParams: Promise<{ date?: string; customDate?: string }>

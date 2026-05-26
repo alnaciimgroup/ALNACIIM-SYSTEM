@@ -53,7 +53,7 @@ export default async function StaffDirectoryPage() {
                   </div>
                   <div>
                     <div className="text-[10px] font-extrabold text-[#94a3b8] uppercase tracking-wider mb-1">Total Sales</div>
-                    <div className="text-[18px] font-black text-[#10b981]">${Number(staff.totalSales).toFixed(0)}</div>
+                    <div className="text-[18px] font-black text-[#10b981]">${Number(staff.totalSales).toFixed(2)}</div>
                   </div>
                 </div>
 

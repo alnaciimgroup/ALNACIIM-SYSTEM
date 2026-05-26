@@ -56,7 +56,7 @@ export default async function HistoryPage() {
                            <span className="font-bold text-[#0f172a] text-[14px]">{record.staff}</span>
                         </div>
                       </td>
-                      <td className="py-4 text-center font-black text-[#0f172a] text-[15px]">{record.liters ? `${record.liters.toLocaleString()} Liters` : `${record.quantity} tanks`}</td>
+                      <td className="py-4 text-center font-black text-[#0f172a] text-[15px]">{record.liters ? `${record.liters.toLocaleString()} Liters` : `${record.quantity} Liters`}</td>
                       <td className="py-4 text-center">
                         <span className="px-3 py-1 bg-gray-100 text-[#475569] text-[11px] font-bold rounded-full uppercase tracking-tight">{record.zone}</span>
                       </td>

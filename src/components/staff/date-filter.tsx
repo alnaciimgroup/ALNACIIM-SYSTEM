@@ -2,12 +2,13 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Calendar } from 'lucide-react'
+import { getCurrentWorkDate, getWorkDate } from '@/utils/date-utils'
 
 export function DateFilter() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const currentDate = searchParams.get('date') || new Date().toISOString().split('T')[0]
+  const currentDate = searchParams.get('date') || getCurrentWorkDate()
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const params = new URLSearchParams(searchParams)
@@ -25,11 +26,12 @@ export function DateFilter() {
     if (type === 'all') {
       params.set('date', 'all')
     } else {
-      const d = new Date()
+      let dateString = getCurrentWorkDate()
       if (type === 'yesterday') {
+        const d = new Date(dateString)
         d.setDate(d.getDate() - 1)
+        dateString = d.toISOString().split('T')[0]
       }
-      const dateString = d.toISOString().split('T')[0]
       params.set('date', dateString)
     }
     router.push(`${pathname}?${params.toString()}`)
@@ -43,7 +45,7 @@ export function DateFilter() {
         <button
           onClick={() => handleQuickSelect('today')}
           className={`px-4 py-1.5 text-[13px] font-bold rounded-[8px] transition-all capitalize ${
-            currentDate === new Date().toISOString().split('T')[0]
+            currentDate === getCurrentWorkDate()
               ? 'bg-white text-[#0f172a] shadow-sm'
               : 'text-[#64748b] hover:text-[#0f172a]'
           }`}
@@ -53,7 +55,11 @@ export function DateFilter() {
         <button
           onClick={() => handleQuickSelect('yesterday')}
           className={`px-4 py-1.5 text-[13px] font-bold rounded-[8px] transition-all capitalize ${
-            currentDate === new Date(Date.now() - 86400000).toISOString().split('T')[0]
+            currentDate === (() => {
+              const d = new Date(getCurrentWorkDate());
+              d.setDate(d.getDate() - 1);
+              return d.toISOString().split('T')[0];
+            })()
               ? 'bg-white text-[#0f172a] shadow-sm'
               : 'text-[#64748b] hover:text-[#0f172a]'
           }`}

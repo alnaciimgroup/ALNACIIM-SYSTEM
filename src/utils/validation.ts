@@ -21,7 +21,7 @@ export const SaleItemSchema = z.object({
 
 export const SaleSchema = z.object({
   customer_id: z.string().uuid(),
-  sale_type: z.enum(['cash', 'credit', 'free']),
+  sale_type: z.enum(['cash', 'credit', 'free', 'draft']),
   items: z.array(SaleItemSchema).min(1, 'At least one item is required'),
   total_amount: z.number().min(0),
 })

@@ -43,7 +43,7 @@ export function SalesHistoryTable({ sales }: SalesHistoryTableProps) {
         <tbody className="divide-y divide-[#f1f5f9]">
           {sales.map(sale => {
             const firstItem = sale.sale_items?.[0] as any
-            const itemName = firstItem?.item?.name || 'Water Tank'
+            const itemName = firstItem?.item?.name || 'Water'
             const qty = firstItem?.quantity || 0
             const price = firstItem?.unit_price || 0
 
@@ -59,7 +59,12 @@ export function SalesHistoryTable({ sales }: SalesHistoryTableProps) {
                 </td>
                 <td className="py-6">
                   <div className="flex flex-col">
-                     <span className="font-black text-[#3b82f6] text-[14px] lg:text-[15px] uppercase tracking-tight whitespace-nowrap">{(sale.customer as any)?.name}</span>
+                     <div className="flex items-center gap-2">
+                       <span className="font-black text-[#3b82f6] text-[14px] lg:text-[15px] uppercase tracking-tight whitespace-nowrap">{(sale.customer as any)?.name}</span>
+                       {sale.discount_amount > 0 && (
+                         <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-black tracking-widest uppercase">Discount (-${Number(sale.discount_amount).toFixed(2)})</span>
+                       )}
+                     </div>
                      <span className="text-[10px] lg:text-[11px] font-bold text-[#94a3b8] uppercase">Institutional Lead</span>
                   </div>
                 </td>

@@ -31,7 +31,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
 
   rawData.truck_id = truckData.id
 
-  // Auto-resolve item_id since UI only distributes "Tanks"
+  // Auto-resolve item_id since UI only distributes "Liters"
   // SELF-HEALING: If no items exist (due to a wipe), create a default one automatically
   let { data: items } = await supabase.from('items').select('id').limit(1)
   let defaultItemId = items?.[0]?.id
@@ -42,7 +42,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
     const { data: newItem, error: createError } = await adminSupabase
       .from('items')
       .insert({ 
-        name: 'Standard Water Tank', 
+        name: 'Water', 
         current_price: 5.00
       })
       .select('id')
@@ -111,18 +111,43 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   return { message: 'Distribution successfully recorded!', errors: false }
 }
 
-export async function getAgentDashboardData() {
+import { getWorkDate } from '@/utils/date-utils'
+
+export async function getAgentDashboardData(date?: string) {
   const { user } = await verifySession(['agent'])
   const supabase = await createClient()
 
-  const today = new Date()
-  today.setHours(0,0,0,0)
+  let startOfDay = ''
+  let endOfDay = ''
   
+  if (date && date !== 'all') {
+    startOfDay = `${date}T04:00:00.000Z`
+    const tomorrow = new Date(date)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]
+    endOfDay = `${tomorrowStr}T03:59:59.999Z`
+  } else if (date !== 'all') {
+    const todayStr = getWorkDate()
+    startOfDay = `${todayStr}T04:00:00.000Z`
+    const tomorrow = new Date(todayStr)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]
+    endOfDay = `${tomorrowStr}T03:59:59.999Z`
+  }
+
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   sevenDaysAgo.setHours(0,0,0,0)
 
   const supabaseAdmin = createAdminClient()
+
+  let distributionsQuery = supabase.from('distributions').select('id, created_at, quantity, liters, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name), truck:trucks(plate_number)').order('created_at', { ascending: false })
+  
+  if (startOfDay && endOfDay) {
+    distributionsQuery = distributionsQuery.gte('created_at', startOfDay).lte('created_at', endOfDay)
+  }
+  
+  distributionsQuery = distributionsQuery.limit(50)
 
   const [
     staffResponse,
@@ -131,7 +156,7 @@ export async function getAgentDashboardData() {
     trucksResponse
   ] = await Promise.all([
     supabaseAdmin.from('users').select('id, full_name').eq('role', 'staff').order('full_name'),
-    supabase.from('distributions').select('id, created_at, quantity, liters, free_quantity, status, staff:users!distributions_staff_id_fkey (full_name), truck:trucks(plate_number)').gte('created_at', today.toISOString()).order('created_at', { ascending: false }).limit(10),
+    distributionsQuery,
     supabase.from('distributions').select('quantity, liters, free_quantity').gte('created_at', sevenDaysAgo.toISOString()),
     supabase.from('trucks').select('id, plate_number, capacity_liters').eq('status', 'active')
   ])
@@ -147,11 +172,11 @@ export async function getAgentDashboardData() {
   const { data: prodLogs } = await supabase.from('production_logs').select('liters_produced')
   const totalProduced = (prodLogs || []).reduce((acc, log) => acc + Number(log.liters_produced), 0)
   
-  const weeklyTotal = weeklyData?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const weeklyTotal = weeklyData?.reduce((acc: number, curr) => acc + (curr.liters || curr.quantity), 0) || 0
   const weeklyFree = weeklyData?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
 
   // Calculate some real metrics
-  const sumQuantity = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const sumQuantity = distributions?.reduce((acc: number, curr) => acc + (curr.liters || curr.quantity), 0) || 0
   const sumFree = distributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
   const uniqueStaff = new Set(distributions?.map(d => (d.staff as any)?.full_name)).size
 
@@ -397,4 +422,36 @@ export async function getStaffNetworkDetails() {
   })
 
   return staffNetwork
+}
+
+export async function logProduction(prevState: any, formData: FormData) {
+  try {
+    const { user } = await verifySession(['agent'])
+    const supabase = createAdminClient()
+
+    const litersStr = formData.get('liters') as string
+    const liters = parseInt(litersStr, 10)
+
+    if (isNaN(liters) || liters <= 0) {
+      return { message: 'Invalid liters amount. Must be a positive number.', error: true }
+    }
+
+    const { error } = await supabase
+      .from('production_logs')
+      .insert({
+        superadmin_id: user.id, // Re-using this column temporarily for the agent
+        liters_produced: liters
+      })
+
+    if (error) {
+      console.error('Error inserting production log:', error)
+      return { message: 'Failed to record production.', error: true }
+    }
+
+    revalidatePath('/dashboard/agent')
+    return { message: `Successfully recorded ${liters.toLocaleString()} Liters of water supply.`, error: false }
+  } catch (error) {
+    console.error('logProduction exception:', error)
+    return { message: 'An unexpected error occurred.', error: true }
+  }
 }

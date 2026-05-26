@@ -2,6 +2,7 @@
 
 // @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { verifySession } from '@/utils/auth'
@@ -15,6 +16,7 @@ import { getWorkDate, getCurrentWorkDate } from '@/utils/date-utils'
 export async function getStaffDashboardData(date?: string) {
   const { user } = await verifySession(['staff'])
   const supabase = await createClient()
+  const supabaseAdmin = await createAdminClient()
 
   let startOfDay = ''
   let endOfDay = ''
@@ -39,9 +41,9 @@ export async function getStaffDashboardData(date?: string) {
     endOfDay = `${tomorrowStr}T03:59:59.999Z`
   }
 
-  let distributionsQuery = supabase.from('distributions').select('id, created_at, quantity').eq('staff_id', user.id).eq('status', 'completed')
+  let distributionsQuery = supabaseAdmin.from('distributions').select('id, created_at, quantity, liters').eq('staff_id', user.id).eq('status', 'completed')
   let salesQuery = supabase.from('sales').select('id, sale_type, total_amount, created_at, sale_items (quantity)').eq('staff_id', user.id).eq('status', 'completed')
-  let paymentsQuery = supabase.from('payments').select('amount, payment_method, created_at, sale:sales!inner(staff_id)').eq('sale.staff_id', user.id)
+  let paymentsQuery = supabaseAdmin.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)').eq('sales.staff_id', user.id)
 
   if (startOfDay && endOfDay) {
     distributionsQuery = distributionsQuery.gte('created_at', startOfDay).lte('created_at', endOfDay)
@@ -56,15 +58,17 @@ export async function getStaffDashboardData(date?: string) {
     { data: payments },
     { data: allTimeDistributions },
     { data: allTimeSales },
-    { data: customers }
+    { data: customers },
+    { data: allCustomersRaw }
   ] = await Promise.all([
     supabase.from('customers').select('id', { count: 'exact', head: true }).eq('staff_id', user.id),
-    distributionsQuery.select('id, created_at, quantity'),
-    salesQuery.select('id, sale_type, total_amount, created_at, sale_items (quantity, free_quantity)'),
-    paymentsQuery.select('amount, payment_method, created_at'),
-    supabase.from('distributions').select('id, created_at, quantity, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
+    distributionsQuery.select('id, created_at, quantity, liters'),
+    salesQuery.select('id, sale_type, total_amount, discount_amount, created_at, customer:customers(name, phone), sale_items (quantity, free_quantity)'),
+    paymentsQuery,
+    supabaseAdmin.from('distributions').select('id, created_at, quantity, liters, free_quantity').eq('staff_id', user.id).eq('status', 'completed'),
     supabase.from('sale_items').select('quantity, free_quantity, sales!inner(staff_id, status, sale_type)').eq('sales.staff_id', user.id).eq('sales.status', 'completed'),
-    supabase.from('customers').select('debt').eq('staff_id', user.id)
+    supabase.from('customers').select('debt').eq('staff_id', user.id),
+    supabase.from('customers').select('id, name, phone, address, guarantor, guarantor_phone, debt, customer_type, sales(created_at)').eq('staff_id', user.id)
   ])
 
   // Use allTimeDistributions for the recent list as well (no need for 3rd query)
@@ -72,7 +76,7 @@ export async function getStaffDashboardData(date?: string) {
     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)
 
-  const totalReceived = distributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const totalReceived = distributions?.reduce((acc: number, curr) => acc + (curr.liters || curr.quantity), 0) || 0
 
   const totalSold = sales?.reduce((acc: number, s) => {
     const itemQty = s.sale_items?.reduce((a: number, i: any) => a + (i.quantity || 0) + (i.free_quantity || 0), 0) || 0
@@ -91,11 +95,17 @@ export async function getStaffDashboardData(date?: string) {
     ?.filter(p => p.payment_method === 'debt_repayment')
     ?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0
 
+  console.log('--- DEBUG PAYMENTS ---')
+  console.log(payments)
+  console.log('--- DEBUG PAYMENTS END ---')
+
   const moneyCollectedToday = (payments?.reduce((acc: number, p) => acc + Number(p.amount), 0) || 0) || cashSalesToday + debtPaymentsToday
+
+  const totalDiscountsToday = sales?.reduce((acc: number, s: any) => acc + Number(s.discount_amount || 0), 0) || 0
 
   const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
 
-  const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + curr.quantity, 0) || 0
+  const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.liters || curr.quantity), 0) || 0
   const globalFreeReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
 
   const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + (s.quantity || 0) + (s.free_quantity || 0), 0) || 0
@@ -116,6 +126,25 @@ export async function getStaffDashboardData(date?: string) {
       return acc + itemQty
     }, 0) || 0
 
+  const freeWaterDetails = sales
+    ?.filter(s => {
+      const isFreeSale = s.sale_type === 'free';
+      const itemQty = s.sale_items?.reduce((a: number, i: any) => a + (isFreeSale ? i.quantity : 0) + (i.free_quantity || 0), 0) || 0;
+      return itemQty > 0;
+    })
+    ?.map(s => {
+      const isFreeSale = s.sale_type === 'free';
+      const amount = s.sale_items?.reduce((a: number, i: any) => a + (isFreeSale ? i.quantity : 0) + (i.free_quantity || 0), 0) || 0;
+      return {
+        id: s.id,
+        customerName: Array.isArray(s.customer) ? s.customer[0]?.name : s.customer?.name || 'Unknown',
+        customerPhone: Array.isArray(s.customer) ? s.customer[0]?.phone : s.customer?.phone || '',
+        amount,
+        type: isFreeSale ? '100% Free' : 'Bonus Liters',
+        time: s.created_at
+      }
+    }) || []
+
   const targetDate = date && date !== 'all' ? date : getCurrentWorkDate()
   const { data: submissionData } = await supabase
     .from('cash_submissions')
@@ -124,6 +153,41 @@ export async function getStaffDashboardData(date?: string) {
     .eq('submission_date', targetDate)
     .single()
 
+  const now = new Date()
+  const inactiveCustomersAlerts = (allCustomersRaw || [])
+    .map(c => {
+      let daysInactive = 0
+      let lastRefillDate = null
+      if (c.sales && c.sales.length > 0) {
+        const sortedSales = c.sales.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        lastRefillDate = sortedSales[0].created_at
+        const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate).getTime())
+        daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      } else {
+        return null
+      }
+      return { 
+        id: c.id, 
+        name: c.name, 
+        phone: c.phone, 
+        address: c.address,
+        guarantor: c.guarantor,
+        guarantor_phone: c.guarantor_phone,
+        debt: c.debt,
+        customer_type: c.customer_type, 
+        daysInactive, 
+        lastRefillDate 
+      }
+    })
+    .filter(c => {
+      if (!c) return false;
+      if (c.customer_type === 'irregular') {
+        return c.daysInactive >= 90;
+      }
+      return c.daysInactive > 10;
+    })
+    .sort((a: any, b: any) => b.daysInactive - a.daysInactive)
+
   return {
     metrics: {
       tanksReceived: totalReceived,
@@ -131,6 +195,7 @@ export async function getStaffDashboardData(date?: string) {
       tanksReceivedLifetime: globalReceived,
       tanksSoldLifetime: globalSold,
       freeTanksToday,
+      freeWaterDetails,
       remainingTanks,
       remainingFreeTanks,
       cashSalesToday,
@@ -138,11 +203,13 @@ export async function getStaffDashboardData(date?: string) {
       debtPaymentsToday,
       moneyCollectedToday,
       outstandingDebt,
+      totalDiscountsToday,
       customerCount: customerCount || 0,
       submissionStatus: submissionData?.status || null
     },
     recentSales: sales?.slice(0, 5) || [],
-    recentDistributions: recentDistributionsList?.reverse() || []
+    recentDistributions: recentDistributionsList?.reverse() || [],
+    inactiveRegularCustomers: inactiveCustomersAlerts
   }
 }
 
@@ -162,7 +229,7 @@ export async function recordSale(prevState: any, formData: FormData) {
   // 1. Get default item (Water Tank) and its standard price
   const { data: items } = await supabase.from('items').select('id, current_price').limit(1)
   const item_id = items?.[0]?.id
-  const standard_price = items?.[0]?.current_price || 5.00
+  const standard_price = 3.5 / 150 // Mathematical exact price per liter
   if (!item_id) return { message: 'System Error: No items found.', errors: true }
 
   const rawData = {
@@ -207,33 +274,10 @@ export async function recordSale(prevState: any, formData: FormData) {
 
   // 4. Safety Lock: Block if previous reports are missing
   const currentWorkDate = getCurrentWorkDate()
-  const { data: previousSales } = await supabase
-    .from('sales')
-    .select('created_at')
-    .eq('staff_id', user.id)
-    .lt('created_at', `${currentWorkDate}T00:00:00.000Z`)
-    .limit(100)
+  const missingDate = await getMissingReportDate(user.id, currentWorkDate)
   
-  if (previousSales && previousSales.length > 0) {
-    // Get unique dates that need reports
-    const datesToCheck = [...new Set(previousSales.map(s => s.created_at.split('T')[0]))]
-    
-    // Check which dates have submissions
-    const { data: existingSubmissions } = await supabase
-      .from('cash_submissions')
-      .select('submission_date')
-      .eq('staff_id', user.id)
-      .in('submission_date', datesToCheck)
-    
-    const submittedDates = new Set(existingSubmissions?.map(s => s.submission_date) || [])
-    const missingDate = datesToCheck.find(d => !submittedDates.has(d))
-    
-    if (missingDate) {
-      return { 
-        message: `Safety Lock Active: You have an unsubmitted report from ${new Date(missingDate).toLocaleDateString()}. [Submit Missing Report](/dashboard/staff/daily-report?date=${missingDate}) before recording today's work.`, 
-        errors: true 
-      }
-    }
+  if (missingDate) {
+    redirect(`/dashboard/staff/daily-report?date=${missingDate}`)
   }
 
   // 5. Validate Inventory (Stock Verification: Paid + Free)
@@ -249,7 +293,10 @@ export async function recordSale(prevState: any, formData: FormData) {
   // 5. Calculate Background Discount
   let discount_amount = 0
   if (sale_type !== 'free' && unit_price < standard_price) {
-    discount_amount = (standard_price - unit_price) * quantity
+    const rawDiscount = (standard_price - unit_price) * quantity
+    if (rawDiscount >= 0.01) {
+      discount_amount = parseFloat(rawDiscount.toFixed(2))
+    }
   }
 
   // 6. Create Sale
@@ -258,10 +305,10 @@ export async function recordSale(prevState: any, formData: FormData) {
     .insert({
       staff_id: user.id,
       customer_id,
-      sale_type,
+      sale_type: sale_type === 'draft' ? 'credit' : sale_type,
       total_amount,
       discount_amount,
-      status: 'completed'
+      status: sale_type === 'draft' ? 'pending' : 'completed'
     })
     .select()
     .single()
@@ -295,7 +342,7 @@ export async function recordSale(prevState: any, formData: FormData) {
       payment_method: 'cash'
     })
   } else if (sale_type === 'credit') {
-    // Increase customer debt
+    // Increase customer debt (only for completed credit sales, not drafts)
     const { error: debtError } = await supabase.rpc('increment_customer_debt', {
       cust_id: customer_id,
       amount: total_amount
@@ -426,4 +473,27 @@ export async function deleteSale(id: string) {
 
   await logAction('DELETE_SALE', { targetTable: 'sales', targetId: id })
   revalidatePath('/dashboard/staff')
+}
+
+export async function getMissingReportDate(userId: string, currentWorkDate: string) {
+  const supabase = await createClient()
+  const { data: previousSales } = await supabase
+    .from('sales')
+    .select('created_at')
+    .eq('staff_id', userId)
+    .lt('created_at', `${currentWorkDate}T00:00:00.000Z`)
+    .limit(100)
+  
+  if (previousSales && previousSales.length > 0) {
+    const datesToCheck = [...new Set(previousSales.map(s => s.created_at.split('T')[0]))]
+    const { data: existingSubmissions } = await supabase
+      .from('cash_submissions')
+      .select('submission_date')
+      .eq('staff_id', userId)
+      .in('submission_date', datesToCheck)
+    
+    const submittedDates = new Set(existingSubmissions?.map(s => s.submission_date) || [])
+    return datesToCheck.find(d => !submittedDates.has(d)) || null
+  }
+  return null
 }

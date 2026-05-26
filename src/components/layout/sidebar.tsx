@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X } from 'lucide-react'
+import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle } from 'lucide-react'
 
 export function Sidebar({ 
   role, 
@@ -20,7 +20,7 @@ export function Sidebar({
       case 'agent':
         return [
           { name: 'Dashboard', href: '/dashboard/agent', icon: LayoutDashboard },
-          { name: 'Tank Distribution', href: '/dashboard/agent/distribution', icon: Droplet },
+          { name: 'Liter Distribution', href: '/dashboard/agent/distribution', icon: Droplet },
           { name: 'Staff List', href: '/dashboard/agent/staff', icon: Users },
           { name: 'Distribution History', href: '/dashboard/agent/history', icon: History },
           { name: 'Reports', href: '/dashboard/agent/reports', icon: BarChart2 },
@@ -37,13 +37,15 @@ export function Sidebar({
           { name: 'Dashboard', href: '/dashboard/staff', icon: LayoutDashboard },
           { name: 'Customers', href: '/dashboard/staff/customers', icon: Users },
           { name: 'Record Sales', href: '/dashboard/staff/record-sales', icon: Calculator },
-          { name: 'My Tanks', href: '/dashboard/staff/tanks', icon: Droplet },
+          { name: 'Pending Drafts', href: '/dashboard/staff/drafts', icon: AlertCircle },
+          { name: 'My Liters', href: '/dashboard/staff/tanks', icon: Droplet },
           { name: 'Daily Report', href: '/dashboard/staff/daily-report', icon: BarChart2 },
           { name: 'Sales History', href: '/dashboard/staff/history', icon: History },
         ]
       case 'accountant':
         return [
           { name: 'Dashboard', href: '/dashboard/accountant', icon: LayoutDashboard },
+          { name: 'At-Risk Customers', href: '/dashboard/accountant/at-risk', icon: AlertCircle },
           { name: 'Customers', href: '/dashboard/accountant/customers', icon: Users },
           { name: 'Staff Reports', href: '/dashboard/accountant/staff-reports', icon: Users },
           { name: 'Financial Overview', href: '/dashboard/accountant/financials', icon: Calculator },

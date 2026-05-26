@@ -27,10 +27,10 @@ export function AgentMetricsCards({ metrics }: { metrics: MetricsProps }) {
         </div>
       </div>
 
-      {/* Tanks Distributed */}
+      {/* Liters Distributed */}
       <div className="p-6 rounded-[20px] bg-white border border-[#e5e7eb] flex flex-col justify-between h-[160px] shadow-sm">
         <div className="flex justify-between items-start">
-          <h3 className="text-[#64748b] font-medium text-[15px] leading-snug">Tanks Distributed<br/>Today</h3>
+          <h3 className="text-[#64748b] font-medium text-[15px] leading-snug">Liters Distributed<br/>Today</h3>
           <div className="text-[#3b82f6]">
             <Droplet size={24} strokeWidth={2} />
           </div>

@@ -9,26 +9,34 @@ import { ReviewSubmissionSchema } from '@/utils/validation'
 import { logAction } from '@/utils/audit'
 import { getReportsSummary } from '../reports/actions'
 
-export async function getReviewSummary(date?: string, staffId?: string) {
+export async function getReviewSummary(date?: string, staffId?: string, status?: string) {
   await verifySession(['accountant'])
   
   // 1. Fetch submissions for this day to check if we should show data
   const supabase = await createClient()
-  let subCheck = supabase.from('cash_submissions').select('id', { count: 'exact', head: true })
+  let subCheck = supabase.from('cash_submissions').select('id, amount, submitted_amount, status', { count: 'exact' })
   if (date) subCheck = subCheck.eq('submission_date', date)
   if (staffId) subCheck = subCheck.eq('staff_id', staffId)
+  if (status) subCheck = subCheck.eq('status', status)
   
-  const { count: submissionCount } = await subCheck
+  const { data: matchedSubmissions, count: submissionCount } = await subCheck
 
-  // If no submissions exist for this date/staff yet, show zero data as requested
-  if (submissionCount === 0) {
-    const { count: realPending } = await supabase.from('cash_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+  // Fetch pending count separately
+  const { count: realPending } = await supabase
+    .from('cash_submissions')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending')
+
+  // If no submissions exist for this filter, show zero data
+  if (submissionCount === 0 || !matchedSubmissions) {
     return {
       totalCollected: 0,
       totalSubmitted: 0,
       totalDifference: 0,
       totalCredit: 0,
-      pendingCount: realPending || 0
+      expectedTotal: 0,
+      pendingCount: realPending || 0,
+      missingCount: 0
     }
   }
   
@@ -56,18 +64,29 @@ export async function getReviewSummary(date?: string, staffId?: string) {
     missingCount = uniqueActiveStaff.filter(id => !submittedIds.has(id)).length
   }
 
-  // Use the central analytics engine for metrics
+  // If we are filtering by status (like the Global Pending Queue), we don't want ALL-TIME metrics.
+  // We strictly want the totals of the items IN THE QUEUE.
+  if (status) {
+    const queueExpected = matchedSubmissions.reduce((acc, s) => acc + Number(s.amount || 0), 0)
+    const queueSubmitted = matchedSubmissions.reduce((acc, s) => acc + Number(s.submitted_amount || s.amount || 0), 0)
+    
+    return {
+      totalCollected: queueExpected,
+      totalSubmitted: queueSubmitted,
+      totalDifference: queueExpected - queueSubmitted,
+      totalCredit: 0,
+      expectedTotal: queueExpected,
+      pendingCount: realPending || 0,
+      missingCount: 0
+    }
+  }
+
+  // Otherwise, use the central analytics engine for date-based daily metrics
   const metrics = await getReportsSummary({
     startDate: date,
     endDate: date,
     staffId
   }) as ReportsSummary
-
-  // Fetch pending count separately
-  const { count: realPending } = await supabase
-    .from('cash_submissions')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending')
 
   return {
     totalCollected: metrics.rawCollected, // System-expected cash

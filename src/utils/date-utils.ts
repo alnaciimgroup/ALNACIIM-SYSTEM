@@ -14,11 +14,8 @@ export function getWorkDate(dateInput: string | Date = new Date()): string {
   // This helps us accurately determine the "Work Day" based on Somalia's local schedule.
   const somaliaTime = new Date(date.getTime() + (3 * 60 * 60 * 1000))
   
-  // 2. Rollover Logic: If Somalia local time is before 4 AM, it belongs to previous day
+  // Removed 4 AM rollover: The date strictly rolls over at 12:00 AM midnight.
   const resultDate = new Date(somaliaTime.getTime())
-  if (somaliaTime.getUTCHours() < 4) {
-    resultDate.setUTCDate(resultDate.getUTCDate() - 1)
-  }
   
   return resultDate.toISOString().split('T')[0]
 }

@@ -122,7 +122,7 @@ export async function generateUniversalExport(range: string, custom?: { start: s
     // -------------------------------------------------------------------------
     
     // A. Sales Summary
-    const salesH = ['Date', 'Sale ID', 'Customer', 'Staff', 'Type', 'Amount', 'Tanks', 'Status']
+    const salesH = ['Date', 'Sale ID', 'Customer', 'Staff', 'Type', 'Amount', 'Liters', 'Status']
     const salesR = (rawSales || []).map(s => toCsvRow([
       fmtDate(s.created_at),
       s.id, // Full ID

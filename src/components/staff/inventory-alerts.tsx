@@ -8,7 +8,7 @@ export function InventoryAlerts() {
           <div className="mt-1.5 w-2 h-2 rounded-full bg-[#f97316] shrink-0"></div>
           <div className="flex flex-col">
             <span className="text-[14px] font-bold text-[#0f172a] mb-1 leading-tight">Stock Reaching Minimum</span>
-            <span className="text-[13px] text-[#64748b] leading-snug">20 tanks remaining. Request delivery soon.</span>
+            <span className="text-[13px] text-[#64748b] leading-snug">20 liters remaining. Request delivery soon.</span>
           </div>
         </div>
 
@@ -16,7 +16,7 @@ export function InventoryAlerts() {
           <div className="mt-1.5 w-2 h-2 rounded-full bg-[#22c55e] shrink-0"></div>
           <div className="flex flex-col">
             <span className="text-[14px] font-bold text-[#0f172a] mb-1 leading-tight">Price Updated</span>
-            <span className="text-[13px] text-[#64748b] leading-snug">Water tank price set to $5.00 per unit.</span>
+            <span className="text-[13px] text-[#64748b] leading-snug">Water liter price set to $0.025 per unit.</span>
           </div>
         </div>
       </div>

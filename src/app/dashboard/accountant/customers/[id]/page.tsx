@@ -84,7 +84,7 @@ export default async function CustomerDetailPage({
                       <Phone size={13} strokeWidth={2.5} /> {profile.phone}
                     </span>
                     <span className="flex items-center gap-2 text-[#3b82f6] bg-[#eff6ff] px-3 py-1 rounded-[8px] border border-[#dbeafe] font-black tracking-wide uppercase">
-                      <PackageCheck size={13} strokeWidth={2.5} /> Tank ID: {profile.tank_number || 'N/A'}
+                      <PackageCheck size={13} strokeWidth={2.5} /> Tag ID: {profile.tank_number || 'N/A'}
                     </span>
                     <span className="flex items-center gap-2 opacity-70"><MapPin size={13} strokeWidth={2.5} /> {profile.address || 'Location Unknown'}</span>
                     {(profile.guarantor || profile.guarantor_phone) && (
@@ -114,7 +114,7 @@ export default async function CustomerDetailPage({
           {/* Corrected 4-Metric Grid: Optimized for Safari & Compact Feel */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {[
-              { label: 'Tanks Taken', value: metrics.totalTanksBought, sub: 'Total Volume', icon: Droplets, color: '#3b82f6' },
+              { label: 'Liters Taken', value: metrics.totalTanksBought, sub: 'Total Volume', icon: Droplets, color: '#3b82f6' },
               { label: 'Free Assets', value: metrics.totalFreeTanks, sub: 'Unbilled', icon: PackageCheck, color: '#f59e0b' },
               { label: 'Total Paid', value: `$${metrics.totalPaid.toLocaleString()}`, sub: 'Settled', icon: Banknote, color: '#10b981' },
               { 

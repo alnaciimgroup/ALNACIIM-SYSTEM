@@ -5,13 +5,13 @@ import { useActionState } from 'react'
 import { submitCashSubmission } from '@/app/dashboard/staff/daily-report/actions'
 
 interface ReportProps {
-  tanksSold: number
+  litersSold: number
   moneySubmitted: number
   moneyCollected: number
   cashSales: number
   debtPayments: number
   creditSold: number
-  freeTanksSold: number
+  freeLitersSold: number
   status: 'PENDING' | 'SUBMITTED' | 'VERIFIED'
   date: string
 }
@@ -27,17 +27,17 @@ export function EndOfDayReport({ report }: { report: ReportProps }) {
         <div className="flex items-center justify-between border-b border-gray-800 pb-5">
           <div className="flex items-center gap-3">
             <Droplet size={18} className="text-gray-400" />
-            <span className="text-[15px] text-gray-300 font-medium">Tanks Sold</span>
+            <span className="text-[15px] text-gray-300 font-medium">Liters Sold</span>
           </div>
-          <span className="text-[18px] font-bold">{report.tanksSold}</span>
+          <span className="text-[18px] font-bold">{report.litersSold}</span>
         </div>
 
         <div className="flex items-center justify-between border-b border-gray-800 pb-5">
           <div className="flex items-center gap-3">
             <span className="text-[18px]">🎁</span>
-            <span className="text-[15px] text-blue-400 font-bold uppercase tracking-tight">Free Tanks Given</span>
+            <span className="text-[15px] text-blue-400 font-bold uppercase tracking-tight">Free Liters Given</span>
           </div>
-          <span className="text-[18px] font-black text-blue-400">{report.freeTanksSold}</span>
+          <span className="text-[18px] font-black text-blue-400">{report.freeLitersSold}</span>
         </div>
 
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
@@ -96,7 +96,7 @@ export function EndOfDayReport({ report }: { report: ReportProps }) {
 
       <form action={formAction} className="mt-6">
         <input type="hidden" name="submission_date" value={report.date} />
-        <input type="hidden" name="tanks_sold" value={report.tanksSold} />
+        <input type="hidden" name="tanks_sold" value={report.litersSold} />
         <input type="hidden" name="money_collected" value={report.moneyCollected} />
         <input type="hidden" name="submitted_amount" value={report.moneyCollected} />
         <button

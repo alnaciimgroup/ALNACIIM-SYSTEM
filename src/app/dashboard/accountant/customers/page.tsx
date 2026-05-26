@@ -50,7 +50,7 @@ export default async function AccountantCustomersPage({
                 <thead>
                   <tr>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Customer Name</th>
-                    <th className="px-6 py-4 text-[11px] font-extrabold text-[#3b82f6] uppercase tracking-wider border-b border-[#f1f5f9] text-center">Tank ID</th>
+                    <th className="px-6 py-4 text-[11px] font-extrabold text-[#3b82f6] uppercase tracking-wider border-b border-[#f1f5f9] text-center">Tag ID</th>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Staff Link</th>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9]">Collected</th>
                     <th className="px-6 py-4 text-[11px] font-extrabold text-[#94a3b8] uppercase tracking-wider border-b border-[#f1f5f9] text-center">Status</th>

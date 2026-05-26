@@ -122,6 +122,17 @@ export async function submitCashSubmission(prevState: any, formData: FormData) {
 
   const supabaseAdmin = createAdminClient()
 
+  // STRICT BLOCKER: Check for unresolved drafts
+  const { count: draftCount, error: draftError } = await supabaseAdmin
+    .from('sales')
+    .select('id', { count: 'exact', head: true })
+    .eq('staff_id', user.id)
+    .eq('status', 'pending')
+
+  if (draftCount && draftCount > 0) {
+    return { message: `You have ${draftCount} unresolved Draft sales. You must resolve them to Cash or Debt before submitting your report.`, error: true }
+  }
+
   // Prevent multiple submissions for the same day
   const { data: existing } = await supabaseAdmin
     .from('cash_submissions')

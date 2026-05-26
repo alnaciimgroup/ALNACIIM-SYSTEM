@@ -57,7 +57,7 @@ export function EditSaleModal({ isOpen, onClose, sale }: EditSaleModalProps) {
           <div className="space-y-2">
             <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
               <Calculator size={14} className="text-blue-500" />
-              Quantity (Tanks)
+              Quantity (Liters)
             </label>
             <div className="relative">
               <input

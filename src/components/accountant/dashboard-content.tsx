@@ -1,9 +1,12 @@
-import { getAccountantOverview } from '@/app/dashboard/accountant/actions'
+import { getAccountantOverview, getAtRiskCustomers } from '@/app/dashboard/accountant/actions'
 import Link from 'next/link'
 import { Truck, Tag, ClipboardList, Banknote, ShoppingCart, Wallet, Clock, Activity, ArrowUpRight, Download, Users, ChevronRight, ShieldAlert, AlertCircle } from 'lucide-react'
+import { CustomerAlerts } from '@/components/staff/customer-alerts'
+import { AccountantFreeSoldCard } from '@/components/accountant/free-liters-card'
 
 export async function AccountantDashboardContent({ dateFilter, customDate }: { dateFilter?: string, customDate?: string }) {
   const { metrics, todayStats, topStaff, recentActivity, latestSubmissions, flaggedDiscrepancies } = await getAccountantOverview(dateFilter, customDate)
+  const atRiskCustomers = await getAtRiskCustomers()
 
   const isFullyAudited = (actual: number, audited: number) => {
     if (actual === 0 && audited === 0) return true
@@ -17,6 +20,10 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
 
   return (
     <>
+      <div className="mb-6">
+        <CustomerAlerts inactiveCustomers={atRiskCustomers} />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {/* 1. Distributed */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
@@ -34,7 +41,7 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
             </div>
           </div>
           <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Tanks Distributed</span>
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Liters Distributed</span>
             <div className="flex items-baseline gap-2">
               <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{todayStats?.distributedToday?.toLocaleString() ?? 0}</div>
               {metrics.auditedDistributed > 0 && (
@@ -60,7 +67,7 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
             </div>
           </div>
           <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Tanks Sold</span>
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Liters Sold</span>
             <div className="flex items-baseline gap-2">
               <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{todayStats?.soldToday?.toLocaleString() ?? 0}</div>
               {metrics.auditedSold > 0 && (
@@ -71,30 +78,12 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
         </div>
 
         {/* 3. Free Sold */}
-        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-[16px] bg-[#fdf2f8] text-[#db2777] flex items-center justify-center">
-              <ShoppingCart size={24} strokeWidth={2.5} />
-            </div>
-            <div className="flex flex-col items-end gap-1">
-               {isFullyAudited((todayStats as any).freeToday, (metrics as any).auditedFreeTanks) ? (
-                 <div className="bg-[#ecfdf5] text-[#10b981] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#d1fae5]">Audited</div>
-               ) : (
-                 <div className="bg-[#fff7ed] text-[#f59e0b] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-[#fed7aa] italic">Pending Review</div>
-               )}
-               <div className="text-[10px] font-bold text-[#db2777] uppercase tracking-tighter">Free Assets</div>
-            </div>
-          </div>
-          <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Free Sold</span>
-            <div className="flex items-baseline gap-2">
-              <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{(todayStats as any)?.freeToday?.toLocaleString() ?? 0}</div>
-              {(metrics as any).auditedFreeTanks > 0 && (
-                <div className="text-[14px] font-bold text-[#10b981] tracking-tight">/ {(metrics as any).auditedFreeTanks.toLocaleString()} Audited</div>
-              )}
-            </div>
-          </div>
-        </div>
+        <AccountantFreeSoldCard 
+          todayFree={(todayStats as any)?.freeToday ?? 0}
+          auditedFree={(metrics as any).auditedFreeTanks ?? 0}
+          isFullyAudited={isFullyAudited((todayStats as any).freeToday, (metrics as any).auditedFreeTanks)}
+          freeWaterDetails={(metrics as any).freeWaterDetails}
+        />
 
         {/* 4. Remaining */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
@@ -105,7 +94,7 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
             <div className="flex items-center gap-1.5 p-1 px-2 rounded-full border border-[#e2e8f0] text-[10px] font-black uppercase tracking-widest text-[#64748b]">Inventory</div>
           </div>
           <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Remaining Tanks</span>
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Remaining Liters</span>
             <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">{metrics?.remainingTanks?.toLocaleString() ?? 0}</div>
           </div>
         </div>
@@ -152,7 +141,23 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
           </div>
         </div>
 
-        {/* 6. Expected Total Today */}
+        {/* 6. Discounts Given */}
+        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-[16px] bg-[#fef2f2] text-[#ef4444] flex items-center justify-center">
+              <Tag size={24} strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col items-end gap-1">
+               <div className="text-[10px] font-bold text-[#ef4444] uppercase tracking-tighter">{periodLabel}</div>
+            </div>
+          </div>
+          <div className="mt-auto">
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Discounts Given</span>
+            <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${(todayStats as any)?.discountsToday?.toLocaleString() ?? 0}</div>
+          </div>
+        </div>
+
+        {/* 7. Expected Total Today */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-[16px] bg-[#f0fdf4] text-[#16a34a] flex items-center justify-center">
@@ -169,9 +174,9 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
           </div>
         </div>
 
-        {/* 7. Total Global Debt */}
+        {/* 8. Total Global Debt */}
         <Link 
-          href="/dashboard/accountant/staff-reports"
+          href="/dashboard/accountant/debtors"
           className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300 group cursor-pointer"
         >
           <div className="flex items-center justify-between mb-4">
@@ -186,7 +191,7 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
           </div>
         </Link>
 
-        {/* 8. Unverified Items */}
+        {/* 9. Unverified Items */}
         <Link 
           href="/dashboard/accountant/submissions?status=pending"
           className="bg-[#0f172a] rounded-[24px] p-6 shadow-xl flex flex-col hover:shadow-2xl transition-all duration-300 text-white group cursor-pointer"
@@ -227,8 +232,13 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
                       {act.type === 'distribution' ? <Truck size={18} /> : 
                        act.type === 'sale' ? <Tag size={18} /> : <Banknote size={18} />}
                     </div>
-                    <div className="flex flex-col">
-                       <span className="text-[13px] font-black text-[#0f172a] uppercase tracking-tight">{act.label}</span>
+                    <div className="flex flex-col items-start gap-1">
+                       <div className="flex items-center gap-2">
+                         <span className="text-[13px] font-black text-[#0f172a] uppercase tracking-tight">{act.label}</span>
+                         {(act as any).discount > 0 && (
+                           <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-black tracking-widest uppercase">Discount (-${Number((act as any).discount).toFixed(2)})</span>
+                         )}
+                       </div>
                        <div className="flex items-center gap-1.5">
                           <span className="text-[11px] font-medium text-[#94a3b8]">
                             {act.date ? new Date(act.date).toLocaleString() : 'Date Unknown'}
@@ -304,8 +314,8 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
                 </Link>
               </div>
            </div>
+           </div>
         </div>
-      </div>
     </>
   )
 }

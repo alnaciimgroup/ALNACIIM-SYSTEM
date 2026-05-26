@@ -57,7 +57,7 @@ export function EditDistributionModal({ isOpen, onClose, distribution }: EditDis
           <div className="space-y-2">
             <label className="text-[13px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
               <Calculator size={14} className="text-blue-500" />
-              Number of Tanks
+              Number of Liters
             </label>
             <div className="relative">
               <input
@@ -69,7 +69,7 @@ export function EditDistributionModal({ isOpen, onClose, distribution }: EditDis
                 min="1"
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-bold text-gray-400">
-                TANKS
+                LITERS
               </div>
             </div>
           </div>

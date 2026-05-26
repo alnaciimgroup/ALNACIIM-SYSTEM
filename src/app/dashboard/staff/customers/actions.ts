@@ -50,7 +50,7 @@ export async function getCustomers(search?: string, statusFilter?: string) {
       ...c,
       lastRefillDate,
       daysInactive,
-      isInactiveWarning: daysInactive > 10
+      isInactiveWarning: c.customer_type === 'irregular' ? daysInactive >= 90 : daysInactive > 10
     }
   })
 
@@ -298,4 +298,46 @@ export async function recordDebtPayment(prevState: any, formData: FormData) {
   revalidatePath('/dashboard/staff/daily-report')
   
   return { message: `Successfully recorded $${amount.toFixed(2)} payment from ${customer.name}.`, error: false }
+}
+
+export async function logCustomerFollowup(prevState: any, formData: FormData) {
+  try {
+    const { user } = await verifySession(['staff', 'accountant'])
+    const supabase = createAdminClient()
+
+    const customer_id = formData.get('customer_id') as string
+    const interaction_type = formData.get('interaction_type') as string
+    const notes = formData.get('notes') as string
+
+    if (!customer_id || !interaction_type || !notes) {
+      return { message: 'Please fill in all fields.', errors: true }
+    }
+
+    let action_type = 'other'
+    if (interaction_type === 'phone_call') action_type = 'called'
+    if (interaction_type === 'site_visit') action_type = 'visited'
+    if (interaction_type === 'whatsapp') action_type = 'messaged'
+
+    const { error } = await supabase
+      .from('customer_followups')
+      .insert({
+        customer_id,
+        staff_id: user.id,
+        action_type,
+        notes
+      })
+
+    if (error) {
+      console.error('Follow-up Insert Error:', error)
+      return { message: 'Failed to save follow-up log.', errors: true }
+    }
+
+    revalidatePath('/dashboard/staff')
+    revalidatePath('/dashboard/accountant')
+    
+    return { message: 'Follow-up successfully saved!', errors: false }
+  } catch (error) {
+    console.error('logCustomerFollowup exception:', error)
+    return { message: 'An unexpected error occurred.', errors: true }
+  }
 }

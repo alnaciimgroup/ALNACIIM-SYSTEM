@@ -67,7 +67,7 @@ export function SubmissionBreakdownList({ sales, payments }: Props) {
                     </span>
                   </div>
                   <span className="text-[11px] font-bold text-[#64748b]">
-                    {sale.items.map(i => `${i.quantity}x ${i.items?.name || 'Tank'}`).join(', ')}
+                    {sale.items.map(i => `${i.quantity} Liters`).join(', ')}
                   </span>
                 </div>
               </div>
