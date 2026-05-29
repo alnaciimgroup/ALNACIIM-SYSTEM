@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import { verifySession } from '@/utils/auth'
 import { SaleSchema, SubmissionSchema } from '@/utils/validation'
 import { logAction } from '@/utils/audit'
-import { getWorkDate, getCurrentWorkDate } from '@/utils/date-utils'
+import { getWorkDate, getCurrentWorkDate, getWorkDayBounds } from '@/utils/date-utils'
 
 /**
  * Fetch dashboard data for the logged-in staff member.
