@@ -18,13 +18,16 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [qty, setQty] = useState<number>(0)
   const [freeQty, setFreeQty] = useState<number>(0)
   const [price, setPrice] = useState<number>(0.0233)
+  const [agreedPrice, setAgreedPrice] = useState<string>('')
 
   useEffect(() => {
     if (salesType === 'free') {
       setPrice(0.00)
+      setAgreedPrice('0')
       setFreeQty(0)
     } else if (price === 0) {
       setPrice(0.0233)
+      setAgreedPrice('')
     }
   }, [salesType])
 
@@ -43,6 +46,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const activeCustomers = customers.filter(c => c.status === 'active')
   const totalDepletion = qty + freeQty
   const isOverStock = totalDepletion > remainingStock
+  const finalPrice = agreedPrice !== '' ? parseFloat(agreedPrice) || 0 : price
 
   return (
     <div className="bg-white border border-[#e5e7eb] shadow-sm rounded-[24px] p-8 mb-8">
@@ -134,9 +138,25 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           </div>
         </div>
 
-        {/* Unit Price (Editable) */}
+        {/* Unit Price (Locked) */}
         <div className="flex flex-col gap-2.5">
-          <label htmlFor="unit_price" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Price per Liter ($)</label>
+          <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Standard Price / Liter ($)</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <DollarSign size={18} className="text-[#94a3b8]" />
+            </div>
+            <input 
+              type="number" 
+              value={price}
+              disabled
+              className="w-full h-[50px] pl-[44px] pr-4 bg-gray-100 border border-[#e2e8f0] rounded-[12px] text-[15px] font-bold text-[#64748b] opacity-70 cursor-not-allowed"
+            />
+          </div>
+        </div>
+
+        {/* Agreed Price (Optional, overrides Standard Price) */}
+        <div className="flex flex-col gap-2.5">
+          <label htmlFor="unit_price" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Agreed Price (Optional) ($)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <DollarSign size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
@@ -147,9 +167,9 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
               name="unit_price" 
               step="any"
               min="0"
-              required
-              value={price}
-              onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+              placeholder={price.toString()}
+              value={agreedPrice}
+              onChange={(e) => setAgreedPrice(e.target.value)}
               disabled={salesType === 'free'}
               className={`w-full h-[50px] pl-[44px] pr-4 bg-[#f8fafc] border rounded-[12px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all ${salesType === 'free' ? 'bg-gray-100 opacity-60' : 'border-[#e2e8f0]'}`}
             />
@@ -184,7 +204,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
               <Hash size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
             </div>
             <div className={`w-full h-[50px] pl-[44px] pr-4 border rounded-[12px] text-[20px] font-black flex items-center transition-all ${salesType === 'free' ? 'border-[#10b981]/20 text-[#10b981] bg-[#ecfdf5]' : 'border-[#3b82f6]/20 text-[#3b82f6] bg-[#eff6ff]'}`}>
-              {(qty * price).toFixed(2)}
+              {(qty * finalPrice).toFixed(2)}
             </div>
           </div>
         </div>

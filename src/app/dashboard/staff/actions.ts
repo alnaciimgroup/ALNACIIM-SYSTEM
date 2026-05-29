@@ -66,7 +66,7 @@ export async function getStaffDashboardData(date?: string) {
     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)
 
-  const totalReceived = distributions?.reduce((acc: number, curr) => acc + (curr.liters || curr.quantity), 0) || 0
+  const totalReceived = distributions?.reduce((acc: number, curr) => acc + Number(curr.liters || curr.quantity || 0), 0) || 0
 
   const totalSold = sales?.reduce((acc: number, s) => {
     const itemQty = s.sale_items?.reduce((a: number, i: any) => a + (i.quantity || 0) + (i.free_quantity || 0), 0) || 0
@@ -95,8 +95,8 @@ export async function getStaffDashboardData(date?: string) {
 
   const outstandingDebt = customers?.reduce((acc: number, c) => acc + Number(c.debt || 0), 0) || 0
 
-  const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.liters || curr.quantity), 0) || 0
-  const globalFreeReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + (curr.free_quantity || 0), 0) || 0
+  const globalReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + Number(curr.liters || curr.quantity || 0), 0) || 0
+  const globalFreeReceived = allTimeDistributions?.reduce((acc: number, curr) => acc + Number(curr.free_quantity || 0), 0) || 0
 
   const globalSold = allTimeSales?.reduce((acc: number, s: any) => acc + (s.quantity || 0) + (s.free_quantity || 0), 0) || 0
   const globalFreeSold = allTimeSales?.reduce((acc: number, s: any) => {
