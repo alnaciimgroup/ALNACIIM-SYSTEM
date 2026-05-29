@@ -3,7 +3,7 @@
 // @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { getWorkDayBounds } from '@/utils/date-utils'
+import { getWorkDayBounds, getCurrentWorkDate } from '@/utils/date-utils'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -12,7 +12,7 @@ export async function getDailySummary(selectedDate?: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const date = selectedDate || new Date().toISOString().split('T')[0]
+  const date = selectedDate || getCurrentWorkDate()
   const bounds = getWorkDayBounds(date)
   
   const startOfDay = bounds.startOfDay

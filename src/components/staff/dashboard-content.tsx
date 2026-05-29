@@ -4,10 +4,11 @@ import { EndOfDayReport } from '@/components/staff/end-of-day-report'
 import { InventoryAlerts } from '@/components/staff/inventory-alerts'
 import { CustomerAlerts } from '@/components/staff/customer-alerts'
 import { getStaffDashboardData } from '@/app/dashboard/staff/actions'
+import { getCurrentWorkDate } from '@/utils/date-utils'
 
 export async function StaffDashboardContent({ date }: { date: string }) {
   const { metrics, recentSales, inactiveRegularCustomers } = await getStaffDashboardData(date)
-  const today = new Date().toISOString().split('T')[0]
+  const today = getCurrentWorkDate()
 
   const dailyReport = {
     litersSold: metrics.tanksSold,

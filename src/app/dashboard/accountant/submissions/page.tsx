@@ -20,7 +20,7 @@ export default async function AccountantSubmissionsPage({
   // Default to Today if no date provided
   let date = params.date
   if (!date && !params.staff && !params.status) {
-    date = new Date().toISOString().split('T')[0]
+    date = getCurrentWorkDate()
   }
 
   const staffId = params.staff
@@ -199,7 +199,7 @@ export default async function AccountantSubmissionsPage({
                  .map(([sid, exp]) => ({
                     id: `missing-${sid}`,
                     staff_id: sid,
-                    submission_date: date || new Date().toISOString().split('T')[0],
+                    submission_date: date || getCurrentWorkDate(),
                     tanks_sold: 0,
                     money_collected: 0,
                     submitted_amount: 0,

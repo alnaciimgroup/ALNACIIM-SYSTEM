@@ -7,10 +7,11 @@ import { Suspense } from 'react'
 import { StaffDashboardContent } from '@/components/staff/dashboard-content'
 import { StaffDashboardSkeleton } from '@/components/staff/dashboard-skeleton'
 import { DateFilter } from '@/components/staff/date-filter'
+import { getCurrentWorkDate } from '@/utils/date-utils'
 
 export default async function StaffDashboardPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const resolvedParams = await searchParams
-  const dateParam = resolvedParams.date || new Date().toISOString().split('T')[0]
+  const dateParam = resolvedParams.date || getCurrentWorkDate()
   
   let todayDisplay = "All Time Focus"
   if (dateParam !== 'all') {

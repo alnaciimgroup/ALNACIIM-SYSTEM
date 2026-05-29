@@ -8,10 +8,11 @@ import { Suspense } from 'react'
 import { AgentDashboardContent } from '@/components/agent/dashboard-content'
 import { AgentDashboardSkeleton } from '@/components/agent/dashboard-skeleton'
 import { DateFilter } from '@/components/staff/date-filter'
+import { getCurrentWorkDate } from '@/utils/date-utils'
 
 export default async function AgentDashboardPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const resolvedParams = await searchParams
-  const dateParam = resolvedParams.date || new Date().toISOString().split('T')[0]
+  const dateParam = resolvedParams.date || getCurrentWorkDate()
 
   let todayDisplay = "All Time"
   if (dateParam !== 'all') {

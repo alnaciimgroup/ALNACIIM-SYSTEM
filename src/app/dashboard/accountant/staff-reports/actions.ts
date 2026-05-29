@@ -1,10 +1,11 @@
 // @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
+import { getCurrentWorkDate } from '@/utils/date-utils'
 
 export async function getStaffReportsList(date?: string) {
   const supabase = await createClient()
 
-  const targetDate = date || new Date().toISOString().split('T')[0]
+  const targetDate = date || getCurrentWorkDate()
   const startOfDay = `${targetDate}T00:00:00.000Z`
   const endOfDay = `${targetDate}T23:59:59.999Z`
 

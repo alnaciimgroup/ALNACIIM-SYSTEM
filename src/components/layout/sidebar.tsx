@@ -96,6 +96,7 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               onClick={() => onMobileClose?.()}
               className={`flex items-center gap-3.5 px-4 py-[11px] rounded-[8px] transition-all duration-200 ${isActive ? 'bg-[#eff6ff] text-[#3b82f6] font-bold border-l-[3px] border-[#3b82f6] ml-[2px]' : 'text-[#64748b] hover:bg-gray-50 hover:text-[#0f172a] font-medium border-l-[3px] border-transparent ml-[2px]'}`}
             >

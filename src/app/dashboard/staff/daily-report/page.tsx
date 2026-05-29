@@ -1,6 +1,7 @@
 import { Header } from '@/components/layout/header'
 import { getDailySummary } from './actions'
 import { EndOfDayReport } from '@/components/staff/end-of-day-report'
+import { getCurrentWorkDate } from '@/utils/date-utils'
 import { ShoppingBag, Banknote, ArrowLeft, ArrowRight, Package, TrendingUp, HandCoins, CheckCircle2, ShieldAlert, Clock, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { getStaffDashboardData } from '../actions'
@@ -23,7 +24,7 @@ export default async function DailyReportPage({
         <div className="w-full max-w-[1200px] mx-auto">
           
           {/* Missing Report Banner */}
-          {!summary.submissionStatus && summary.date !== new Date().toISOString().split('T')[0] && (
+          {!summary.submissionStatus && summary.date !== getCurrentWorkDate() && (
             <div className="mb-8 p-6 bg-red-600 rounded-[24px] text-white flex items-center justify-between shadow-lg shadow-red-600/20 animate-pulse">
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-[16px] bg-white/20 flex items-center justify-center">
