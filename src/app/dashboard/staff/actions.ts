@@ -467,15 +467,17 @@ export async function deleteSale(id: string) {
 
 export async function getMissingReportDate(userId: string, currentWorkDate: string) {
   const supabase = await createClient()
+  const bounds = getWorkDayBounds(currentWorkDate)
+  
   const { data: previousSales } = await supabase
     .from('sales')
     .select('created_at')
     .eq('staff_id', userId)
-    .lt('created_at', `${currentWorkDate}T00:00:00.000Z`)
+    .lt('created_at', bounds.startOfDay)
     .limit(100)
   
   if (previousSales && previousSales.length > 0) {
-    const datesToCheck = [...new Set(previousSales.map(s => s.created_at.split('T')[0]))]
+    const datesToCheck = [...new Set(previousSales.map(s => getWorkDate(s.created_at)))]
     const { data: existingSubmissions } = await supabase
       .from('cash_submissions')
       .select('submission_date')
