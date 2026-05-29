@@ -111,7 +111,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   return { message: 'Distribution successfully recorded!', errors: false }
 }
 
-import { getWorkDate } from '@/utils/date-utils'
+import { getWorkDate, getWorkDayBounds } from '@/utils/date-utils'
 
 export async function getAgentDashboardData(date?: string) {
   const { user } = await verifySession(['agent'])
@@ -121,18 +121,14 @@ export async function getAgentDashboardData(date?: string) {
   let endOfDay = ''
   
   if (date && date !== 'all') {
-    startOfDay = `${date}T04:00:00.000Z`
-    const tomorrow = new Date(date)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split('T')[0]
-    endOfDay = `${tomorrowStr}T03:59:59.999Z`
+    const bounds = getWorkDayBounds(date)
+    startOfDay = bounds.startOfDay
+    endOfDay = bounds.endOfDay
   } else if (date !== 'all') {
     const todayStr = getWorkDate()
-    startOfDay = `${todayStr}T04:00:00.000Z`
-    const tomorrow = new Date(todayStr)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split('T')[0]
-    endOfDay = `${tomorrowStr}T03:59:59.999Z`
+    const bounds = getWorkDayBounds(todayStr)
+    startOfDay = bounds.startOfDay
+    endOfDay = bounds.endOfDay
   }
 
   const sevenDaysAgo = new Date()

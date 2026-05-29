@@ -3,6 +3,7 @@
 // @ts-nocheck
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
+import { getWorkDayBounds } from '@/utils/date-utils'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -12,12 +13,10 @@ export async function getDailySummary(selectedDate?: string) {
   if (!user) throw new Error('Unauthorized')
 
   const date = selectedDate || new Date().toISOString().split('T')[0]
+  const bounds = getWorkDayBounds(date)
   
-  // 4 AM Rollover Logic (matches getStaffDashboardData)
-  const startOfDay = `${date}T04:00:00.000Z`
-  const nextDay = new Date(date)
-  nextDay.setDate(nextDay.getDate() + 1)
-  const endOfDay = `${nextDay.toISOString().split('T')[0]}T03:59:59.999Z`
+  const startOfDay = bounds.startOfDay
+  const endOfDay = bounds.endOfDay
 
   // 1. Fetch Tanks Received Today
   const { data: receivedData } = await supabase

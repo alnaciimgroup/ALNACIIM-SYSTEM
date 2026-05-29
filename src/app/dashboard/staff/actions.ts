@@ -21,24 +21,14 @@ export async function getStaffDashboardData(date?: string) {
   let startOfDay = ''
   let endOfDay = ''
   if (date && date !== 'all') {
-    startOfDay = `${date}T00:00:00.000Z`
-    // Ensure end of day includes the late night portion (up to 4 AM next day)
-    // Actually, for query range, we should go up to 4 AM of NEXT calendar day
-    const nextDay = new Date(date)
-    nextDay.setDate(nextDay.getDate() + 1)
-    const nextDateStr = nextDay.toISOString().split('T')[0]
-    endOfDay = `${nextDateStr}T03:59:59.999Z`
-
-    // Start of day should actually start at 4 AM of current calendar day
-    startOfDay = `${date}T04:00:00.000Z`
+    const bounds = getWorkDayBounds(date)
+    startOfDay = bounds.startOfDay
+    endOfDay = bounds.endOfDay
   } else if (!date) {
     const todayWorkDate = getCurrentWorkDate()
-    startOfDay = `${todayWorkDate}T04:00:00.000Z`
-
-    const tomorrow = new Date(todayWorkDate)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split('T')[0]
-    endOfDay = `${tomorrowStr}T03:59:59.999Z`
+    const bounds = getWorkDayBounds(todayWorkDate)
+    startOfDay = bounds.startOfDay
+    endOfDay = bounds.endOfDay
   }
 
   let distributionsQuery = supabaseAdmin.from('distributions').select('id, created_at, quantity, liters').eq('staff_id', user.id).eq('status', 'completed')
