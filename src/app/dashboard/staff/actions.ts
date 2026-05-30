@@ -211,16 +211,23 @@ export async function recordSale(prevState: any, formData: FormData) {
   const { user } = await verifySession(['staff'])
   const supabase = await createClient()
 
-  const saleType = formData.get('sale_type') as string
-  const quantity = parseInt(formData.get('quantity') as string || '0')
-  const freeQuantity = parseInt(formData.get('free_quantity') as string || '0')
-  const unit_price = saleType === 'free' ? 0.00 : parseFloat(formData.get('unit_price') as string || '5.00')
-
   // 1. Get default item (Water Tank) and its standard price
   const { data: items } = await supabase.from('items').select('id, current_price').limit(1)
   const item_id = items?.[0]?.id
   const standard_price = 3.5 / 150 // Mathematical exact price per liter
   if (!item_id) return { message: 'System Error: No items found.', errors: true }
+
+  const saleType = formData.get('sale_type') as string
+  const quantity = parseInt(formData.get('quantity') as string || '0')
+  const freeQuantity = parseInt(formData.get('free_quantity') as string || '0')
+  
+  const formUnitPrice = formData.get('unit_price') as string
+  let unit_price = standard_price
+  if (saleType === 'free') {
+    unit_price = 0.00
+  } else if (formUnitPrice && formUnitPrice.trim() !== '') {
+    unit_price = parseFloat(formUnitPrice)
+  }
 
   const rawData = {
     customer_id: formData.get('customer_id') as string,
