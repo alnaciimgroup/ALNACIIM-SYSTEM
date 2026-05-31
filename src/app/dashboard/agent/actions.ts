@@ -386,24 +386,24 @@ export async function getStaffNetworkDetails() {
   // 2. Fetch all distributions to calculate lifetime received
   const { data: distributions } = await supabase
     .from('distributions')
-    .select('staff_id, quantity, free_quantity')
+    .select('staff_id, liters')
     .eq('status', 'completed')
 
   // 3. Fetch all sale items to calculate lifetime sold
   const { data: sales } = await supabase
     .from('sale_items')
-    .select('quantity, sales!inner(staff_id, status)')
+    .select('quantity, free_quantity, sales!inner(staff_id, status)')
     .eq('sales.status', 'completed')
 
   // Map the calculations
   const staffNetwork = staffList.map(staff => {
     // Sum distributions for this staff
     const staffDistributions = distributions?.filter(d => d.staff_id === staff.id) || []
-    const lifetimeReceived = staffDistributions.reduce((acc, curr) => acc + curr.quantity, 0)
+    const lifetimeReceived = staffDistributions.reduce((acc, curr) => acc + (curr.liters || 0), 0)
 
     // Sum sales for this staff
     const staffSales = sales?.filter((s: any) => s.sales?.staff_id === staff.id) || []
-    const lifetimeSold = staffSales.reduce((acc: number, curr: any) => acc + curr.quantity, 0)
+    const lifetimeSold = staffSales.reduce((acc: number, curr: any) => acc + (curr.quantity || 0) + (curr.free_quantity || 0), 0)
 
     const currentStock = lifetimeReceived - lifetimeSold
 
