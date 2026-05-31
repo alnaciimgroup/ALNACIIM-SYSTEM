@@ -60,26 +60,30 @@ export default async function AccountantSubmissionsPage({
     { data: salesByStaff },
     { data: paymentsByStaff }
   ] = await Promise.all([
-    supabase.from('sales').select('staff_id, total_amount, sale_type').gte('created_at', start).lte('created_at', end),
-    supabase.from('payments').select('amount, payment_method, sales!inner(staff_id)').gte('created_at', start).lte('created_at', end)
+    supabase.from('sales').select('staff_id, total_amount, sale_type, created_at').gte('created_at', start).lte('created_at', end),
+    supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)').gte('created_at', start).lte('created_at', end)
   ])
 
-  // Calculation Map: Staff ID -> { cashExpected: number, creditExpected: number }
+  // Calculation Map: Staff ID + Date -> { cashExpected: number, creditExpected: number }
   const expectationMap: Record<string, { cash: number, credit: number }> = {}
   
   // Track Credit Sales
   salesByStaff?.forEach(s => {
-    if (!expectationMap[s.staff_id]) expectationMap[s.staff_id] = { cash: 0, credit: 0 }
+    const saleDate = new Date(s.created_at).toISOString().split('T')[0]
+    const key = `${s.staff_id}_${saleDate}`
+    if (!expectationMap[key]) expectationMap[key] = { cash: 0, credit: 0 }
     if (s.sale_type === 'credit') {
-      expectationMap[s.staff_id].credit += Number(s.total_amount)
+      expectationMap[key].credit += Number(s.total_amount)
     }
   })
 
   // Track Cash Collections (Cash Sales + Debt Repayments)
   paymentsByStaff?.forEach(p => {
     const sid = (p.sales as any).staff_id
-    if (!expectationMap[sid]) expectationMap[sid] = { cash: 0, credit: 0 }
-    expectationMap[sid].cash += Number(p.amount)
+    const payDate = new Date(p.created_at).toISOString().split('T')[0]
+    const key = `${sid}_${payDate}`
+    if (!expectationMap[key]) expectationMap[key] = { cash: 0, credit: 0 }
+    expectationMap[key].cash += Number(p.amount)
   })
 
   // 3. Fetch staff names
@@ -184,10 +188,12 @@ export default async function AccountantSubmissionsPage({
             </div>
           </div>
 
-          <SubmissionQueueTable 
+           <SubmissionQueueTable 
              submissions={[
                ...submissions.map(s => {
-                 const exp = expectationMap[s.staff_id] || { cash: 0, credit: 0 }
+                 const subDate = new Date(s.submission_date).toISOString().split('T')[0]
+                 const key = `${s.staff_id}_${subDate}`
+                 const exp = expectationMap[key] || { cash: 0, credit: 0 }
                  return {
                    ...s,
                    system_expected_cash: exp.cash,
@@ -196,20 +202,30 @@ export default async function AccountantSubmissionsPage({
                }),
                // Add Virtual rows for missing submissions (ONLY if viewing a specific date)
                ...(params.date || (!params.staff && !params.status) ? Object.entries(expectationMap)
-                 .filter(([sid]) => !submissions.some(s => s.staff_id === sid))
-                 .map(([sid, exp]) => ({
-                    id: `missing-${sid}`,
-                    staff_id: sid,
-                    submission_date: date || getCurrentWorkDate(),
-                    tanks_sold: 0,
-                    money_collected: 0,
-                    submitted_amount: 0,
-                    system_expected_cash: exp.cash,
-                    system_expected_credit: exp.credit,
-                    difference_amount: -exp.cash,
-                    status: 'missing',
-                    created_at: new Date().toISOString()
-                 })) : [])
+                 .filter(([key]) => {
+                   const sid = key.split('_')[0]
+                   const keyDate = key.split('_')[1]
+                   // Only consider missing if we are viewing the specific date of this expectation, and there's no submission for this date
+                   if (date && keyDate !== date) return false
+                   return !submissions.some(s => s.staff_id === sid && new Date(s.submission_date).toISOString().split('T')[0] === keyDate)
+                 })
+                 .map(([key, exp]) => {
+                   const sid = key.split('_')[0]
+                   const keyDate = key.split('_')[1]
+                   return {
+                     id: 'missing-' + key,
+                     staff_id: sid,
+                     submission_date: keyDate,
+                     tanks_sold: 0,
+                     money_collected: 0,
+                     submitted_amount: 0,
+                     system_expected_cash: exp.cash,
+                     system_expected_credit: exp.credit,
+                     difference_amount: exp.cash,
+                     status: 'missing',
+                     created_at: new Date().toISOString()
+                   }
+                 }) : [])
              ]} 
              staffMap={staffMap}
           />
