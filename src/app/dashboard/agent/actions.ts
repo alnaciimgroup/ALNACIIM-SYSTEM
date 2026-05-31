@@ -402,7 +402,10 @@ export async function getStaffNetworkDetails() {
     const lifetimeReceived = staffDistributions.reduce((acc, curr) => acc + (curr.liters || 0), 0)
 
     // Sum sales for this staff
-    const staffSales = sales?.filter((s: any) => s.sales?.staff_id === staff.id) || []
+    const staffSales = sales?.filter((s: any) => {
+      const saleObj = Array.isArray(s.sales) ? s.sales[0] : s.sales
+      return saleObj?.staff_id === staff.id
+    }) || []
     const lifetimeSold = staffSales.reduce((acc: number, curr: any) => acc + (curr.quantity || 0) + (curr.free_quantity || 0), 0)
 
     const currentStock = lifetimeReceived - lifetimeSold
