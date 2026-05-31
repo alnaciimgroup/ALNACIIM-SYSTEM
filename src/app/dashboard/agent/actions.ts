@@ -390,7 +390,7 @@ export async function getStaffNetworkDetails() {
     .eq('status', 'completed')
 
   // 3. Fetch all sale items to calculate lifetime sold
-  const { data: sales } = await supabase
+  const { data: sales } = await supabaseAdmin
     .from('sale_items')
     .select('quantity, free_quantity, sales!inner(staff_id, status)')
     .eq('sales.status', 'completed')
@@ -409,6 +409,8 @@ export async function getStaffNetworkDetails() {
     const lifetimeSold = staffSales.reduce((acc: number, curr: any) => acc + (curr.quantity || 0) + (curr.free_quantity || 0), 0)
 
     const currentStock = lifetimeReceived - lifetimeSold
+
+    console.log(`[DEBUG] Staff: ${staff.full_name} | Received: ${lifetimeReceived} | Sold: ${lifetimeSold} | Current: ${currentStock}`)
 
     return {
       id: staff.id,
