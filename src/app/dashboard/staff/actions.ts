@@ -221,12 +221,16 @@ export async function recordSale(prevState: any, formData: FormData) {
   const quantity = parseInt(formData.get('quantity') as string || '0')
   const freeQuantity = parseInt(formData.get('free_quantity') as string || '0')
   
-  const formUnitPrice = formData.get('unit_price') as string
+  const formFinalTotal = formData.get('final_total') as string
   let unit_price = standard_price
+  let final_total = quantity * standard_price
+
   if (saleType === 'free') {
     unit_price = 0.00
-  } else if (formUnitPrice && formUnitPrice.trim() !== '') {
-    unit_price = parseFloat(formUnitPrice)
+    final_total = 0.00
+  } else if (formFinalTotal && formFinalTotal.trim() !== '') {
+    final_total = parseFloat(formFinalTotal)
+    unit_price = quantity > 0 ? final_total / quantity : standard_price
   }
 
   const rawData = {
@@ -238,7 +242,7 @@ export async function recordSale(prevState: any, formData: FormData) {
       free_quantity: freeQuantity,
       unit_price: unit_price,
     }],
-    total_amount: quantity * unit_price
+    total_amount: final_total
   }
 
   // 2. Validate with Zod

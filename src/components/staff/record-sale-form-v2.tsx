@@ -18,16 +18,16 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [qty, setQty] = useState<number>(0)
   const [freeQty, setFreeQty] = useState<number>(0)
   const [price, setPrice] = useState<number>(0.0233)
-  const [agreedPrice, setAgreedPrice] = useState<string>('')
+  const [agreedTotal, setAgreedTotal] = useState<string>('')
 
   useEffect(() => {
     if (salesType === 'free') {
       setPrice(0.00)
-      setAgreedPrice('0')
+      setAgreedTotal('0')
       setFreeQty(0)
     } else if (price === 0) {
       setPrice(0.0233)
-      setAgreedPrice('')
+      setAgreedTotal('')
     }
   }, [salesType])
 
@@ -46,7 +46,11 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const activeCustomers = customers.filter(c => c.status === 'active')
   const totalDepletion = qty + freeQty
   const isOverStock = totalDepletion > remainingStock
-  const finalPrice = agreedPrice !== '' ? parseFloat(agreedPrice) || 0 : price
+  const standardTotal = qty * price
+  const agreedTotalParsed = parseFloat(agreedTotal)
+  const hasAgreedTotal = agreedTotal !== '' && !isNaN(agreedTotalParsed)
+  const finalTotal = hasAgreedTotal ? agreedTotalParsed : standardTotal
+  const discountAmount = hasAgreedTotal ? Math.max(0, standardTotal - finalTotal) : 0
 
   return (
     <div className="bg-white border border-[#e5e7eb] shadow-sm rounded-[24px] p-8 mb-8">
@@ -154,24 +158,24 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           </div>
         </div>
 
-        {/* Agreed Price (Optional, overrides Standard Price) */}
+        {/* Agreed Final Total (Optional) */}
         <div className="flex flex-col gap-2.5">
-          <label htmlFor="unit_price" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Agreed Price (Optional) ($)</label>
+          <label htmlFor="final_total" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Agreed Final Total (Optional) ($)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <DollarSign size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
             </div>
             <input 
               type="number" 
-              id="unit_price" 
-              name="unit_price" 
+              id="final_total" 
+              name="final_total" 
               step="any"
               min="0"
-              placeholder={price.toString()}
-              value={agreedPrice}
-              onChange={(e) => setAgreedPrice(e.target.value)}
-              disabled={salesType === 'free'}
-              className={`w-full h-[50px] pl-[44px] pr-4 bg-[#f8fafc] border rounded-[12px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all ${salesType === 'free' ? 'bg-gray-100 opacity-60' : 'border-[#e2e8f0]'}`}
+              placeholder={standardTotal.toFixed(2)}
+              value={agreedTotal}
+              onChange={(e) => setAgreedTotal(e.target.value)}
+              disabled={salesType === 'free' || qty === 0}
+              className={`w-full h-[50px] pl-[44px] pr-4 bg-[#f8fafc] border rounded-[12px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all ${(salesType === 'free' || qty === 0) ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'border-[#e2e8f0]'}`}
             />
           </div>
         </div>
@@ -198,13 +202,20 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
 
         {/* Total Amount (Auto-Calculated) */}
         <div className="flex flex-col gap-2.5">
-          <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Total Transaction Amount ($)</label>
+          <div className="flex justify-between items-center">
+            <label className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Total Transaction Amount ($)</label>
+            {discountAmount > 0 && (
+              <span className="text-[10px] font-black text-[#10b981] bg-[#ecfdf5] px-2 py-0.5 rounded-full border border-[#10b981]/20">
+                -${discountAmount.toFixed(2)} DISCOUNT
+              </span>
+            )}
+          </div>
           <div className="relative">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <Hash size={18} className={salesType === 'free' ? 'text-[#10b981]' : 'text-[#3b82f6]'} />
             </div>
             <div className={`w-full h-[50px] pl-[44px] pr-4 border rounded-[12px] text-[20px] font-black flex items-center transition-all ${salesType === 'free' ? 'border-[#10b981]/20 text-[#10b981] bg-[#ecfdf5]' : 'border-[#3b82f6]/20 text-[#3b82f6] bg-[#eff6ff]'}`}>
-              {(qty * finalPrice).toFixed(2)}
+              {finalTotal.toFixed(2)}
             </div>
           </div>
         </div>
