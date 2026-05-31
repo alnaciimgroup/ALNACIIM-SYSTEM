@@ -1,6 +1,6 @@
 'use client'
 
-import { ShoppingBag, User, Hash, DollarSign, CreditCard, Loader2, Clock } from 'lucide-react'
+import { ShoppingBag, User, Hash, DollarSign, CreditCard, Loader2, Clock, Search, ChevronDown, Check } from 'lucide-react'
 import { recordSale } from '@/app/dashboard/staff/actions'
 import { useActionState, useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast'
@@ -9,6 +9,8 @@ type Customer = {
   id: string
   name: string
   status: string
+  phone?: string
+  tank_number?: string
 }
 
 export function RecordSaleForm({ customers, remainingStock }: { customers: Customer[], remainingStock: number }) {
@@ -19,6 +21,10 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [freeQty, setFreeQty] = useState<number>(0)
   const [price, setPrice] = useState<number>(0.0233)
   const [agreedTotal, setAgreedTotal] = useState<string>('')
+  
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [selectedCustomerId, setSelectedCustomerId] = useState('')
 
   useEffect(() => {
     if (salesType === 'free') {
@@ -44,6 +50,16 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   }, [state, showToast])
 
   const activeCustomers = customers.filter(c => c.status === 'active')
+  const filteredCustomers = activeCustomers.filter(c => {
+    const search = searchTerm.toLowerCase()
+    return (
+      c.name.toLowerCase().includes(search) || 
+      (c.phone && c.phone.includes(search)) || 
+      (c.tank_number && c.tank_number.toLowerCase().includes(search))
+    )
+  })
+  const selectedCustomer = activeCustomers.find(c => c.id === selectedCustomerId)
+
   const totalDepletion = qty + freeQty
   const isOverStock = totalDepletion > remainingStock
   const standardTotal = qty * price
@@ -74,24 +90,70 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
         )}
 
         {/* Customer Selection */}
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2.5 relative">
           <label htmlFor="customer_id" className="text-[12px] font-extrabold text-[#1e293b] uppercase tracking-wider">Target Customer</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <User size={18} className="text-[#94a3b8]" />
-            </div>
-            <select
-              id="customer_id"
-              name="customer_id"
-              required
-              className="w-full h-[50px] pl-[44px] pr-10 bg-[#f8fafc] border border-[#e2e8f0] rounded-[12px] text-[15px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/20 focus:border-[#3b82f6] transition-all appearance-none cursor-pointer"
-            >
-              <option value="">Choose a customer...</option>
-              {activeCustomers.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+          <input type="hidden" name="customer_id" value={selectedCustomerId} required />
+          
+          <div 
+            className="relative w-full h-[50px] bg-[#f8fafc] border border-[#e2e8f0] rounded-[12px] flex items-center px-4 cursor-pointer focus-within:ring-2 focus-within:ring-[#3b82f6]/20 focus-within:border-[#3b82f6] transition-all"
+            onClick={() => setIsDropdownOpen(true)}
+          >
+            <User size={18} className="text-[#94a3b8] mr-3 shrink-0" />
+            
+            {isDropdownOpen ? (
+              <input
+                type="text"
+                className="w-full bg-transparent border-none focus:outline-none text-[15px] font-bold text-[#0f172a] placeholder-[#94a3b8]"
+                placeholder="Search by name, phone, or tank..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+              />
+            ) : (
+              <span className={`text-[15px] font-bold truncate ${selectedCustomer ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>
+                {selectedCustomer ? `${selectedCustomer.name} ${selectedCustomer.tank_number ? `(Tank: ${selectedCustomer.tank_number})` : ''}` : 'Search or choose a customer...'}
+              </span>
+            )}
+            
+            {isDropdownOpen ? (
+              <Search size={18} className="text-[#94a3b8] ml-2 shrink-0" />
+            ) : (
+              <ChevronDown size={18} className="text-[#94a3b8] ml-2 shrink-0" />
+            )}
           </div>
+
+          {isDropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+              <div className="absolute top-[80px] left-0 w-full max-h-[250px] overflow-y-auto bg-white border border-[#e2e8f0] rounded-[12px] shadow-2xl z-50 py-2">
+                {filteredCustomers.length === 0 ? (
+                  <div className="px-4 py-3 text-[14px] text-[#64748b] font-medium text-center">No customers found.</div>
+                ) : (
+                  filteredCustomers.map(c => (
+                    <div
+                      key={c.id}
+                      onClick={() => {
+                        setSelectedCustomerId(c.id)
+                        setIsDropdownOpen(false)
+                        setSearchTerm('')
+                      }}
+                      className={`px-4 py-3 cursor-pointer hover:bg-[#f8fafc] flex flex-col transition-colors border-b border-gray-50 last:border-0 ${selectedCustomerId === c.id ? 'bg-[#eff6ff]' : ''}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[14px] font-bold text-[#0f172a]">{c.name}</span>
+                        {selectedCustomerId === c.id && <Check size={16} className="text-[#3b82f6]" />}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {c.phone && <span className="text-[11px] font-medium text-[#64748b] bg-slate-100 px-2 py-0.5 rounded-md">{c.phone}</span>}
+                        {c.tank_number && <span className="text-[11px] font-bold text-[#3b82f6] bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md">Tank: {c.tank_number}</span>}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Sale Type */}
