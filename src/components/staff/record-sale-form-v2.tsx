@@ -19,7 +19,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [salesType, setSalesType] = useState('cash')
   const [qty, setQty] = useState<number>(0)
   const [freeQty, setFreeQty] = useState<number>(0)
-  const [price, setPrice] = useState<number>(0.0233)
+  const [price, setPrice] = useState<number>(3.5 / 150)
   const [agreedTotal, setAgreedTotal] = useState<string>('')
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -32,7 +32,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
       setAgreedTotal('0')
       setFreeQty(0)
     } else if (price === 0) {
-      setPrice(0.0233)
+      setPrice(3.5 / 150)
       setAgreedTotal('')
     }
   }, [salesType])
