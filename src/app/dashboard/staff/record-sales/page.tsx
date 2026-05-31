@@ -11,11 +11,6 @@ import { getCurrentWorkDate } from '@/utils/date-utils'
 export default async function RecordSalesPage() {
   const { user } = await verifySession(['staff'])
   const currentWorkDate = getCurrentWorkDate()
-  const missingDate = await getMissingReportDate(user.id, currentWorkDate)
-
-  if (missingDate) {
-    redirect(`/dashboard/staff/daily-report?date=${missingDate}`)
-  }
 
   const customers = await getCustomers()
   const { metrics } = await getStaffDashboardData()
