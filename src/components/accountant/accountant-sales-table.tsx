@@ -70,6 +70,7 @@ export function AccountantSalesTable({ sales }: { sales: any[] }) {
             quantity: editingItem.sale_items?.[0]?.quantity || parseInt(editingItem.total_amount) / 5 || 0,
             unitPrice: (Number(editingItem.total_amount) / (editingItem.sale_items?.[0]?.quantity || 1)) || 5
           }}
+          role="accountant"
         />
       )}
     </>

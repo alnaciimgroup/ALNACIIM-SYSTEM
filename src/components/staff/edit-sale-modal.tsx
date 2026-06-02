@@ -14,9 +14,10 @@ interface EditSaleModalProps {
     quantity: number
     unitPrice: number
   }
+  role?: 'staff' | 'accountant' | 'superadmin'
 }
 
-export function EditSaleModal({ isOpen, onClose, sale }: EditSaleModalProps) {
+export function EditSaleModal({ isOpen, onClose, sale, role = 'staff' }: EditSaleModalProps) {
   const [quantity, setQuantity] = useState(sale.quantity)
   const [unitPrice, setUnitPrice] = useState(sale.unitPrice)
   const [isPending, setIsPending] = useState(false)
@@ -27,7 +28,7 @@ export function EditSaleModal({ isOpen, onClose, sale }: EditSaleModalProps) {
   const handleUpdate = async () => {
     setIsPending(true)
     try {
-      await updateSale(sale.id, quantity, unitPrice)
+      await updateSale(sale.id, quantity, unitPrice, role)
       showToast('Sale updated successfully!', 'success')
       onClose()
     } catch (err: any) {
