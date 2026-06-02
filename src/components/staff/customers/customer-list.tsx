@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Filter, Plus, Pencil, Power, User, Banknote, X, Loader2 } from 'lucide-react'
+import { Search, Filter, Plus, Pencil, Power, User, Banknote, X, Loader2, Calendar, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition, useActionState, useEffect } from 'react'
@@ -21,6 +21,7 @@ type Customer = {
   lastRefillDate?: string
   lifetimeLiters?: number
   guarantor_phone?: string | null
+  recentSales?: any[]
 }
 
 export function CustomerList({ initialCustomers, initialFilter }: { initialCustomers: Customer[], initialFilter?: string }) {
@@ -331,6 +332,56 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
                   <span className="text-[14px] font-black text-[#0f172a]">{viewProfileCustomer.guarantor_phone || 'None'}</span>
                 </div>
               </div>
+
+              {/* Sales History */}
+              {viewProfileCustomer.recentSales && viewProfileCustomer.recentSales.length > 0 && (
+                <div className="bg-white border border-[#e2e8f0] rounded-[16px] overflow-hidden flex flex-col">
+                  <div className="px-4 py-3 border-b border-[#f1f5f9] bg-[#f8fafc]">
+                    <h4 className="text-[12px] font-black text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+                      <Tag size={14} className="text-[#3b82f6]" /> Sales History
+                    </h4>
+                  </div>
+                  <div className="max-h-[160px] overflow-y-auto p-0">
+                    <table className="w-full text-left">
+                      <tbody className="divide-y divide-[#f1f5f9]">
+                        {viewProfileCustomer.recentSales.map((sale: any) => (
+                          <tr key={sale.id} className="hover:bg-[#f8fafc]/50">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2 text-[12px] font-bold text-[#475569] mb-0.5">
+                                <Calendar size={12} className="text-[#94a3b8]" />
+                                {new Date(sale.created_at).toLocaleDateString()}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-widest ${
+                                  sale.sale_type === 'cash' ? 'bg-[#eff6ff] text-[#3b82f6]' :
+                                  sale.sale_type === 'credit' ? 'bg-[#fff7ed] text-[#ea580c]' :
+                                  'bg-[#ecfdf5] text-[#10b981]'
+                                }`}>
+                                  {sale.sale_type}
+                                </span>
+                                {Number(sale.discount_amount) > 0 && (
+                                  <span className="px-2 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-widest bg-[#fef2f2] text-[#ef4444]">
+                                    Discounted
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="text-[14px] font-black text-[#0f172a] block">
+                                ${Number(sale.total_amount).toFixed(2)}
+                              </span>
+                              <span className="text-[11px] font-bold text-[#94a3b8]">
+                                {sale.sale_items?.reduce((acc: number, item: any) => acc + Number(item.quantity), 0) || 0} L
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
             </div>
             
             <div className="px-6 py-4 bg-[#f8fafc] border-t border-[#f1f5f9] flex justify-end">
