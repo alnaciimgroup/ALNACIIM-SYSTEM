@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 export const revalidate = 0
 
-export default async function StaffCustomersPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
-  const { filter } = await searchParams
+export default async function StaffCustomersPage({ searchParams }: { searchParams: Promise<{ filter?: string, viewProfile?: string }> }) {
+  const { filter, viewProfile } = await searchParams
   const customers = await getCustomers()
 
   return (
@@ -26,7 +26,7 @@ export default async function StaffCustomersPage({ searchParams }: { searchParam
             </Link>
           </section>
 
-          <CustomerList initialCustomers={customers} initialFilter={filter} />
+          <CustomerList initialCustomers={customers} initialFilter={filter} initialViewProfileId={viewProfile} />
         </div>
       </main>
     </div>

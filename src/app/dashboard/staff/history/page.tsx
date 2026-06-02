@@ -23,7 +23,8 @@ export default async function SalesHistoryPage({
       sale_type,
       total_amount,
       status,
-      customer:customers(name),
+      customer:customers(id, name),
+      customer_id,
       sale_items(
         quantity,
         unit_price,

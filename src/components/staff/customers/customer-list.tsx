@@ -24,13 +24,15 @@ type Customer = {
   recentSales?: any[]
 }
 
-export function CustomerList({ initialCustomers, initialFilter }: { initialCustomers: Customer[], initialFilter?: string }) {
+export function CustomerList({ initialCustomers, initialFilter, initialViewProfileId }: { initialCustomers: Customer[], initialFilter?: string, initialViewProfileId?: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState(initialFilter || 'all')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
-  const [viewProfileCustomer, setViewProfileCustomer] = useState<Customer | null>(null)
+  
+  const initialProfile = initialViewProfileId ? initialCustomers.find(c => c.id === initialViewProfileId) || null : null
+  const [viewProfileCustomer, setViewProfileCustomer] = useState<Customer | null>(initialProfile)
   const [historySearch, setHistorySearch] = useState('')
   
   const [paymentState, paymentAction, isPaymentPending] = useActionState(recordDebtPayment, null)

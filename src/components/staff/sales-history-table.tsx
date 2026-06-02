@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Hash, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { EditSaleModal } from './edit-sale-modal'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { deleteSale } from '@/app/dashboard/staff/actions'
@@ -60,7 +61,9 @@ export function SalesHistoryTable({ sales }: SalesHistoryTableProps) {
                 <td className="py-6">
                   <div className="flex flex-col">
                      <div className="flex items-center gap-2">
-                       <span className="font-black text-[#3b82f6] text-[14px] lg:text-[15px] uppercase tracking-tight whitespace-nowrap">{(sale.customer as any)?.name}</span>
+                       <Link href={`/dashboard/staff/customers?viewProfile=${sale.customer_id || (sale.customer as any)?.id}`} className="font-black text-[#3b82f6] text-[14px] lg:text-[15px] uppercase tracking-tight whitespace-nowrap hover:text-[#2563eb] hover:underline">
+                         {(sale.customer as any)?.name}
+                       </Link>
                        {sale.discount_amount > 0 && (
                          <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-black tracking-widest uppercase">Discount (-${Number(sale.discount_amount).toFixed(2)})</span>
                        )}
