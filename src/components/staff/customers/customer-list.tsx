@@ -31,6 +31,7 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
   const [statusFilter, setStatusFilter] = useState(initialFilter || 'all')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [viewProfileCustomer, setViewProfileCustomer] = useState<Customer | null>(null)
+  const [historySearch, setHistorySearch] = useState('')
   
   const [paymentState, paymentAction, isPaymentPending] = useActionState(recordDebtPayment, null)
 
@@ -277,7 +278,7 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
                 </h3>
               </div>
               <button 
-                onClick={() => setViewProfileCustomer(null)}
+                onClick={() => { setViewProfileCustomer(null); setHistorySearch(''); }}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f1f5f9] text-[#94a3b8] transition-colors"
               >
                 <X size={18} strokeWidth={2.5} />
@@ -336,15 +337,27 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
               {/* Sales History */}
               {viewProfileCustomer.recentSales && viewProfileCustomer.recentSales.length > 0 && (
                 <div className="bg-white border border-[#e2e8f0] rounded-[16px] overflow-hidden flex flex-col">
-                  <div className="px-4 py-3 border-b border-[#f1f5f9] bg-[#f8fafc]">
-                    <h4 className="text-[12px] font-black text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+                  <div className="px-4 py-3 border-b border-[#f1f5f9] bg-[#f8fafc] flex justify-between items-center">
+                    <h4 className="text-[12px] font-black text-[#64748b] uppercase tracking-widest flex items-center gap-2 shrink-0">
                       <Tag size={14} className="text-[#3b82f6]" /> Sales History
                     </h4>
+                    <div className="flex items-center gap-2 bg-white border border-[#e2e8f0] px-2.5 py-1.5 rounded-[8px] max-w-[160px]">
+                      <Search size={12} className="text-[#94a3b8]" />
+                      <input 
+                        type="text" 
+                        placeholder="Search Date..." 
+                        value={historySearch}
+                        onChange={(e) => setHistorySearch(e.target.value)}
+                        className="bg-transparent border-none outline-none text-[11px] w-full text-[#0f172a] placeholder-[#94a3b8] font-bold"
+                      />
+                    </div>
                   </div>
                   <div className="max-h-[160px] overflow-y-auto p-0">
                     <table className="w-full text-left">
                       <tbody className="divide-y divide-[#f1f5f9]">
-                        {viewProfileCustomer.recentSales.map((sale: any) => (
+                        {viewProfileCustomer.recentSales
+                          .filter((s: any) => new Date(s.created_at).toLocaleDateString().includes(historySearch))
+                          .map((sale: any) => (
                           <tr key={sale.id} className="hover:bg-[#f8fafc]/50">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2 text-[12px] font-bold text-[#475569] mb-0.5">
@@ -361,7 +374,7 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
                                 </span>
                                 {Number(sale.discount_amount) > 0 && (
                                   <span className="px-2 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-widest bg-[#fef2f2] text-[#ef4444]">
-                                    Discounted
+                                    Discounted ${Number(sale.discount_amount).toFixed(2)}
                                   </span>
                                 )}
                               </div>
@@ -376,6 +389,13 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
                             </td>
                           </tr>
                         ))}
+                        {viewProfileCustomer.recentSales.filter((s: any) => new Date(s.created_at).toLocaleDateString().includes(historySearch)).length === 0 && (
+                          <tr>
+                            <td colSpan={2} className="px-4 py-6 text-center text-[#94a3b8] text-[12px] font-bold">
+                              No sales found for this date.
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -386,7 +406,7 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
             
             <div className="px-6 py-4 bg-[#f8fafc] border-t border-[#f1f5f9] flex justify-end">
               <button 
-                onClick={() => setViewProfileCustomer(null)}
+                onClick={() => { setViewProfileCustomer(null); setHistorySearch(''); }}
                 className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#0f172a] font-bold text-[14px] rounded-[12px] hover:bg-[#f1f5f9] transition-colors shadow-sm"
               >
                 Close Profile
