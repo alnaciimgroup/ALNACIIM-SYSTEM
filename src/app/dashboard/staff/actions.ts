@@ -465,6 +465,30 @@ export async function deleteSale(id: string) {
     throw new Error('Transaction is locked and cannot be deleted after submission.')
   }
 
+  // 1. Fetch the sale details to handle financial rollbacks BEFORE deleting
+  const { data: saleToDelete } = await supabase
+    .from('sales')
+    .select('total_amount, sale_type, customer_id')
+    .eq('id', id)
+    .single()
+
+  if (!saleToDelete) throw new Error('Sale not found')
+
+  // 2. If it was a credit sale, we must refund the customer's debt
+  if (saleToDelete.sale_type === 'credit') {
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('debt')
+      .eq('id', saleToDelete.customer_id)
+      .single()
+      
+    if (customer) {
+      const newDebt = Math.max(0, Number(customer.debt || 0) - Number(saleToDelete.total_amount))
+      await supabase.from('customers').update({ debt: newDebt }).eq('id', saleToDelete.customer_id)
+    }
+  }
+
+  // 3. Delete the sale (this will cascade delete sale_items and payments)
   const { error } = await supabase
     .from('sales')
     .delete()
