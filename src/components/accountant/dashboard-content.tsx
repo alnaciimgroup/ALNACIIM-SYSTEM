@@ -121,9 +121,12 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
         </div>
 
         {/* 5. Credit (Debt) Today */}
-        <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
+        <Link 
+          href="/dashboard/accountant/debtors"
+          className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300 group cursor-pointer"
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-[16px] bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-[16px] bg-[#fff7ed] text-[#ea580c] flex items-center justify-center group-hover:bg-[#ea580c] group-hover:text-white transition-colors">
               <ShoppingCart size={24} strokeWidth={2.5} />
             </div>
             <div className="flex flex-col items-end gap-1">
@@ -132,14 +135,17 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
                ) : (
                  <div className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-orange-100 italic">Pending Review</div>
                )}
-               <div className="text-[10px] font-bold text-[#ea580c] uppercase tracking-tighter">{periodLabel}</div>
+               <div className="text-[10px] font-bold text-[#ea580c] uppercase tracking-tighter flex items-center gap-1">
+                 {periodLabel}
+                 <ArrowUpRight size={14} className="text-[#ea580c] opacity-0 group-hover:opacity-100 transition-opacity" />
+               </div>
             </div>
           </div>
           <div className="mt-auto">
-            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block">Credit (Debt) Issued</span>
+            <span className="text-[11px] font-black text-[#64748b] uppercase tracking-widest leading-none mb-1.5 block group-hover:text-[#0f172a] transition-colors">Credit (Debt) Issued</span>
             <div className="text-[32px] font-black text-[#0f172a] leading-none tracking-tighter">${todayStats?.creditToday?.toLocaleString() ?? 0}</div>
           </div>
-        </div>
+        </Link>
 
         {/* 6. Discounts Given */}
         <div className="bg-white rounded-[24px] p-6 border border-[#e2e8f0] shadow-sm flex flex-col hover:shadow-md transition-all duration-300">
