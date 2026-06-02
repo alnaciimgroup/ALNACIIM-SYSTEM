@@ -19,6 +19,8 @@ type Customer = {
   isInactiveWarning?: boolean
   daysInactive?: number
   lastRefillDate?: string
+  lifetimeLiters?: number
+  guarantor_phone?: string | null
 }
 
 export function CustomerList({ initialCustomers, initialFilter }: { initialCustomers: Customer[], initialFilter?: string }) {
@@ -27,6 +29,7 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState(initialFilter || 'all')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [viewProfileCustomer, setViewProfileCustomer] = useState<Customer | null>(null)
   
   const [paymentState, paymentAction, isPaymentPending] = useActionState(recordDebtPayment, null)
 
@@ -117,7 +120,12 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
             {filteredCustomers.map(customer => (
               <tr key={customer.id} className="hover:bg-[#f8fafc]/50 transition-colors group">
                 <td className="py-4">
-                  <span className="font-bold text-[#0f172a] text-[15px] block">{customer.name}</span>
+                  <button 
+                    onClick={() => setViewProfileCustomer(customer)}
+                    className="font-bold text-[#3b82f6] hover:text-[#2563eb] hover:underline text-[15px] block text-left"
+                  >
+                    {customer.name}
+                  </button>
                   <span suppressHydrationWarning className="text-[11px] font-medium text-[#94a3b8]">Created {new Date(customer.created_at).toLocaleDateString()}</span>
                 </td>
                 <td className="py-4 text-[14px] text-[#0f172a] font-medium">{customer.phone}</td>
@@ -253,6 +261,86 @@ export function CustomerList({ initialCustomers, initialFilter }: { initialCusto
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detailed Customer Profile Modal */}
+      {viewProfileCustomer && (
+        <div className="fixed inset-0 bg-[#0f172a]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-[#f1f5f9] flex items-center justify-between">
+              <div>
+                <h3 className="text-[18px] font-black text-[#0f172a] uppercase tracking-tight flex items-center gap-2">
+                  <User size={20} className="text-[#3b82f6]" /> Customer Profile
+                </h3>
+              </div>
+              <button 
+                onClick={() => setViewProfileCustomer(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f1f5f9] text-[#94a3b8] transition-colors"
+              >
+                <X size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Header Info */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-[24px] font-black text-[#0f172a] leading-none mb-2">{viewProfileCustomer.name}</h2>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[14px] font-bold text-[#64748b] bg-[#f8fafc] px-3 py-1 rounded-[8px]">{viewProfileCustomer.phone}</span>
+                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider border ${
+                      viewProfileCustomer.status === 'active' ? 'bg-[#ecfdf5] text-[#10b981] border-[#10b981]/20' : 'bg-[#f1f5f9] text-[#94a3b8] border-[#94a3b8]/20'
+                    }`}>
+                      {viewProfileCustomer.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid Data */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#fef2f2] p-4 rounded-[16px] border border-[#fecaca]">
+                  <span className="text-[11px] font-black text-[#ef4444] uppercase tracking-widest block mb-1">Unpaid Debt</span>
+                  <span className="text-[24px] font-black text-[#ef4444] leading-none">${viewProfileCustomer.debt.toFixed(2)}</span>
+                </div>
+                
+                <div className="bg-[#eff6ff] p-4 rounded-[16px] border border-[#bfdbfe]">
+                  <span className="text-[11px] font-black text-[#3b82f6] uppercase tracking-widest block mb-1">Lifetime Liters</span>
+                  <span className="text-[24px] font-black text-[#3b82f6] leading-none">{viewProfileCustomer.lifetimeLiters || 0} L</span>
+                </div>
+              </div>
+
+              {/* Historical & Guarantor Data */}
+              <div className="bg-[#f8fafc] rounded-[16px] border border-[#e2e8f0] p-4 space-y-4">
+                <div className="flex justify-between items-center border-b border-[#e2e8f0] pb-4">
+                  <span className="text-[13px] font-bold text-[#64748b]">Last Sale Date</span>
+                  <span className="text-[14px] font-black text-[#0f172a]">
+                    {viewProfileCustomer.lastRefillDate ? new Date(viewProfileCustomer.lastRefillDate).toLocaleDateString() : 'Never'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center border-b border-[#e2e8f0] pb-4">
+                  <span className="text-[13px] font-bold text-[#64748b]">Guarantor Name</span>
+                  <span className="text-[14px] font-black text-[#0f172a]">{viewProfileCustomer.guarantor || 'None'}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] font-bold text-[#64748b]">Guarantor Phone</span>
+                  <span className="text-[14px] font-black text-[#0f172a]">{viewProfileCustomer.guarantor_phone || 'None'}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-[#f8fafc] border-t border-[#f1f5f9] flex justify-end">
+              <button 
+                onClick={() => setViewProfileCustomer(null)}
+                className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#0f172a] font-bold text-[14px] rounded-[12px] hover:bg-[#f1f5f9] transition-colors shadow-sm"
+              >
+                Close Profile
+              </button>
+            </div>
           </div>
         </div>
       )}

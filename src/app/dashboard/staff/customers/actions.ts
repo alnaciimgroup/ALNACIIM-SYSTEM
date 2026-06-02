@@ -14,7 +14,7 @@ export async function getCustomers(search?: string, statusFilter?: string) {
 
   let query = supabase
     .from('customers')
-    .select('*, sales(created_at)')
+    .select('*, sales(created_at, sale_items(quantity))')
     .eq('staff_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -46,10 +46,16 @@ export async function getCustomers(search?: string, statusFilter?: string) {
       daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     }
 
+    const lifetimeLiters = c.sales?.reduce((acc: number, sale: any) => {
+      const qty = sale.sale_items?.reduce((qAcc: number, item: any) => qAcc + Number(item.quantity), 0) || 0
+      return acc + qty
+    }, 0) || 0
+
     return {
       ...c,
       lastRefillDate,
       daysInactive,
+      lifetimeLiters,
       isInactiveWarning: c.customer_type === 'irregular' ? daysInactive >= 90 : daysInactive > 10
     }
   })
