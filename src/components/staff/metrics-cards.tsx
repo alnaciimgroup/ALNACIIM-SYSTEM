@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { ArrowDownToLine, ShoppingBag, ClipboardList, Banknote, CreditCard, Users, DollarSign, Wallet, ArrowDownCircle, Gift, X } from 'lucide-react'
 
 interface StaffMetricsProps {
@@ -25,26 +26,38 @@ export function StaffMetricsCards({ metrics }: { metrics: StaffMetricsProps }) {
     { title: 'Liters Sold', value: metrics.tanksSold, icon: ShoppingBag, color: 'text-emerald-500', bg: 'bg-emerald-50' },
     { title: 'Available Liters', value: metrics.remainingTanks, icon: ClipboardList, color: 'text-amber-500', bg: 'bg-amber-50' },
     { title: 'Cash Collected', value: `$${metrics.moneyCollectedToday}`, icon: Banknote, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { title: 'Credit (Debt)', value: `$${metrics.creditSalesToday}`, icon: CreditCard, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { title: 'Credit (Debt)', value: `$${metrics.creditSalesToday}`, icon: CreditCard, color: 'text-orange-500', bg: 'bg-orange-50', href: '/dashboard/staff/customers?filter=debt', cursor: 'cursor-pointer hover:border-orange-300' },
     { title: 'Debt Payments', value: `$${metrics.debtPaymentsToday}`, icon: ArrowDownCircle, color: 'text-teal-500', bg: 'bg-teal-50' },
-    { title: 'Total Money in Debt', value: `$${metrics.outstandingDebt}`, icon: Wallet, color: 'text-red-500', bg: 'bg-red-50' },
+    { title: 'Total Money in Debt', value: `$${metrics.outstandingDebt}`, icon: Wallet, color: 'text-red-500', bg: 'bg-red-50', href: '/dashboard/staff/customers?filter=debt', cursor: 'cursor-pointer hover:border-red-300' },
     { title: 'Free Liters Given', value: metrics.freeTanksToday || 0, icon: Gift, color: 'text-purple-500', bg: 'bg-purple-50', onClick: () => setShowFreeModal(true), cursor: 'cursor-pointer hover:border-purple-300' }
   ]
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {cards.map((card, i) => (
-          <div key={i} onClick={card.onClick} className={`bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm flex items-center gap-5 transition-all hover:shadow-md ${card.cursor || ''}`}>
-            <div className={`w-12 h-12 rounded-full ${card.bg} flex items-center justify-center shrink-0`}>
-              <card.icon className={card.color} size={22} strokeWidth={2.5} />
+        {cards.map((card, i) => {
+          const CardContent = (
+            <div onClick={card.onClick} className={`bg-white p-6 rounded-[24px] border border-[#e5e7eb] shadow-sm flex items-center gap-5 transition-all hover:shadow-md ${card.cursor || ''} ${card.href ? 'w-full h-full' : ''}`}>
+              <div className={`w-12 h-12 rounded-full ${card.bg} flex items-center justify-center shrink-0`}>
+                <card.icon className={card.color} size={22} strokeWidth={2.5} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[13px] font-bold text-[#64748b] leading-none mb-1.5 uppercase tracking-wide opacity-80 group-hover:text-inherit">{card.title}</span>
+                <span className="text-[26px] font-black text-[#0f172a] leading-none tracking-tight">{card.value}</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-[13px] font-bold text-[#64748b] leading-none mb-1.5 uppercase tracking-wide opacity-80">{card.title}</span>
-              <span className="text-[26px] font-black text-[#0f172a] leading-none tracking-tight">{card.value}</span>
-            </div>
-          </div>
-        ))}
+          )
+
+          if (card.href) {
+            return (
+              <Link href={card.href} key={i} className="group outline-none">
+                {CardContent}
+              </Link>
+            )
+          }
+
+          return <div key={i}>{CardContent}</div>
+        })}
       </div>
 
       {showFreeModal && (

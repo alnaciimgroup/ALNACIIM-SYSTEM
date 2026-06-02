@@ -3,7 +3,8 @@ import { CustomerList } from '@/components/staff/customers/customer-list'
 import { getCustomers } from './actions'
 import Link from 'next/link'
 
-export default async function StaffCustomersPage() {
+export default async function StaffCustomersPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+  const { filter } = await searchParams
   const customers = await getCustomers()
 
   return (
@@ -22,7 +23,7 @@ export default async function StaffCustomersPage() {
             </Link>
           </section>
 
-          <CustomerList initialCustomers={customers} />
+          <CustomerList initialCustomers={customers} initialFilter={filter} />
         </div>
       </main>
     </div>

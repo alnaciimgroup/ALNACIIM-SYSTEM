@@ -21,11 +21,11 @@ type Customer = {
   lastRefillDate?: string
 }
 
-export function CustomerList({ initialCustomers }: { initialCustomers: Customer[] }) {
+export function CustomerList({ initialCustomers, initialFilter }: { initialCustomers: Customer[], initialFilter?: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState(initialFilter || 'all')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   
   const [paymentState, paymentAction, isPaymentPending] = useActionState(recordDebtPayment, null)
