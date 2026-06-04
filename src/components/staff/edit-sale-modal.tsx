@@ -28,7 +28,7 @@ export function EditSaleModal({ isOpen, onClose, sale, role = 'staff' }: EditSal
   const handleUpdate = async () => {
     setIsPending(true)
     try {
-      await updateSale(sale.id, quantity, unitPrice, role)
+      await updateSale(sale.id, quantity, unitPrice)
       showToast('Sale updated successfully!', 'success')
       onClose()
     } catch (err: any) {
