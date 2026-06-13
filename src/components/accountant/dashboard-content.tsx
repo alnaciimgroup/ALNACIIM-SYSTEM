@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Truck, Tag, ClipboardList, Banknote, ShoppingCart, Wallet, Clock, Activity, ArrowUpRight, Download, Users, ChevronRight, ShieldAlert, AlertCircle } from 'lucide-react'
 import { CustomerAlerts } from '@/components/staff/customer-alerts'
 import { AccountantFreeSoldCard } from '@/components/accountant/free-liters-card'
+import { RecentActivityList } from '@/components/accountant/recent-activity-list'
 
 export async function AccountantDashboardContent({ dateFilter, customDate }: { dateFilter?: string, customDate?: string }) {
   const { metrics, todayStats, topStaff, recentActivity, latestSubmissions, flaggedDiscrepancies } = await getAccountantOverview(dateFilter, customDate)
@@ -226,47 +227,7 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
             </h3>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <div className="divide-y divide-[#f8fafc]">
-              {recentActivity.map((act, i) => (
-                <div key={i} className="p-5 flex items-center justify-between hover:bg-[#f8fafc] transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      act.type === 'distribution' ? 'bg-[#eff6ff] text-[#3b82f6]' :
-                      act.type === 'sale' ? 'bg-[#ecfdf5] text-[#10b981]' :
-                      'bg-[#fefce8] text-[#ca8a04]'
-                    }`}>
-                      {act.type === 'distribution' ? <Truck size={18} /> : 
-                       act.type === 'sale' ? <Tag size={18} /> : <Banknote size={18} />}
-                    </div>
-                    <div className="flex flex-col items-start gap-1">
-                       <div className="flex items-center gap-2">
-                         <span className="text-[13px] font-black text-[#0f172a] uppercase tracking-tight">{act.label}</span>
-                         {(act as any).discount > 0 && (
-                           <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[9px] font-black tracking-widest uppercase">Discount (-${Number((act as any).discount).toFixed(2)})</span>
-                         )}
-                       </div>
-                       <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-medium text-[#94a3b8]">
-                            {act.date ? new Date(act.date).toLocaleString() : 'Date Unknown'}
-                          </span>
-                          {(act as any).isVerified ? (
-                            <div className="flex items-center gap-1 text-[9px] font-black text-[#10b981] uppercase tracking-widest bg-emerald-50 px-1 rounded">
-                               <ShieldAlert size={8} /> Verified
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-[9px] font-black text-orange-500 uppercase tracking-widest bg-orange-50 px-1 rounded">
-                               <Clock size={8} /> Unaudited
-                            </div>
-                          )}
-                       </div>
-                    </div>
-                  </div>
-                  <div className={`text-[15px] font-black ${ (act as any).isVerified ? 'text-[#0f172a]' : 'text-[#94a3b8]' }`}>
-                    {act.type === 'distribution' ? `${act.amount} Units` : `$${act?.amount?.toLocaleString() ?? 0}`}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <RecentActivityList initialActivity={recentActivity as any} />
           </div>
         </div>
 

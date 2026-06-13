@@ -3,6 +3,31 @@ import { createClient } from '@/utils/supabase/server'
 import { getWorkDate } from '@/utils/date-utils'
 import { ReportsSummary } from '@/types/reports'
 
+async function fetchAllPages<T>(
+  fetchFn: (from: number, to: number) => Promise<{ data: T[] | null; error: any }>
+): Promise<T[]> {
+  let allData: T[] = []
+  let from = 0
+  const pageSize = 1000
+  let hasMore = true
+
+  while (hasMore) {
+    const { data, error } = await fetchFn(from, from + pageSize - 1)
+    if (error) throw error
+    if (!data || data.length === 0) {
+      hasMore = false
+    } else {
+      allData.push(...data)
+      if (data.length < pageSize) {
+        hasMore = false
+      } else {
+        from += pageSize
+      }
+    }
+  }
+  return allData
+}
+
 export async function getReportsSummary(filters: {
   startDate?: string;
   endDate?: string;
@@ -11,60 +36,63 @@ export async function getReportsSummary(filters: {
 }): Promise<ReportsSummary> {
   const supabase = await createClient()
 
-  let salesQuery = supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id')
-  let paymentsQuery: any = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)')
-  let submissionsQuery = supabase.from('cash_submissions').select('amount, submitted_amount, status, submission_date, staff_id')
-  let distQuery = supabase.from('distributions').select('quantity, created_at, staff_id')
-  let saleItemsQuery = supabase.from('sale_items').select('quantity, free_quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
-
-  // Apply Specific Filters
-  if (filters.startDate) {
-    const start = `${filters.startDate}T00:00:00.000Z`
-    salesQuery = salesQuery.gte('created_at', start)
-    paymentsQuery = paymentsQuery.gte('created_at', start)
-    submissionsQuery = submissionsQuery.gte('submission_date', filters.startDate)
-    distQuery = distQuery.gte('created_at', start)
-    saleItemsQuery = saleItemsQuery.gte('sales.created_at', start)
-  }
-  if (filters.endDate) {
-    const end = `${filters.endDate}T23:59:59.999Z`
-    salesQuery = salesQuery.lte('created_at', end)
-    paymentsQuery = paymentsQuery.lte('created_at', end)
-    submissionsQuery = submissionsQuery.lte('submission_date', filters.endDate)
-    distQuery = distQuery.lte('created_at', end)
-    saleItemsQuery = saleItemsQuery.lte('sales.created_at', end)
-  }
-  if (filters.staffId) {
-    salesQuery = salesQuery.eq('staff_id', filters.staffId)
-    submissionsQuery = submissionsQuery.eq('staff_id', filters.staffId)
-    paymentsQuery = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id)').eq('sales.staff_id', filters.staffId)
-    distQuery = distQuery.eq('staff_id', filters.staffId)
-    saleItemsQuery = saleItemsQuery.eq('sales.staff_id', filters.staffId)
-  }
-  if (filters.customerId) {
-    salesQuery = salesQuery.eq('customer_id', filters.customerId)
-    paymentsQuery = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(customer_id)').eq('sales.customer_id', filters.customerId)
-    saleItemsQuery = saleItemsQuery.eq('sales.customer_id', filters.customerId)
-  }
-
   const [
-    { data: sales },
-    { data: payments },
-    { data: periodSubmissions },
-    { data: distributions },
-    { data: saleItems },
-    { data: globalSales },
-    { data: globalPayments },
-    { data: allSubmissions }
+    sales,
+    payments,
+    periodSubmissions,
+    distributions,
+    saleItems,
+    globalSales,
+    globalPayments,
+    allSubmissions
   ] = await Promise.all([
-    salesQuery,
-    paymentsQuery,
-    submissionsQuery,
-    distQuery.select('quantity, liters, created_at, staff_id'),
-    saleItemsQuery.select('quantity, free_quantity, sales!inner(created_at, staff_id, customer_id, sale_type)'),
-    supabase.from('sales').select('total_amount').eq('sale_type', 'credit'),
-    supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment'),
-    supabase.from('cash_submissions').select('staff_id, submission_date, status')
+    fetchAllPages(async (from, to) => {
+      let q = supabase.from('sales').select('id, total_amount, sale_type, created_at, staff_id')
+      if (filters.startDate) q = q.gte('created_at', `${filters.startDate}T00:00:00.000Z`)
+      if (filters.endDate) q = q.lte('created_at', `${filters.endDate}T23:59:59.999Z`)
+      if (filters.staffId) q = q.eq('staff_id', filters.staffId)
+      if (filters.customerId) q = q.eq('customer_id', filters.customerId)
+      return q.range(from, to)
+    }),
+    fetchAllPages(async (from, to) => {
+      let q = supabase.from('payments').select('amount, payment_method, created_at, sales!inner(staff_id, customer_id)')
+      if (filters.startDate) q = q.gte('created_at', `${filters.startDate}T00:00:00.000Z`)
+      if (filters.endDate) q = q.lte('created_at', `${filters.endDate}T23:59:59.999Z`)
+      if (filters.staffId) q = q.eq('sales.staff_id', filters.staffId)
+      if (filters.customerId) q = q.eq('sales.customer_id', filters.customerId)
+      return q.range(from, to)
+    }),
+    fetchAllPages(async (from, to) => {
+      let q = supabase.from('cash_submissions').select('amount, submitted_amount, status, submission_date, staff_id')
+      if (filters.startDate) q = q.gte('submission_date', filters.startDate)
+      if (filters.endDate) q = q.lte('submission_date', filters.endDate)
+      if (filters.staffId) q = q.eq('staff_id', filters.staffId)
+      return q.range(from, to)
+    }),
+    fetchAllPages(async (from, to) => {
+      let q = supabase.from('distributions').select('quantity, liters, created_at, staff_id')
+      if (filters.startDate) q = q.gte('created_at', `${filters.startDate}T00:00:00.000Z`)
+      if (filters.endDate) q = q.lte('created_at', `${filters.endDate}T23:59:59.999Z`)
+      if (filters.staffId) q = q.eq('staff_id', filters.staffId)
+      return q.range(from, to)
+    }),
+    fetchAllPages(async (from, to) => {
+      let q = supabase.from('sale_items').select('quantity, free_quantity, sales!inner(created_at, staff_id, customer_id, sale_type)')
+      if (filters.startDate) q = q.gte('sales.created_at', `${filters.startDate}T00:00:00.000Z`)
+      if (filters.endDate) q = q.lte('sales.created_at', `${filters.endDate}T23:59:59.999Z`)
+      if (filters.staffId) q = q.eq('sales.staff_id', filters.staffId)
+      if (filters.customerId) q = q.eq('sales.customer_id', filters.customerId)
+      return q.range(from, to)
+    }),
+    fetchAllPages(async (from, to) => 
+      supabase.from('sales').select('total_amount').eq('sale_type', 'credit').range(from, to)
+    ),
+    fetchAllPages(async (from, to) => 
+      supabase.from('payments').select('amount').eq('payment_method', 'debt_repayment').range(from, to)
+    ),
+    fetchAllPages(async (from, to) => 
+      supabase.from('cash_submissions').select('staff_id, submission_date, status').range(from, to)
+    )
   ])
 
   // GATING LOGIC: A staff member's work for a day is only "Audited" if they has a verified submission

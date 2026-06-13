@@ -20,6 +20,31 @@ export type ExportResult = {
   }
 }
 
+async function fetchAllPages<T>(
+  fetchFn: (from: number, to: number) => Promise<{ data: T[] | null; error: any }>
+): Promise<T[]> {
+  let allData: T[] = []
+  let from = 0
+  const pageSize = 1000
+  let hasMore = true
+
+  while (hasMore) {
+    const { data, error } = await fetchFn(from, from + pageSize - 1)
+    if (error) throw error
+    if (!data || data.length === 0) {
+      hasMore = false
+    } else {
+      allData.push(...data)
+      if (data.length < pageSize) {
+        hasMore = false
+      } else {
+        from += pageSize
+      }
+    }
+  }
+  return allData
+}
+
 export async function generateUniversalExport(range: string, custom?: { start: string, end: string }): Promise<ExportResult> {
   await verifySession(['accountant'])
   const supabase = await createClient()
@@ -27,33 +52,53 @@ export async function generateUniversalExport(range: string, custom?: { start: s
   let startDate: string | null = null
   let endDate: string | null = null
 
-  const now = new Date()
+  // Get current time in Somalia timezone (UTC+3)
+  const nowSomalia = new Date(new Date().getTime() + 3 * 60 * 60 * 1000)
+
+  const fmtYMD = (d: Date) => {
+    const Y = d.getUTCFullYear()
+    const M = String(d.getUTCMonth() + 1).padStart(2, '0')
+    const D = String(d.getUTCDate()).padStart(2, '0')
+    return `${Y}-${M}-${D}`
+  }
+
   if (range === 'today') {
-    startDate = now.toISOString().split('T')[0]
+    startDate = fmtYMD(nowSomalia)
     endDate = startDate
   } else if (range === 'this_week') {
-    const sunday = new Date(now)
-    sunday.setDate(now.getDate() - now.getDay())
-    startDate = sunday.toISOString().split('T')[0]
-    endDate = now.toISOString().split('T')[0]
+    const sunday = new Date(nowSomalia)
+    sunday.setUTCDate(nowSomalia.getUTCDate() - nowSomalia.getUTCDay())
+    startDate = fmtYMD(sunday)
+    endDate = fmtYMD(nowSomalia)
+  } else if (range === 'last_week') {
+    const sundayThisWeek = new Date(nowSomalia)
+    sundayThisWeek.setUTCDate(nowSomalia.getUTCDate() - nowSomalia.getUTCDay())
+    const sundayLastWeek = new Date(sundayThisWeek)
+    sundayLastWeek.setUTCDate(sundayThisWeek.getUTCDate() - 7)
+    const saturdayLastWeek = new Date(sundayThisWeek)
+    saturdayLastWeek.setUTCDate(sundayThisWeek.getUTCDate() - 1)
+    startDate = fmtYMD(sundayLastWeek)
+    endDate = fmtYMD(saturdayLastWeek)
   } else if (range === '7days') {
-    const weekAgo = new Date(now)
-    weekAgo.setDate(now.getDate() - 7)
-    startDate = weekAgo.toISOString().split('T')[0]
-    endDate = now.toISOString().split('T')[0]
+    const weekAgo = new Date(nowSomalia)
+    weekAgo.setUTCDate(nowSomalia.getUTCDate() - 7)
+    startDate = fmtYMD(weekAgo)
+    endDate = fmtYMD(nowSomalia)
   } else if (range === 'this_month') {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-    endDate = now.toISOString().split('T')[0]
+    const firstDay = new Date(Date.UTC(nowSomalia.getUTCFullYear(), nowSomalia.getUTCMonth(), 1))
+    startDate = fmtYMD(firstDay)
+    endDate = fmtYMD(nowSomalia)
   } else if (range === 'last_month') {
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    startDate = lastMonth.toISOString().split('T')[0]
-    endDate = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]
+    const firstOfLastMonth = new Date(Date.UTC(nowSomalia.getUTCFullYear(), nowSomalia.getUTCMonth() - 1, 1))
+    const lastOfLastMonth = new Date(Date.UTC(nowSomalia.getUTCFullYear(), nowSomalia.getUTCMonth(), 0))
+    startDate = fmtYMD(firstOfLastMonth)
+    endDate = fmtYMD(lastOfLastMonth)
   } else if (range === 'custom' && custom) {
     startDate = custom.start
     endDate = custom.end
   } else if (range === 'all') {
     startDate = '2024-01-01'
-    endDate = now.toISOString().split('T')[0]
+    endDate = fmtYMD(nowSomalia)
   }
 
   // Somalia Work-Day Window Logic (4 AM Rollover)
@@ -61,34 +106,69 @@ export async function generateUniversalExport(range: string, custom?: { start: s
   
   let endUTC = '2099-12-31T23:59:59.999Z'
   if (endDate) {
-    const nextDay = new Date(endDate)
-    nextDay.setDate(nextDay.getDate() + 1)
-    endUTC = `${nextDay.toISOString().split('T')[0]}T00:59:59.999Z`
+    const parts = endDate.split('-').map(Number)
+    const endOffset = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
+    endOffset.setUTCDate(endOffset.getUTCDate() + 1)
+    endUTC = `${fmtYMD(endOffset)}T00:59:59.999Z`
   }
 
   try {
     const [
-      { data: rawSales },
-      { data: rawPayments },
-      { data: rawSubmissions },
-      { data: rawDistributions },
-      { data: rawSaleItems }
+      rawSales,
+      rawPayments,
+      rawSubmissions,
+      rawDistributions
     ] = await Promise.all([
-      supabase.from('sales').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
-      supabase.from('payments').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
-      supabase.from('cash_submissions').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
-      supabase.from('distributions').select('*').gte('created_at', startUTC).lte('created_at', endUTC),
-      supabase.from('sale_items').select('*')
+      fetchAllPages(async (from, to) => 
+        supabase.from('sales').select('*').gte('created_at', startUTC).lte('created_at', endUTC).range(from, to)
+      ),
+      fetchAllPages(async (from, to) => 
+        supabase.from('payments').select('*').gte('created_at', startUTC).lte('created_at', endUTC).range(from, to)
+      ),
+      fetchAllPages(async (from, to) => 
+        supabase.from('cash_submissions').select('*').gte('created_at', startUTC).lte('created_at', endUTC).range(from, to)
+      ),
+      fetchAllPages(async (from, to) => 
+        supabase.from('distributions').select('*').gte('created_at', startUTC).lte('created_at', endUTC).range(from, to)
+      )
     ])
 
+    // Parallel chunked fetch of sale_items matching only the loaded sales
+    const saleIds = rawSales.map(s => s.id)
+    const rawSaleItems: any[] = []
+    const batchSize = 500
+
+    if (saleIds.length > 0) {
+      const promises: Promise<any[]>[] = []
+      for (let i = 0; i < saleIds.length; i += batchSize) {
+        const batchIds = saleIds.slice(i, i + batchSize)
+        promises.push(
+          fetchAllPages(async (from, to) => 
+            supabase.from('sale_items')
+              .select('*')
+              .in('sale_id', batchIds)
+              .range(from, to)
+          )
+        )
+      }
+      const batchResults = await Promise.all(promises)
+      rawSaleItems.push(...batchResults.flat())
+    }
+
     const [
-      { data: users },
-      { data: customers },
-      { data: items }
+      users,
+      customers,
+      items
     ] = await Promise.all([
-      supabase.from('users').select('*'),
-      supabase.from('customers').select('*'),
-      supabase.from('items').select('*')
+      fetchAllPages(async (from, to) => 
+        supabase.from('users').select('*').range(from, to)
+      ),
+      fetchAllPages(async (from, to) => 
+        supabase.from('customers').select('*').range(from, to)
+      ),
+      fetchAllPages(async (from, to) => 
+        supabase.from('items').select('*').range(from, to)
+      )
     ])
 
     const userMap = new Map(users?.map(u => [u.id, u.full_name]))

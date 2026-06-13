@@ -15,7 +15,7 @@ type ModalView = 'selector' | 'results'
 
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const [view, setView] = useState<ModalView>('selector')
-  const [range, setRange] = useState('7days')
+  const [range, setRange] = useState('this_month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [isPending, setIsPending] = useState(false)
@@ -108,13 +108,12 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   }
 
   const presets = [
-    { id: 'today', label: 'Today', icon: <Clock size={16} /> },
-    { id: 'this_week', label: 'This Week', icon: <Calendar size={16} /> },
-    { id: '7days', label: 'Last 7 Days', icon: <Filter size={16} /> },
     { id: 'this_month', label: 'This Month', icon: <Calendar size={16} /> },
     { id: 'last_month', label: 'Last Month', icon: <Clock size={16} /> },
-    { id: 'all', label: 'All Time', icon: <Database size={16} /> },
-    { id: 'custom', label: 'Custom Range', icon: <Calendar size={16} /> },
+    { id: 'this_week', label: 'This Week', icon: <Calendar size={16} /> },
+    { id: 'last_week', label: 'Last Week', icon: <Clock size={16} /> },
+    { id: 'today', label: 'Today', icon: <Clock size={16} /> },
+    { id: 'custom', label: 'Custom Date', icon: <Calendar size={16} /> },
   ]
 
   return (

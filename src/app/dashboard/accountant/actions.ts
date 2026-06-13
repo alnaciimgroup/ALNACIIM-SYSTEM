@@ -53,10 +53,10 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
     supabase.from('distributions').select('quantity, liters, staff_id, created_at').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('sales').select('id, total_amount, discount_amount, sale_type, staff_id, created_at, sale_items(quantity, free_quantity), customer:customers(name, phone)').gte('created_at', periodStart).lte('created_at', periodEnd),
     supabase.from('payments').select('amount, created_at, sales!inner(staff_id)').gte('created_at', periodStart).lte('created_at', periodEnd),
-    supabase.from('cash_submissions').select('id, amount, status, created_at').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(20),
-    supabase.from('distributions').select('id, quantity, liters, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
-    supabase.from('sales').select('id, total_amount, discount_amount, sale_type, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
-    supabase.from('users').select('id, full_name, sales:sales(total_amount, created_at)').eq('role', 'staff'),
+    supabase.from('cash_submissions').select('id, amount, status, created_at, staff_id').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(20),
+    supabase.from('distributions').select('id, quantity, liters, created_at, staff_id, agent_id, status').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
+    supabase.from('sales').select('id, total_amount, discount_amount, sale_type, created_at, staff_id, customer:customers(name), sale_items(quantity, free_quantity, unit_price, items(name))').gte('created_at', periodStart).lte('created_at', periodEnd).order('created_at', { ascending: false }).limit(5),
+    supabase.from('users').select('id, full_name, role, sales:sales(total_amount, created_at)'),
     supabase.from('cash_submissions').select('staff_id, submission_date, status')
   ])
 
@@ -126,48 +126,73 @@ export async function getAccountantOverview(dateFilter?: string, customDate?: st
   const pendingCount = submissionsData?.filter(s => s.status === 'pending').length || 0
   const flaggedDiscrepancies = submissionsData?.filter(s => s.status === 'disputed') || []
 
+  const staffMap = new Map((staffPerformance || []).map(u => [u.id, u.full_name]))
+
   // Activity log should show verification status
   const recentActivity = [
     ...(recentDist?.map(d => ({ 
+      id: d.id,
       type: 'distribution', 
       amount: d.liters || d.quantity, 
       date: d.created_at, 
       label: 'Liters Distributed',
-      isVerified: isVerified(d.staff_id, d.created_at)
+      isVerified: isVerified(d.staff_id, d.created_at),
+      staffName: staffMap.get(d.staff_id) || 'Unknown Staff',
+      agentName: staffMap.get(d.agent_id) || 'System / Agent',
+      status: d.status
     })) || []),
-    ...(recentSales?.map(s => ({ 
-      type: 'sale', 
-      amount: Number(s.total_amount), 
-      discount: Number(s.discount_amount || 0),
-      date: s.created_at, 
-      label: `Sale (${s.sale_type})`,
-      isVerified: isVerified(s.staff_id, s.created_at)
-    })) || []),
+    ...(recentSales?.map(s => {
+      const itemsList = s.sale_items?.map((item: any) => ({
+        name: item.items?.name || 'Water',
+        quantity: item.quantity,
+        freeQuantity: item.free_quantity || 0,
+        unitPrice: item.unit_price || 0
+      })) || [];
+
+      return { 
+        id: s.id,
+        type: 'sale', 
+        amount: Number(s.total_amount), 
+        discount: Number(s.discount_amount || 0),
+        date: s.created_at, 
+        label: `Sale (${s.sale_type})`,
+        isVerified: isVerified(s.staff_id, s.created_at),
+        customerName: s.customer ? (Array.isArray(s.customer) ? (s.customer[0] as any)?.name : (s.customer as any).name) : 'N/A',
+        staffName: staffMap.get(s.staff_id) || 'Unknown Staff',
+        saleType: s.sale_type,
+        items: itemsList
+      };
+    }) || []),
     ...(submissionsData?.slice(0, 5).map(s => ({ 
+      id: s.id,
       type: 'submission', 
       amount: Number(s.amount), 
       date: s.created_at, 
       label: 'Cash Submission',
-      isVerified: s.status === 'verified'
+      isVerified: s.status === 'verified',
+      staffName: staffMap.get(s.staff_id) || 'Unknown Staff',
+      status: s.status
     })) || [])
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
 
-  // Top Staff based on AUDITED Revenue
-  const topStaff = (staffPerformance || []).map(staff => {
-    const verifiedSales = (staff.sales as any[])?.filter(s => isVerified(staff.id, s.created_at)) || []
-    
-    const periodVerifiedSales = startDate ? verifiedSales.filter(s => {
-      const d = s.created_at.split('T')[0]
-      return d >= startDate! && d <= endDate!
-    }) : verifiedSales
+  // Top Staff based on AUDITED Revenue (filter users who are staff)
+  const topStaff = (staffPerformance || [])
+    .filter(u => u.role === 'staff')
+    .map(staff => {
+      const verifiedSales = (staff.sales as any[])?.filter(s => isVerified(staff.id, s.created_at)) || []
+      
+      const periodVerifiedSales = startDate ? verifiedSales.filter(s => {
+        const d = s.created_at.split('T')[0]
+        return d >= startDate! && d <= endDate!
+      }) : verifiedSales
 
-    const revenue = periodVerifiedSales.reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0
-    return {
-      id: staff.id,
-      name: staff.full_name,
-      revenue
-    }
-  }).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
+      const revenue = periodVerifiedSales.reduce((acc: number, s) => acc + Number(s.total_amount), 0) || 0
+      return {
+        id: staff.id,
+        name: staff.full_name,
+        revenue
+      }
+    }).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
 
   return {
     metrics: {
