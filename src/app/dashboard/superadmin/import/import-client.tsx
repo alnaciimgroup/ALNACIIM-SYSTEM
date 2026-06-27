@@ -50,6 +50,8 @@ export function ImportClient({ staffList }: ImportClientProps) {
     skipped: number
     message?: string
   } | null>(null)
+  
+  const [skippedCustomersList, setSkippedCustomersList] = useState<any[]>([])
 
   const { showToast } = useToast()
 
@@ -194,6 +196,7 @@ export function ImportClient({ staffList }: ImportClientProps) {
     setHeaders([])
     setExcelData([])
     setImportResult(null)
+    setSkippedCustomersList([])
   }
 
   // Trigger Bulk Save
@@ -237,6 +240,31 @@ export function ImportClient({ staffList }: ImportClientProps) {
       }
     })
 
+    // Filter and collect skipped rows to allow downloading them as a CSV afterwards
+    const skippedList = excelData.filter(row => {
+      const name = mappings.nameCol ? String(row[mappings.nameCol] || '').trim() : ''
+      const tank_number = mappings.tankCol ? String(row[mappings.tankCol] || '').trim() : ''
+      return !name || !tank_number
+    }).map(row => {
+      const name = mappings.nameCol ? String(row[mappings.nameCol] || '').trim() : ''
+      const tank_number = mappings.tankCol ? String(row[mappings.tankCol] || '').trim() : ''
+      const phone = mappings.phoneCol ? String(row[mappings.phoneCol] || '').trim() : ''
+      const guarantor = mappings.guarantorCol ? String(row[mappings.guarantorCol] || '').trim() : ''
+      const guarantor_phone = mappings.guarantorPhoneCol ? String(row[mappings.guarantorPhoneCol] || '').trim() : ''
+      const debt = mappings.debtCol ? String(row[mappings.debtCol] || '').trim() : '0'
+      const address = mappings.addressCol ? String(row[mappings.addressCol] || '').trim() : ''
+      return {
+        name: name || '(Empty Name)',
+        tank_number: tank_number || '(Empty Box ID)',
+        phone,
+        guarantor,
+        guarantor_phone,
+        debt,
+        address
+      }
+    })
+    setSkippedCustomersList(skippedList)
+
     const res = await bulkImportCustomers(customersToImport, selectedStaffId)
 
     setIsProcessing(false)
@@ -256,6 +284,39 @@ export function ImportClient({ staffList }: ImportClientProps) {
       })
       showToast(res.message || 'Import failed.', 'error')
     }
+  }
+
+  const downloadSkippedCustomersCSV = () => {
+    if (skippedCustomersList.length === 0) return
+    
+    // Create CSV header
+    let csvContent = '\uFEFF' // UTF-8 BOM to prevent excel encoding issues
+    csvContent += 'Customer Name,Box ID,Phone,Guarantor,Guarantor Phone,Starting Debt,Address\n'
+    
+    // Add rows
+    skippedCustomersList.forEach(c => {
+      const row = [
+        `"${(c.name || '').replace(/"/g, '""')}"`,
+        `"${(c.tank_number || '').replace(/"/g, '""')}"`,
+        `"${(c.phone || '').replace(/"/g, '""')}"`,
+        `"${(c.guarantor || '').replace(/"/g, '""')}"`,
+        `"${(c.guarantor_phone || '').replace(/"/g, '""')}"`,
+        `"${(c.debt || '0').replace(/"/g, '""')}"`,
+        `"${(c.address || '').replace(/"/g, '""')}"`
+      ].join(',')
+      csvContent += row + '\n'
+    })
+    
+    // Create blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `skipped_customers_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (
@@ -568,10 +629,21 @@ export function ImportClient({ staffList }: ImportClientProps) {
                 </div>
                 
                 {importResult.success ? (
-                  <p className="text-[14px] font-medium pl-9">
-                    Successfully loaded **{importResult.count.toLocaleString()}** customer accounts into your database. 
-                    **{importResult.skipped.toLocaleString()}** rows were skipped due to missing Box IDs or empty fields.
-                  </p>
+                  <div className="flex flex-col gap-3 pl-9">
+                    <p className="text-[14px] font-medium">
+                      Successfully loaded **{importResult.count.toLocaleString()}** customer accounts into your database. 
+                      **{importResult.skipped.toLocaleString()}** rows were skipped due to missing Box IDs or empty fields.
+                    </p>
+                    {skippedCustomersList.length > 0 && (
+                      <button
+                        onClick={downloadSkippedCustomersCSV}
+                        className="self-start mt-1 bg-white hover:bg-emerald-100/50 text-emerald-800 border border-emerald-300 font-bold px-4 py-2 rounded-[10px] text-[12px] flex items-center gap-1.5 transition-all shadow-sm active:scale-95 duration-200"
+                      >
+                        <FileSpreadsheet size={14} />
+                        Download Skipped Rows ({skippedCustomersList.length.toLocaleString()})
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-[14px] font-medium pl-9">
                     {importResult.message || 'An error occurred while inserting data. Please check database logs.'}
