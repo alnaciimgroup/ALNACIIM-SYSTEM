@@ -16,6 +16,8 @@ export async function getAccountantCustomers(search?: string) {
 
     if (search) {
       query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,tank_number.ilike.%${search}%`)
+    } else {
+      query = query.limit(200)
     }
 
     const { data, error } = await query

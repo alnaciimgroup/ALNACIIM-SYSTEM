@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle } from 'lucide-react'
+import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle, Upload } from 'lucide-react'
 
 export function Sidebar({ 
   role, 
@@ -29,6 +29,7 @@ export function Sidebar({
         return [
           { name: 'Dashboard', href: '/dashboard/superadmin', icon: LayoutDashboard },
           { name: 'Manage Users', href: '/dashboard/superadmin/users', icon: Users },
+          { name: 'Import Data', href: '/dashboard/superadmin/import', icon: Upload },
           { name: 'System Logs', href: '/dashboard/superadmin/logs', icon: History },
           { name: 'Settings', href: '/dashboard/superadmin/settings', icon: Settings },
         ]
