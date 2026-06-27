@@ -88,8 +88,14 @@ export function ImportClient({ staffList }: ImportClientProps) {
           return
         }
 
-        // Get headers (first row) and stringify them
-        const rawHeaders = jsonData[0].map((h, index) => h ? String(h).trim() : `Column ${index + 1}`)
+        // Find the maximum columns in any row to avoid missing columns if the first row has empty/merged cells
+        const maxCols = Math.max(...jsonData.map(row => row.length), 0)
+
+        // Get headers (first row) and fill in missing ones as "Column X"
+        const rawHeaders = Array.from({ length: maxCols }, (_, index) => {
+          const h = jsonData[0][index]
+          return h ? String(h).trim() : `Column ${index + 1}`
+        })
         setHeaders(rawHeaders)
         
         // Rows (excluding header)
