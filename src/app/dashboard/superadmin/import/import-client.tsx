@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Upload, FileSpreadsheet, Settings2, HelpCircle, ArrowRight, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react'
-import { bulkImportCustomers } from './actions'
+import { importCustomerBatch } from './actions'
 import { useToast } from '@/components/ui/toast'
 
 interface StaffItem {
@@ -52,6 +52,8 @@ export function ImportClient({ staffList }: ImportClientProps) {
   } | null>(null)
   
   const [skippedCustomersList, setSkippedCustomersList] = useState<any[]>([])
+  const [progress, setProgress] = useState(0)
+  const [progressText, setProgressText] = useState('')
 
   const { showToast } = useToast()
 
@@ -197,6 +199,8 @@ export function ImportClient({ staffList }: ImportClientProps) {
     setExcelData([])
     setImportResult(null)
     setSkippedCustomersList([])
+    setProgress(0)
+    setProgressText('')
   }
 
   // Trigger Bulk Save
@@ -212,13 +216,17 @@ export function ImportClient({ staffList }: ImportClientProps) {
     }
 
     setIsProcessing(true)
+    setProgress(0)
+    setProgressText('Preparing records for batch import...')
 
-    // Build the clean list to send to server action
-    const customersToImport = excelData.map(row => {
+    // 1. Separate skipped and valid rows and clean data
+    const skippedList: any[] = []
+    const validRowsToFormat: any[] = []
+
+    excelData.forEach(row => {
       const name = mappings.nameCol ? String(row[mappings.nameCol] || '').trim() : ''
       const tank_number = mappings.tankCol ? String(row[mappings.tankCol] || '').trim() : ''
       
-      // Clean phone columns (remove words like 'Damiin' or 'dmn')
       let phone = mappings.phoneCol ? String(row[mappings.phoneCol] || '') : ''
       phone = phone.replace(/(damiin|dmn|damiiin)/gi, '').trim()
       
@@ -229,60 +237,92 @@ export function ImportClient({ staffList }: ImportClientProps) {
       const debt = mappings.debtCol ? String(row[mappings.debtCol] || '').trim() : '0'
       const address = mappings.addressCol ? String(row[mappings.addressCol] || '').trim() : ''
 
-      return {
-        name,
-        phone,
-        tank_number,
-        debt,
-        guarantor,
-        guarantor_phone,
-        address
+      if (!name || !tank_number) {
+        skippedList.push({
+          name: name || '(Empty Name)',
+          tank_number: tank_number || '(Empty Box ID)',
+          phone,
+          guarantor,
+          guarantor_phone,
+          debt,
+          address
+        })
+      } else {
+        // Format starting debt
+        let debtAmount = 0
+        const parsedDebt = parseFloat(debt.replace(/[^0-9.-]/g, ''))
+        if (!isNaN(parsedDebt)) {
+          debtAmount = parsedDebt
+        }
+
+        validRowsToFormat.push({
+          staff_id: selectedStaffId,
+          name,
+          phone: phone || 'N/A',
+          address: address || 'N/A',
+          guarantor: guarantor || 'Self',
+          guarantor_phone: guarantor_phone || (phone || 'N/A'),
+          tank_number,
+          customer_type: 'regular',
+          status: 'active',
+          debt: debtAmount,
+          created_at: new Date().toISOString()
+        })
       }
     })
 
-    // Filter and collect skipped rows to allow downloading them as a CSV afterwards
-    const skippedList = excelData.filter(row => {
-      const name = mappings.nameCol ? String(row[mappings.nameCol] || '').trim() : ''
-      const tank_number = mappings.tankCol ? String(row[mappings.tankCol] || '').trim() : ''
-      return !name || !tank_number
-    }).map(row => {
-      const name = mappings.nameCol ? String(row[mappings.nameCol] || '').trim() : ''
-      const tank_number = mappings.tankCol ? String(row[mappings.tankCol] || '').trim() : ''
-      const phone = mappings.phoneCol ? String(row[mappings.phoneCol] || '').trim() : ''
-      const guarantor = mappings.guarantorCol ? String(row[mappings.guarantorCol] || '').trim() : ''
-      const guarantor_phone = mappings.guarantorPhoneCol ? String(row[mappings.guarantorPhoneCol] || '').trim() : ''
-      const debt = mappings.debtCol ? String(row[mappings.debtCol] || '').trim() : '0'
-      const address = mappings.addressCol ? String(row[mappings.addressCol] || '').trim() : ''
-      return {
-        name: name || '(Empty Name)',
-        tank_number: tank_number || '(Empty Box ID)',
-        phone,
-        guarantor,
-        guarantor_phone,
-        debt,
-        address
-      }
-    })
     setSkippedCustomersList(skippedList)
 
-    const res = await bulkImportCustomers(customersToImport, selectedStaffId)
+    // 2. Loop insert in batches of 500 to prevent Vercel server timeouts
+    const BATCH_SIZE = 500
+    let importedCount = 0
+    let hasError = false
+    let errorMessage = ''
 
-    setIsProcessing(false)
-    if (res.success) {
+    try {
+      for (let i = 0; i < validRowsToFormat.length; i += BATCH_SIZE) {
+        const batch = validRowsToFormat.slice(i, i + BATCH_SIZE)
+        
+        const currentBatchNum = Math.floor(i / BATCH_SIZE) + 1
+        const totalBatches = Math.ceil(validRowsToFormat.length / BATCH_SIZE)
+        setProgressText(`Uploading segment ${currentBatchNum} of ${totalBatches}... (${importedCount.toLocaleString()} imported)`)
+        setProgress(Math.round((i / validRowsToFormat.length) * 100))
+
+        const batchRes = await importCustomerBatch(batch, selectedStaffId)
+        
+        if (!batchRes.success) {
+          hasError = true
+          errorMessage = batchRes.message || 'Batch insertion failed.'
+          break
+        }
+
+        importedCount += batch.length
+      }
+
+      if (hasError) {
+        throw new Error(errorMessage)
+      }
+
+      setProgress(100)
+      setProgressText('All records successfully imported!')
       setImportResult({
         success: true,
-        count: res.count,
-        skipped: res.skipped
+        count: importedCount,
+        skipped: skippedList.length
       })
-      showToast(`Import completed! ${res.count} customers added.`, 'success')
-    } else {
+      showToast(`Import completed! ${importedCount} customers added.`, 'success')
+    } catch (err: any) {
+      console.error(err)
+      const errorText = err.message || 'A network error or Vercel gateway timeout occurred.'
       setImportResult({
         success: false,
-        count: 0,
-        skipped: 0,
-        message: res.message
+        count: importedCount,
+        skipped: skippedList.length,
+        message: errorText
       })
-      showToast(res.message || 'Import failed.', 'error')
+      showToast(errorText, 'error')
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -610,6 +650,25 @@ export function ImportClient({ staffList }: ImportClientProps) {
 
           {/* 4. Import Trigger & Results Summary */}
           <div className="flex flex-col gap-4">
+
+            {isProcessing && (
+              <div className="bg-white border border-blue-200 rounded-[24px] p-6 shadow-sm flex flex-col gap-3">
+                <div className="flex justify-between items-center text-[14px] font-extrabold text-[#0f172a]">
+                  <span className="flex items-center gap-2">
+                    <Loader2 size={16} className="animate-spin text-blue-600" />
+                    Importing Records in Batches...
+                  </span>
+                  <span className="text-blue-600">{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+                <p className="text-[12px] font-medium text-[#64748b]">{progressText}</p>
+              </div>
+            )}
             
             {importResult && (
               <div className={`p-6 rounded-[24px] border flex flex-col gap-2 ${
