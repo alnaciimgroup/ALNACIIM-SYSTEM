@@ -1,4 +1,5 @@
 import { Header } from '@/components/layout/header'
+import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { getReviewSummary } from './actions'
 import { SubmissionReviewActions } from '@/components/accountant/submission-review-actions'
@@ -117,6 +118,14 @@ export default async function AccountantSubmissionsPage({
             </div>
             
             <div className="flex items-center gap-3">
+               {status && (
+                 <Link 
+                   href="/dashboard/accountant/submissions"
+                   className="bg-white border border-[#e2e8f0] px-4 py-2.5 rounded-[12px] text-[13px] font-black text-[#3b82f6] hover:bg-[#eff6ff] active:scale-95 transition-all shadow-sm uppercase"
+                 >
+                   Show Today
+                 </Link>
+               )}
                <div className="bg-white border border-[#e2e8f0] px-4 py-2.5 rounded-[12px] flex items-center gap-2 shadow-sm">
                   <Calendar size={16} className="text-[#3b82f6]" />
                   <span suppressHydrationWarning className="text-[13px] font-black text-[#0f172a] uppercase">
@@ -163,29 +172,45 @@ export default async function AccountantSubmissionsPage({
               </div>
             </div>
 
-            {/* 4. Missing Reports */}
-            <div className={`p-6 rounded-[24px] shadow-lg flex items-center gap-5 transition-all ${
-              (summary.missingCount || 0) > 0 
-                ? 'bg-red-600 text-white' 
-                : 'bg-[#0f172a] text-white'
-            }`}>
-              <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center ${
-                (summary.missingCount || 0) > 0 ? 'bg-white text-red-600 shadow-xl' : 'bg-white/10 text-white ring-4 ring-white/5'
-              }`}>
-                <AlertCircle size={22} strokeWidth={2.5} />
+            {/* 4. Missing / Pending Reports */}
+            {summary.missingCount > 0 ? (
+              <div className="p-6 rounded-[24px] shadow-lg flex items-center gap-5 transition-all bg-red-600 text-white">
+                <div className="w-12 h-12 rounded-[14px] flex items-center justify-center bg-white text-red-600 shadow-xl">
+                  <AlertCircle size={22} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-black uppercase tracking-widest leading-none mb-1.5 opacity-60">
+                    Reports Missing
+                  </span>
+                  <span className="text-[24px] font-black leading-none lowercase tracking-tighter">
+                    {summary.missingCount} Missing
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[11px] font-black uppercase tracking-widest leading-none mb-1.5 opacity-60">
-                  {(summary.missingCount || 0) > 0 ? 'Reports Missing' : 'Pending Review'}
-                </span>
-                <span className="text-[24px] font-black leading-none lowercase tracking-tighter">
-                  {(summary.missingCount || 0) > 0 
-                    ? `${summary.missingCount} Missing` 
-                    : `${summary.pendingCount} Pending`
-                  }
-                </span>
-              </div>
-            </div>
+            ) : (
+              <Link
+                href={status === 'pending' ? '/dashboard/accountant/submissions' : '/dashboard/accountant/submissions?status=pending'}
+                className={`p-6 rounded-[24px] shadow-lg flex items-center gap-5 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
+                  status === 'pending'
+                    ? 'bg-blue-600 text-white ring-4 ring-blue-600/20'
+                    : 'bg-[#0f172a] text-white hover:bg-[#1e293b]'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center ${
+                  status === 'pending' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/10 text-white ring-4 ring-white/5'
+                }`}>
+                  <AlertCircle size={22} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-black uppercase tracking-widest leading-none mb-1.5 opacity-60">
+                    Pending Review
+                  </span>
+                  <span className="text-[24px] font-black leading-none lowercase tracking-tighter">
+                    {summary.pendingCount} Pending
+                  </span>
+                </div>
+              </Link>
+            )}
           </div>
 
            <SubmissionQueueTable 
