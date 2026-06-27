@@ -15,7 +15,7 @@ export async function getAccountantCustomers(search?: string) {
       .order('name', { ascending: true })
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`)
+      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,tank_number.ilike.%${search}%`)
     }
 
     const { data, error } = await query
@@ -33,17 +33,22 @@ export async function getAccountantCustomers(search?: string) {
 
     // 3. Map payments to customer IDs
     const paymentMap = (allPayments || []).reduce((acc: Record<string, number>, p) => {
-      const cid = (p.sales as any).customer_id
+      const salesRelation = p.sales as unknown as { customer_id: string }
+      const cid = salesRelation.customer_id
       acc[cid] = (acc[cid] || 0) + Number(p.amount)
       return acc
     }, {})
 
     // 4. Map users to staff and attach collected data
-    const mappedData = (data || []).map(c => ({
-      ...c,
-      staff: c.users,
-      collected: paymentMap[c.id] || 0
-    }))
+    const mappedData = (data || []).map(c => {
+      const usersRelation = c.users
+      const staffObj = Array.isArray(usersRelation) ? usersRelation[0] : usersRelation
+      return {
+        ...c,
+        staff: staffObj as { id: string; full_name: string } | null,
+        collected: paymentMap[c.id] || 0
+      }
+    })
 
     return mappedData
   } catch (e) {
@@ -76,7 +81,10 @@ export async function getCustomerDetailedData(id: string) {
     if (salesError) console.error('Sales Fetch Error:', salesError.message)
     if (paymentsError) console.error('Payments Fetch Error:', paymentsError.message)
 
-    const filteredPayments = (payments || []).filter(p => (p.sales as any)?.customer_id === id)
+    const filteredPayments = (payments || []).filter(p => {
+      const salesRelation = p.sales as unknown as { customer_id: string } | null
+      return salesRelation?.customer_id === id
+    })
 
     // 4. Calculate Financial Metrics
     const totalSalesValue = (sales || [])
@@ -90,7 +98,10 @@ export async function getCustomerDetailedData(id: string) {
 
     const totalFreeTanks = (sales || [])
       .filter(s => s.sale_type === 'free')
-      .reduce((acc: number, s) => acc + (s.items as any).reduce((a: number, i: any) => a + i.quantity, 0), 0)
+      .reduce((acc: number, s) => {
+        const itemsList = s.items as unknown as { quantity: number }[] | null
+        return acc + (itemsList?.reduce((a: number, i) => a + Number(i.quantity || 0), 0) || 0)
+      }, 0)
 
     return {
       profile: customer,
@@ -102,7 +113,10 @@ export async function getCustomerDetailedData(id: string) {
         currentDebt,
         totalFreeTanks,
         totalSalesCount: sales?.length || 0,
-        totalTanksBought: (sales || []).reduce((acc: number, s) => acc + (s.items as any).reduce((a: number, i: any) => a + i.quantity, 0), 0)
+        totalTanksBought: (sales || []).reduce((acc: number, s) => {
+          const itemsList = s.items as unknown as { quantity: number }[] | null
+          return acc + (itemsList?.reduce((a: number, i) => a + Number(i.quantity || 0), 0) || 0)
+        }, 0)
       }
     }
   } catch (e) {

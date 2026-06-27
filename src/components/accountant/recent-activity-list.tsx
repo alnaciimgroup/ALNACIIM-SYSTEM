@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Truck, Tag, Banknote, Clock, ShieldAlert, Calendar, User, DollarSign, Droplet, ShoppingBag } from 'lucide-react'
 
 export interface RecentActivityItem {
@@ -30,8 +31,16 @@ interface RecentActivityListProps {
 
 export function RecentActivityList({ initialActivity }: RecentActivityListProps) {
   const [selectedItem, setSelectedItem] = useState<RecentActivityItem | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  const formatCurrency = (val: number) => `$${val.toFixed(2)}`
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const formatCurrency = (val: any) => {
+    const num = Number(val || 0)
+    return `$${num.toFixed(2)}`
+  }
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'Date Unknown'
     try {
@@ -90,7 +99,7 @@ export function RecentActivityList({ initialActivity }: RecentActivityListProps)
       </div>
 
       {/* Detail Modal Overlay */}
-      {selectedItem && (
+      {mounted && selectedItem && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div 
             className="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm transition-opacity" 
@@ -176,19 +185,25 @@ export function RecentActivityList({ initialActivity }: RecentActivityListProps)
                     <div className="border border-[#e2e8f0] rounded-2xl overflow-hidden divide-y divide-[#e2e8f0]">
                       {selectedItem.items && selectedItem.items.length > 0 ? (
                         selectedItem.items.map((item, idx) => {
-                          const grossTotal = selectedItem.amount + (selectedItem.discount || 0)
-                          const displayUnitPrice = item.quantity > 0 ? grossTotal / item.quantity : item.unitPrice
-                          const formatUnitPrice = (price: number) => {
-                            if (price === 0) return '$0.00'
-                            return price % 0.01 === 0 ? `$${price.toFixed(2)}` : `$${price.toFixed(4)}`
+                          if (!item) return null
+                          const grossTotal = (selectedItem.amount || 0) + (selectedItem.discount || 0)
+                          const qty = Number(item.quantity || 0)
+                          const unitPrice = Number(item.unitPrice || 0)
+                          const displayUnitPrice = qty > 0 ? grossTotal / qty : unitPrice
+                          
+                          const formatUnitPrice = (price: any) => {
+                            const p = Number(price || 0)
+                            if (isNaN(p) || !isFinite(p)) return '$0.00'
+                            if (p === 0) return '$0.00'
+                            return p % 0.01 === 0 ? `$${p.toFixed(2)}` : `$${p.toFixed(4)}`
                           }
 
                           return (
                             <div key={idx} className="p-3 bg-white flex items-center justify-between text-[13px]">
                               <div>
-                                <p className="font-black text-[#0f172a]">{item.name}</p>
+                                <p className="font-black text-[#0f172a]">{item.name || 'Water'}</p>
                                 <p className="text-[10px] font-bold text-[#64748b] mt-0.5">
-                                  {item.quantity} units {item.freeQuantity > 0 ? `+ ${item.freeQuantity} Free` : ''}
+                                  {qty} units {Number(item.freeQuantity || 0) > 0 ? `+ ${item.freeQuantity} Free` : ''}
                                 </p>
                               </div>
                               <div className="text-right">
@@ -300,7 +315,8 @@ export function RecentActivityList({ initialActivity }: RecentActivityListProps)
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

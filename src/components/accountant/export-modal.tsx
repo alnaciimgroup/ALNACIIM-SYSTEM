@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Download, Calendar, Clock, Filter, AlertCircle, CheckCircle2, Loader2, FileSpreadsheet, Package, ChevronRight, Database, History, UserCheck, ShoppingBag, FolderArchive, Hash } from 'lucide-react'
 import { generateUniversalExport, DatasetResult, ExportResult } from '@/app/dashboard/accountant/export/actions'
 import { useToast } from '@/components/ui/toast'
@@ -21,8 +22,13 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const [isPending, setIsPending] = useState(false)
   const [exportData, setExportData] = useState<ExportResult | null>(null)
   const { showToast } = useToast()
+  const [mounted, setMounted] = useState(false)
 
-  if (!isOpen) return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted || !isOpen) return null
 
   const handleClose = () => {
     setView('selector')
@@ -116,7 +122,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
     { id: 'custom', label: 'Custom Date', icon: <Calendar size={16} /> },
   ]
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={handleClose} />
       
@@ -312,6 +318,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

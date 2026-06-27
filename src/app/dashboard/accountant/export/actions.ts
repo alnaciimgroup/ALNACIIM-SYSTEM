@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { verifySession } from '@/utils/auth'
+import { getWorkDayBounds } from '@/utils/date-utils'
 
 export type DatasetResult = {
   id: string
@@ -101,16 +102,9 @@ export async function generateUniversalExport(range: string, custom?: { start: s
     endDate = fmtYMD(nowSomalia)
   }
 
-  // Somalia Work-Day Window Logic (4 AM Rollover)
-  const startUTC = startDate ? `${startDate}T01:00:00.000Z` : '2000-01-01T00:00:00.000Z'
-  
-  let endUTC = '2099-12-31T23:59:59.999Z'
-  if (endDate) {
-    const parts = endDate.split('-').map(Number)
-    const endOffset = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
-    endOffset.setUTCDate(endOffset.getUTCDate() + 1)
-    endUTC = `${fmtYMD(endOffset)}T00:59:59.999Z`
-  }
+  // Somalia Work-Day Window Logic (1 AM Rollover)
+  const startUTC = startDate ? getWorkDayBounds(startDate).startOfDay : '2000-01-01T00:00:00.000Z'
+  const endUTC = endDate ? getWorkDayBounds(endDate).endOfDay : '2099-12-31T23:59:59.999Z'
 
   try {
     const [
