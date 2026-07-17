@@ -2,6 +2,7 @@
 
 import { ShoppingBag, User, Hash, DollarSign, CreditCard, Loader2, Clock, Search, ChevronDown, Check } from 'lucide-react'
 import { recordSale } from '@/app/dashboard/staff/actions'
+import { getCustomers } from '@/app/dashboard/staff/customers/actions'
 import { useActionState, useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast'
 
@@ -25,6 +26,8 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [searchTerm, setSearchTerm] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
+  const [dbCustomers, setDbCustomers] = useState<Customer[]>(customers)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSalesTypeChange = (type: string) => {
     setSalesType(type)
@@ -53,16 +56,30 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
     }
   }, [state, showToast])
 
-  const activeCustomers = customers.filter(c => c.status === 'active')
-  const filteredCustomers = activeCustomers.filter(c => {
-    const search = searchTerm.toLowerCase()
-    return (
-      c.name.toLowerCase().includes(search) || 
-      (c.phone && c.phone.includes(search)) || 
-      (c.tank_number && c.tank_number.toLowerCase().includes(search))
-    )
-  })
-  const selectedCustomer = activeCustomers.find(c => c.id === selectedCustomerId)
+  useEffect(() => {
+    // If searchTerm is blank, reset to original loaded customers list
+    if (searchTerm.trim() === '') {
+      setDbCustomers(customers)
+      return
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsLoading(true)
+      try {
+        const results = await getCustomers(searchTerm, 'active')
+        setDbCustomers(results)
+      } catch (err) {
+        console.error('Error fetching customers:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }, 400) // 400ms debounce to prevent spamming requests
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchTerm, customers])
+
+  const filteredCustomers = dbCustomers.filter(c => c.status === 'active')
+  const selectedCustomer = filteredCustomers.find(c => c.id === selectedCustomerId) || customers.find(c => c.id === selectedCustomerId)
 
   const totalDepletion = qty + freeQty
   const isOverStock = totalDepletion > remainingStock
@@ -121,7 +138,11 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
             )}
             
             {isDropdownOpen ? (
-              <Search size={18} className="text-[#94a3b8] ml-2 shrink-0" />
+              isLoading ? (
+                <Loader2 size={18} className="text-[#3b82f6] animate-spin ml-2 shrink-0" />
+              ) : (
+                <Search size={18} className="text-[#94a3b8] ml-2 shrink-0" />
+              )
             ) : (
               <ChevronDown size={18} className="text-[#94a3b8] ml-2 shrink-0" />
             )}

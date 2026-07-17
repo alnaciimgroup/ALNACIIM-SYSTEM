@@ -206,10 +206,6 @@ export function ImportClient({ staffList }: ImportClientProps) {
   // Trigger Bulk Save
   const handleImportSubmit = async () => {
     if (!file) return
-    if (!selectedStaffId) {
-      showToast('Please select a Staff member to link these customers to.', 'error')
-      return
-    }
     if (!mappings.nameCol || !mappings.tankCol) {
       showToast('Customer Name and Box/Tag ID mappings are required.', 'error')
       return
@@ -256,7 +252,7 @@ export function ImportClient({ staffList }: ImportClientProps) {
         }
 
         validRowsToFormat.push({
-          staff_id: selectedStaffId,
+          staff_id: selectedStaffId || null,
           name,
           phone: phone || 'N/A',
           address: address || 'N/A',
@@ -449,7 +445,7 @@ export function ImportClient({ staffList }: ImportClientProps) {
                   onChange={(e) => setSelectedStaffId(e.target.value)}
                   className="w-full h-12 px-4 border border-[#e2e8f0] rounded-[12px] text-[14px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white cursor-pointer"
                 >
-                  <option value="">-- Choose Staff / Driver --</option>
+                  <option value="">-- Leave Unassigned (None) --</option>
                   {staffList.map(s => (
                     <option key={s.id} value={s.id}>{s.full_name} ({s.role.toUpperCase()})</option>
                   ))}
@@ -719,7 +715,7 @@ export function ImportClient({ staffList }: ImportClientProps) {
               
               <button
                 onClick={handleImportSubmit}
-                disabled={isProcessing || !selectedStaffId}
+                disabled={isProcessing}
                 className="bg-[#3b82f6] hover:bg-blue-600 disabled:bg-gray-200 text-white font-bold h-12 px-8 rounded-[12px] flex items-center gap-2 transition-all shadow-sm active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (

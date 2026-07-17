@@ -29,15 +29,11 @@ export async function getStaffList() {
 
 export async function importCustomerBatch(
   batch: any[],
-  staffId: string
+  staffId?: string
 ) {
   try {
     await verifySession(['superadmin'])
     const supabase = createAdminClient()
-
-    if (!staffId) {
-      throw new Error('Staff Assignment is required.')
-    }
 
     const { error } = await supabase
       .from('customers')

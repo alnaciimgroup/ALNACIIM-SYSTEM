@@ -7,7 +7,7 @@ export const CustomerSchema = z.object({
   guarantor: z.string().min(2, 'Guarantor name is required'),
   guarantor_phone: z.string().min(8, 'Guarantor phone is required').max(20),
   tank_number: z.string().min(1, 'Tank Number / Box ID is required').max(50),
-  staff_id: z.string().uuid('Invalid staff ID'),
+  staff_id: z.string().uuid('Invalid staff ID').optional().nullable(),
   customer_type: z.enum(['regular', 'irregular']).default('regular'),
 })
 

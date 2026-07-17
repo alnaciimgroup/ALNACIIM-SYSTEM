@@ -15,11 +15,12 @@ export async function getCustomers(search?: string, statusFilter?: string) {
   let query = supabase
     .from('customers')
     .select('*, sales(id, created_at, total_amount, sale_type, discount_amount, sale_items(quantity))')
-    .eq('staff_id', user.id)
     .order('created_at', { ascending: false })
 
   if (search) {
-    query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`)
+    query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,tank_number.ilike.%${search}%`)
+  } else {
+    query = query.limit(200)
   }
 
   if (statusFilter && statusFilter !== 'all') {
@@ -74,7 +75,7 @@ export async function createCustomer(prevState: any, formData: FormData) {
     guarantor: formData.get('guarantor') as string,
     guarantor_phone: formData.get('guarantor_phone') as string,
     tank_number: formData.get('tank_number') as string,
-    staff_id: user.id,
+    staff_id: null,
     customer_type: formData.get('customer_type') as string || 'regular'
   }
 
@@ -86,7 +87,7 @@ export async function createCustomer(prevState: any, formData: FormData) {
   const { data: customer, error } = await supabase
     .from('customers')
     .insert({
-      staff_id: user.id,
+      staff_id: null,
       name: validated.data.name,
       phone: validated.data.phone,
       address: formData.get('address') as string,
