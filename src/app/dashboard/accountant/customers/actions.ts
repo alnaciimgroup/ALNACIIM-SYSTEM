@@ -15,7 +15,35 @@ export async function getAccountantCustomers(search?: string) {
       .order('name', { ascending: true })
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,tank_number.ilike.%${search}%`)
+      const cleanSearch = search.trim()
+
+      // Check if there is an exact match for tank_number first
+      const { data: exactMatch, error: exactErr } = await supabase
+        .from('customers')
+        .select('id, name, phone, tank_number, status, debt, staff_id, users(id, full_name)')
+        .eq('tank_number', cleanSearch)
+        .limit(1)
+
+      if (!exactErr && exactMatch && exactMatch.length > 0) {
+        // Fetch payments for this exact customer
+        const { data: allPayments } = await supabase
+          .from('payments')
+          .select('amount, sales!inner(customer_id)')
+          .eq('sales.customer_id', exactMatch[0].id)
+
+        const collectedAmount = (allPayments || []).reduce((acc, p) => acc + Number(p.amount), 0)
+
+        const usersRelation = exactMatch[0].users
+        const staffObj = Array.isArray(usersRelation) ? usersRelation[0] : usersRelation
+
+        return [{
+          ...exactMatch[0],
+          staff: staffObj,
+          collected: collectedAmount
+        }]
+      }
+
+      query = query.or(`name.ilike.%${cleanSearch}%,phone.ilike.%${cleanSearch}%,tank_number.eq.${cleanSearch}`)
     } else {
       query = query.limit(200)
     }
