@@ -19,50 +19,15 @@ export async function getCustomers(search?: string, statusFilter?: string) {
 
   if (search) {
     const cleanSearch = search.trim()
-    
-    // Check if there is an exact match for tank_number first
-    let exactQuery = supabase
-      .from('customers')
-      .select('*, sales(id, created_at, total_amount, sale_type, discount_amount, sale_items(quantity))')
-      .eq('tank_number', cleanSearch)
+    const isNumeric = /^\d+$/.test(cleanSearch)
 
-    if (statusFilter && statusFilter !== 'all') {
-      exactQuery = exactQuery.eq('status', statusFilter)
+    if (isNumeric) {
+      // Search ONLY by exact tank number (no lists or partial match)
+      query = query.eq('tank_number', cleanSearch)
+    } else {
+      // Search ONLY by name (partial match)
+      query = query.ilike('name', `%${cleanSearch}%`)
     }
-
-    const { data: exactMatch } = await exactQuery.limit(1)
-
-    if (exactMatch && exactMatch.length > 0) {
-      const now = new Date()
-      return exactMatch.map(c => {
-        let daysInactive = 0
-        let lastRefillDate: string | null = null
-
-        if (c.sales && c.sales.length > 0) {
-          const sortedSales = c.sales.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          lastRefillDate = sortedSales[0].created_at
-          const diffTime = Math.abs(now.getTime() - new Date(lastRefillDate as string).getTime())
-          daysInactive = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-        }
-
-        const lifetimeLiters = c.sales?.reduce((acc: number, sale: any) => {
-          const qty = sale.sale_items?.reduce((qAcc: number, item: any) => qAcc + Number(item.quantity), 0) || 0
-          return acc + qty
-        }, 0) || 0
-
-        return {
-          ...c,
-          lastRefillDate,
-          daysInactive,
-          lifetimeLiters,
-          recentSales: c.sales || [],
-          isInactiveWarning: c.customer_type === 'irregular' ? daysInactive >= 90 : daysInactive > 10
-        }
-      })
-    }
-
-    // Fallback to standard OR search
-    query = query.or(`name.ilike.%${cleanSearch}%,phone.ilike.%${cleanSearch}%,tank_number.eq.${cleanSearch}`)
   } else {
     query = query.limit(200)
   }
