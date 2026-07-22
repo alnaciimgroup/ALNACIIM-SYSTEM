@@ -28,6 +28,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const [dbCustomers, setDbCustomers] = useState<Customer[]>(customers)
   const [isLoading, setIsLoading] = useState(false)
+  const [isBackdated, setIsBackdated] = useState(false)
 
   const handleSalesTypeChange = (type: string) => {
     setSalesType(type)
@@ -51,6 +52,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           setQty(0)
           setFreeQty(0)
           setDiscount('')
+          setIsBackdated(false)
         }, 0)
       }
     }
@@ -343,6 +345,47 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
         {discountAmount > standardTotal && (
           <div className="md:col-span-2 p-3 bg-red-50 text-red-600 rounded-[10px] text-[11px] font-extrabold border border-red-100 flex items-center gap-2">
             ⚠️ DISCOUNT CANNOT EXCEED THE STANDARD TOTAL PRICE (${standardTotal.toFixed(2)})!
+          </div>
+        )}
+
+        <input type="hidden" name="is_backdated" value={String(isBackdated)} />
+
+        {salesType !== 'free' && (
+          <div className="md:col-span-2 border-t border-[#f1f5f9] pt-6 mt-2 flex flex-col gap-4">
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                checked={isBackdated}
+                onChange={(e) => setIsBackdated(e.target.checked)}
+                className="w-5 h-5 rounded border-[#cbd5e1] text-[#3b82f6] focus:ring-[#3b82f6]"
+              />
+              <span className="text-[13px] font-black text-[#374151] uppercase tracking-wider">Backdate this sale (Past Transaction)</span>
+            </label>
+
+            {isBackdated && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#f8fafc] p-5 rounded-[16px] border border-[#e2e8f0]">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-black text-[#64748b] uppercase tracking-wider">Transaction Date</label>
+                  <input 
+                    type="date" 
+                    name="requested_date" 
+                    max={new Date().toISOString().split('T')[0]}
+                    required={isBackdated}
+                    className="h-11 px-4 border border-[#e2e8f0] rounded-[10px] text-[14px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-black text-[#64748b] uppercase tracking-wider">Reason for Backdating</label>
+                  <input 
+                    type="text" 
+                    name="backdate_reason" 
+                    placeholder="e.g. Phone died, no internet..."
+                    required={isBackdated}
+                    className="h-11 px-4 border border-[#e2e8f0] rounded-[10px] text-[14px] font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 

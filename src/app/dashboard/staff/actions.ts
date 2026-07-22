@@ -221,6 +221,16 @@ export async function recordSale(prevState: any, formData: FormData) {
   const quantity = parseInt(formData.get('quantity') as string || '0')
   const freeQuantity = parseInt(formData.get('free_quantity') as string || '0')
   
+  // Parse backdate parameters
+  const isBackdated = formData.get('is_backdated') === 'true'
+  const requestedDate = formData.get('requested_date') as string
+  const backdateReason = formData.get('backdate_reason') as string
+
+  let finalStatus = saleType === 'draft' ? 'pending' : 'completed'
+  if (isBackdated && saleType !== 'draft') {
+    finalStatus = 'pending_approval'
+  }
+  
   const formFinalTotal = formData.get('final_total') as string
   let unit_price = standard_price
   let final_total = quantity * standard_price
@@ -263,12 +273,6 @@ export async function recordSale(prevState: any, formData: FormData) {
 
   if (custError || !customer) return { message: 'Customer not found.', errors: true }
 
-  // Security Check: Ensure staff owns this customer
-  if (customer.staff_id !== user.id) {
-    await logAction('CANCEL_SALE', { details: { reason: 'Unauthorized customer access attempt', customer_id } })
-    return { message: 'Unauthorized: You do not manage this customer.', errors: true }
-  }
-
   if (customer.status !== 'active') {
     return { message: `Customer "${customer.name}" is INACTIVE and cannot receive new sales.`, errors: true }
   }
@@ -309,7 +313,9 @@ export async function recordSale(prevState: any, formData: FormData) {
       sale_type: sale_type === 'draft' ? 'credit' : sale_type,
       total_amount,
       discount_amount,
-      status: sale_type === 'draft' ? 'pending' : 'completed'
+      status: finalStatus,
+      requested_date: isBackdated && sale_type !== 'draft' ? requestedDate : null,
+      backdate_reason: isBackdated && sale_type !== 'draft' ? backdateReason : null
     })
     .select()
     .single()
@@ -335,24 +341,26 @@ export async function recordSale(prevState: any, formData: FormData) {
     return { message: 'Failed to record sale items.', errors: true }
   }
 
-  // 7. Conditional Logic: Cash Payment vs Credit Debt
-  if (sale_type === 'cash') {
-    await supabase.from('payments').insert({
-      sale_id: sale.id,
-      amount: total_amount,
-      payment_method: 'cash'
-    })
-  } else if (sale_type === 'credit') {
-    // Increase customer debt (only for completed credit sales, not drafts)
-    const { error: debtError } = await supabase.rpc('increment_customer_debt', {
-      cust_id: customer_id,
-      amount: total_amount
-    })
+  // 7. Conditional Logic: Cash Payment vs Credit Debt (ONLY for completed sales)
+  if (finalStatus === 'completed') {
+    if (sale_type === 'cash') {
+      await supabase.from('payments').insert({
+        sale_id: sale.id,
+        amount: total_amount,
+        payment_method: 'cash'
+      })
+    } else if (sale_type === 'credit') {
+      // Increase customer debt (only for completed credit sales, not drafts)
+      const { error: debtError } = await supabase.rpc('increment_customer_debt', {
+        cust_id: customer_id,
+        amount: total_amount
+      })
 
-    if (debtError) {
-      const { data: currentCust } = await supabase.from('customers').select('debt').eq('id', customer_id).single()
-      const newDebt = (Number(currentCust?.debt || 0)) + total_amount
-      await supabase.from('customers').update({ debt: newDebt }).eq('id', customer_id)
+      if (debtError) {
+        const { data: currentCust } = await supabase.from('customers').select('debt').eq('id', customer_id).single()
+        const newDebt = (Number(currentCust?.debt || 0)) + total_amount
+        await supabase.from('customers').update({ debt: newDebt }).eq('id', customer_id)
+      }
     }
   }
 

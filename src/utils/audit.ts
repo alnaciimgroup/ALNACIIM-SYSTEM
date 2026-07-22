@@ -21,7 +21,9 @@ export type AuditAction =
   | 'DELETE_USER'
   | 'LOGIN'
   | 'LOGOUT'
-  | 'RESOLVE_DRAFT';
+  | 'RESOLVE_DRAFT'
+  | 'APPROVE_BACKDATE_SALE'
+  | 'REJECT_BACKDATE_SALE';
 
 export async function logAction(
   action: AuditAction,

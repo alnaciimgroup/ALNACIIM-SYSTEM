@@ -1,4 +1,5 @@
 import { getAccountantOverview, getAtRiskCustomers } from '@/app/dashboard/accountant/actions'
+import { getPendingBackdatesCount } from '@/app/dashboard/accountant/backdates/actions'
 import Link from 'next/link'
 import { Truck, Tag, ClipboardList, Banknote, ShoppingCart, Wallet, Clock, Activity, ArrowUpRight, Download, Users, ChevronRight, ShieldAlert, AlertCircle } from 'lucide-react'
 import { CustomerAlerts } from '@/components/staff/customer-alerts'
@@ -8,6 +9,7 @@ import { RecentActivityList } from '@/components/accountant/recent-activity-list
 export async function AccountantDashboardContent({ dateFilter, customDate }: { dateFilter?: string, customDate?: string }) {
   const { metrics, todayStats, topStaff, recentActivity, latestSubmissions, flaggedDiscrepancies } = await getAccountantOverview(dateFilter, customDate)
   const atRiskCustomers = await getAtRiskCustomers()
+  const pendingBackdatesCount = await getPendingBackdatesCount()
 
   const isFullyAudited = (actual: number, audited: number) => {
     if (actual === 0 && audited === 0) return true
@@ -269,6 +271,19 @@ export async function AccountantDashboardContent({ dateFilter, customDate }: { d
                 </div>
              </Link>
            )}
+
+           {pendingBackdatesCount > 0 && (
+              <Link href="/dashboard/accountant/backdates" className="bg-[#f0f9ff] rounded-[28px] p-6 border-2 border-sky-100 shadow-sm relative overflow-hidden block">
+                 <div className="flex items-center gap-3 mb-4 text-sky-600">
+                   <Clock size={20} strokeWidth={2.5}/>
+                   <h3 className="text-[13px] font-black uppercase tracking-widest leading-none">Backdate Requests</h3>
+                 </div>
+                 <p className="text-[13px] font-medium text-sky-700 leading-snug mb-4">You have {pendingBackdatesCount} sales pending backdate approval.</p>
+                 <div className="w-full py-3 rounded-[16px] bg-sky-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 text-center">
+                   Review Requests
+                 </div>
+              </Link>
+            )}
 
            <div className="bg-white border border-[#e2e8f0] rounded-[28px] p-6 shadow-sm">
               <h3 className="text-[11px] font-black text-[#94a3b8] uppercase tracking-widest mb-4">Quick Operations</h3>

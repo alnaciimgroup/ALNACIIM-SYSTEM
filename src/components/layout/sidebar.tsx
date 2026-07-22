@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle, Upload } from 'lucide-react'
+import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle, Upload, Clock } from 'lucide-react'
 
 export function Sidebar({ 
   role, 
@@ -52,6 +52,7 @@ export function Sidebar({
           { name: 'Financial Overview', href: '/dashboard/accountant/financials', icon: Calculator },
           { name: 'Transactions', href: '/dashboard/accountant/transactions', icon: History },
           { name: 'Daily Submissions', href: '/dashboard/accountant/submissions', icon: Banknote },
+          { name: 'Backdate Requests', href: '/dashboard/accountant/backdates', icon: Clock },
           { name: 'Staff List', href: '/dashboard/accountant/staff', icon: List },
           { name: 'Reports', href: '/dashboard/accountant/reports', icon: BarChart2 },
         ]
