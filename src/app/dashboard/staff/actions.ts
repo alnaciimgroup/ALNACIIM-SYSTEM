@@ -209,7 +209,7 @@ export async function getStaffDashboardData(date?: string) {
  */
 export async function recordSale(prevState: any, formData: FormData) {
   const { user } = await verifySession(['staff'])
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // 1. Get default item (Water Tank) and its standard price
   const { data: items } = await supabase.from('items').select('id, current_price').limit(1)
