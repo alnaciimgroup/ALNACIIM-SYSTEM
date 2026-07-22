@@ -1,15 +1,16 @@
 import { Header } from '@/components/layout/header'
 import { getAccountantCustomers } from './actions'
 import Link from 'next/link'
-import { Search, ChevronRight, Users as UsersIcon } from 'lucide-react'
+import { Search, ChevronRight, Users as UsersIcon, ChevronLeft } from 'lucide-react'
 
 export default async function AccountantCustomersPage({
   searchParams
 }: {
-  searchParams: Promise<{ search?: string }>
+  searchParams: Promise<{ search?: string; page?: string }>
 }) {
-  const { search } = await searchParams
-  const customers = await getAccountantCustomers(search)
+  const { search, page } = await searchParams
+  const currentPage = Number(page) || 1
+  const { customers, totalCount, totalPages } = await getAccountantCustomers(search, currentPage)
 
   return (
     <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
@@ -116,6 +117,42 @@ export default async function AccountantCustomersPage({
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="px-6 py-5 border-t border-[#f1f5f9] flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-b-[24px]">
+                <div className="text-[13px] font-bold text-[#64748b]">
+                  Showing <span className="text-[#0f172a]">{((currentPage - 1) * 10) + 1}</span> to{' '}
+                  <span className="text-[#0f172a]">{Math.min(currentPage * 10, totalCount)}</span> of{' '}
+                  <span className="text-[#0f172a]">{totalCount.toLocaleString()}</span> accounts
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/dashboard/accountant/customers?page=${currentPage - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
+                    className={`inline-flex items-center gap-1 px-4 py-2 border rounded-[10px] text-[12px] font-bold transition-all shadow-sm ${
+                      currentPage <= 1
+                        ? 'bg-gray-50 border-gray-100 text-gray-400 pointer-events-none opacity-50'
+                        : 'bg-white border-[#e2e8f0] text-[#3b82f6] hover:bg-[#f8fafc] hover:border-[#3b82f6]/30'
+                    }`}
+                  >
+                    <ChevronLeft size={14} /> Previous
+                  </Link>
+                  <span className="text-[12px] font-bold text-[#0f172a] px-3 bg-slate-50 border border-slate-100 py-2 rounded-[10px]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Link
+                    href={`/dashboard/accountant/customers?page=${currentPage + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
+                    className={`inline-flex items-center gap-1 px-4 py-2 border rounded-[10px] text-[12px] font-bold transition-all shadow-sm ${
+                      currentPage >= totalPages
+                        ? 'bg-gray-50 border-gray-100 text-gray-400 pointer-events-none opacity-50'
+                        : 'bg-white border-[#e2e8f0] text-[#3b82f6] hover:bg-[#f8fafc] hover:border-[#3b82f6]/30'
+                    }`}
+                  >
+                    Next <ChevronRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

@@ -4,14 +4,17 @@
 import { createClient } from '@/utils/supabase/server'
 import { verifySession } from '@/utils/auth'
 
-export async function getAccountantCustomers(search?: string) {
+export async function getAccountantCustomers(search?: string, page: number = 1) {
   try {
     await verifySession(['accountant', 'superadmin'])
     const supabase = await createClient()
 
+    const limit = 10
+    const offset = (page - 1) * limit
+
     let query = supabase
       .from('customers')
-      .select('id, name, phone, tank_number, status, debt, staff_id, users(id, full_name)')
+      .select('id, name, phone, tank_number, status, debt, staff_id, users(id, full_name)', { count: 'exact' })
       .order('name', { ascending: true })
 
     if (search) {
@@ -25,14 +28,15 @@ export async function getAccountantCustomers(search?: string) {
         // Search ONLY by name (partial match)
         query = query.ilike('name', `%${cleanSearch}%`)
       }
-    } else {
-      query = query.limit(200)
     }
 
-    const { data, error } = await query
+    // Apply pagination range
+    query = query.range(offset, offset + limit - 1)
+
+    const { data, count, error } = await query
     if (error) {
       console.error('Error fetching accountant customers:', error.message)
-      return []
+      return { customers: [], totalCount: 0, totalPages: 0, currentPage: page }
     }
 
     // 2. Fetch all payments for these customers to calculate "Collected" amount
@@ -61,9 +65,56 @@ export async function getAccountantCustomers(search?: string) {
       }
     })
 
-    return mappedData
+    return {
+      customers: mappedData,
+      totalCount: count || 0,
+      totalPages: Math.ceil((count || 0) / limit),
+      currentPage: page
+    }
   } catch (e) {
     console.error('getAccountantCustomers Exception:', e)
+    return { customers: [], totalCount: 0, totalPages: 0, currentPage: page }
+  }
+}
+
+export async function getAllAccountantCustomers(search?: string) {
+  try {
+    await verifySession(['accountant', 'superadmin'])
+    const supabase = await createClient()
+
+    let query = supabase
+      .from('customers')
+      .select('id, name, phone, tank_number, status, debt, staff_id, users(id, full_name)')
+      .order('name', { ascending: true })
+
+    if (search) {
+      const cleanSearch = search.trim()
+      const isNumeric = /^\d+$/.test(cleanSearch)
+
+      if (isNumeric) {
+        query = query.eq('tank_number', cleanSearch)
+      } else {
+        query = query.ilike('name', `%${cleanSearch}%`)
+      }
+    }
+
+    const { data, error } = await query
+    if (error) {
+      console.error('Error fetching all accountant customers:', error.message)
+      return []
+    }
+
+    return (data || []).map(c => {
+      const usersRelation = c.users
+      const staffObj = Array.isArray(usersRelation) ? usersRelation[0] : usersRelation
+      return {
+        ...c,
+        staff: staffObj as { id: string; full_name: string } | null,
+        collected: 0
+      }
+    })
+  } catch (e) {
+    console.error('getAllAccountantCustomers Exception:', e)
     return []
   }
 }

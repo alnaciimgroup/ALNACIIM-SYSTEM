@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Download, Calendar, Clock, Search, Loader2, Printer, User, Phone, Tag } from 'lucide-react'
-import { getAccountantCustomers } from '@/app/dashboard/accountant/customers/actions'
+import { getAllAccountantCustomers } from '@/app/dashboard/accountant/customers/actions'
 import { generateCustomerExport, CustomerExportResult } from '@/app/dashboard/accountant/export/customer-actions'
 import { useToast } from '@/components/ui/toast'
 
@@ -61,7 +61,7 @@ export function ExportCustomerModal({ isOpen, onClose }: ExportCustomerModalProp
       setCustomEnd('')
       setPrintData(null)
       
-      getAccountantCustomers()
+      getAllAccountantCustomers()
         .then((data: CustomerItem[]) => {
           setCustomers(data || [])
           setFilteredCustomers(data || [])
