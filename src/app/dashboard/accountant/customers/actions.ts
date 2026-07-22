@@ -39,20 +39,39 @@ export async function getAccountantCustomers(search?: string, page: number = 1) 
       return { customers: [], totalCount: 0, totalPages: 0, currentPage: page }
     }
 
-    // 2. Fetch all payments for these customers to calculate "Collected" amount
+    // 2. Fetch all sale IDs for these 10 customers
     const customerIds = (data || []).map(c => c.id)
-    const { data: allPayments } = await supabase
-      .from('payments')
-      .select('amount, sales!inner(customer_id)')
-      .in('sales.customer_id', customerIds)
+    const { data: customerSales, error: salesErr } = await supabase
+      .from('sales')
+      .select('id, customer_id')
+      .in('customer_id', customerIds)
 
-    // 3. Map payments to customer IDs
-    const paymentMap = (allPayments || []).reduce((acc: Record<string, number>, p) => {
-      const salesRelation = p.sales as unknown as { customer_id: string }
-      const cid = salesRelation.customer_id
-      acc[cid] = (acc[cid] || 0) + Number(p.amount)
-      return acc
-    }, {})
+    let paymentMap: Record<string, number> = {}
+
+    if (!salesErr && customerSales && customerSales.length > 0) {
+      const saleIds = customerSales.map(s => s.id)
+      
+      // Fetch payments for these sale IDs
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('amount, sale_id')
+        .in('sale_id', saleIds)
+
+      // Map sale ID to customer ID for easy lookup
+      const saleToCustomerMap = customerSales.reduce((acc: Record<string, string>, s) => {
+        acc[s.id] = s.customer_id
+        return acc
+      }, {})
+
+      // Aggregate payments by customer ID
+      paymentMap = (payments || []).reduce((acc: Record<string, number>, p) => {
+        const cid = saleToCustomerMap[p.sale_id]
+        if (cid) {
+          acc[cid] = (acc[cid] || 0) + Number(p.amount)
+        }
+        return acc
+      }, {})
+    }
 
     // 4. Map users to staff and attach collected data
     const mappedData = (data || []).map(c => {
