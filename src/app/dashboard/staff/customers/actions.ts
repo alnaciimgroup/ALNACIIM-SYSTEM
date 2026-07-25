@@ -7,10 +7,20 @@ import { redirect } from 'next/navigation'
 import { verifySession } from '@/utils/auth'
 import { CustomerSchema } from '@/utils/validation'
 import { logAction } from '@/utils/audit'
+import fs from 'fs'
 
 export async function getCustomers(search?: string, statusFilter?: string) {
   const { user } = await verifySession(['staff', 'accountant', 'agent'])
   const supabase = createAdminClient()
+
+  try {
+    const logMsg = `${new Date().toISOString()} - getCustomers called - user: ${user.email || user.id}, search: "${search}", statusFilter: "${statusFilter}"\n`
+    fs.appendFileSync('/Users/mohamedabshir/ALNM-SYSTEM/scratch/search_debug.log', logMsg)
+  } catch (e) {
+    console.error('File logging error:', e)
+  }
+
+  console.log('--- [SERVER ACTION] getCustomers call ---', { search, statusFilter })
 
   let query = supabase
     .from('customers')
@@ -38,6 +48,18 @@ export async function getCustomers(search?: string, statusFilter?: string) {
 
   const { data: customers, error } = await query
   
+  try {
+    const logMsg = `${new Date().toISOString()} - getCustomers result - count: ${customers?.length || 0}, error: ${error?.message || 'none'}, returned names: ${JSON.stringify(customers?.map(c => c.name) || [])}\n`
+    fs.appendFileSync('/Users/mohamedabshir/ALNM-SYSTEM/scratch/search_debug.log', logMsg)
+  } catch (e) {
+    console.error('File logging error:', e)
+  }
+
+  console.log('--- [SERVER ACTION] getCustomers query executed ---', { 
+    count: customers?.length || 0, 
+    error: error?.message || null 
+  })
+
   if (error) {
     console.error('Error fetching customers:', error)
     return []
