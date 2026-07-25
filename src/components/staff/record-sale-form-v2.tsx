@@ -26,6 +26,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   const [searchTerm, setSearchTerm] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [dbCustomers, setDbCustomers] = useState<Customer[]>(customers)
   const [isLoading, setIsLoading] = useState(false)
   const [isBackdated, setIsBackdated] = useState(false)
@@ -53,6 +54,8 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
           setFreeQty(0)
           setDiscount('')
           setIsBackdated(false)
+          setSelectedCustomerId('')
+          setSelectedCustomer(null)
         }, 0)
       }
     }
@@ -81,7 +84,6 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
   }, [searchTerm, customers])
 
   const filteredCustomers = dbCustomers.filter(c => c.status === 'active')
-  const selectedCustomer = filteredCustomers.find(c => c.id === selectedCustomerId) || customers.find(c => c.id === selectedCustomerId)
 
   const totalDepletion = qty + freeQty
   const isOverStock = totalDepletion > remainingStock
@@ -162,6 +164,7 @@ export function RecordSaleForm({ customers, remainingStock }: { customers: Custo
                       key={c.id}
                       onClick={() => {
                         setSelectedCustomerId(c.id)
+                        setSelectedCustomer(c)
                         setIsDropdownOpen(false)
                         setSearchTerm('')
                       }}
