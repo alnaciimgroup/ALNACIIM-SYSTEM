@@ -209,7 +209,7 @@ const client = {
       
       console.warn('Unhandled POST endpoint:', endpoint);
       return { data: {} };
-    } catch (err) {
+    } catch (e) { const err = e as any;
       console.error('Supabase POST Error:', err);
       throw err;
     }
@@ -251,7 +251,7 @@ const client = {
 
       console.warn('Unhandled PUT endpoint:', endpoint);
       return { data: {} };
-    } catch (err) {
+    } catch (e) { const err = e as any;
       console.error('Supabase PUT Error:', err);
       throw err;
     }

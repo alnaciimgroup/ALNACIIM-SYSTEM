@@ -49,8 +49,8 @@ async function fetchSupabaseData(endpoint) {
 
     let total_revenue = 0;
     let total_expenses = 0;
-    const revenue = [];
-    const expenses = [];
+    const revenue: any[] = [];
+    const expenses: any[] = [];
 
     for (const acc of (accounts || [])) {
         const bal = balances[acc.id] || 0;
@@ -80,9 +80,9 @@ async function fetchSupabaseData(endpoint) {
     let total_liabilities = 0;
     let total_equity = 0;
     let current_year_earnings = 0;
-    const assets = [];
-    const liabilities = [];
-    const equity = [];
+    const assets: any[] = [];
+    const liabilities: any[] = [];
+    const equity: any[] = [];
 
     for (const acc of (accounts || [])) {
         const bal = balances[acc.id] || 0;
@@ -297,7 +297,7 @@ async function fetchSupabaseData(endpoint) {
 }
 
 export function useApi(endpoint, deps = []) {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const reload = async () => {

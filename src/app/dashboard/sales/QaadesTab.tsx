@@ -63,8 +63,8 @@ export default function QaadesTab() {
   const collectors = users?.filter((u) => u.role_name === 'Driver');
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(null);
-  const [viewingId, setViewingId] = useState(null);
+  const [error, setError] = useState<any>(null);
+  const [viewingId, setViewingId] = useState<any>(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -74,8 +74,8 @@ export default function QaadesTab() {
       setForm(EMPTY_FORM);
       setShowForm(false);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create qaade');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to create qaade');
     }
   }
 

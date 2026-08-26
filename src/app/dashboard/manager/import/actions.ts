@@ -21,7 +21,7 @@ export async function getStaffList() {
     }
 
     return users || []
-  } catch (err) {
+  } catch (e) { const err = e as any;
     console.error('getStaffList exception:', err)
     return []
   }

@@ -11,7 +11,7 @@ export default function UsersTab() {
   const { rows: warehouses } = useApi('/warehouses');
   const [form, setForm] = useState({ employee_code: '', full_name: '', email: '', password: '', role_id: '', department: '' });
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -21,8 +21,8 @@ export default function UsersTab() {
       setForm({ employee_code: '', full_name: '', email: '', password: '', role_id: '', department: '' });
       setShowForm(false);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create user');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to create user');
     }
   }
 

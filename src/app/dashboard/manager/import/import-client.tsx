@@ -145,7 +145,7 @@ export function ImportClient({ staffList }: ImportClientProps) {
 
         setMappings(newMappings)
         showToast('Spreadsheet loaded and columns mapped successfully!', 'success')
-      } catch (err) {
+      } catch (e) { const err = e as any;
         console.error(err)
         showToast('Failed to parse the file. Please ensure it is a valid Excel or CSV.', 'error')
       }

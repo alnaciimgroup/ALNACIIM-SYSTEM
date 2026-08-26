@@ -11,7 +11,7 @@ export default function DeliveriesTab() {
   const { user } = useAuth();
   const canUpdate = ['Admin', 'Sales Manager', 'Driver'].includes(user?.role);
   const { rows, reload } = useApi('/sales/deliveries');
-  const [confirmingId, setConfirmingId] = useState(null);
+  const [confirmingId, setConfirmingId] = useState<any>(null);
   const [qty, setQty] = useState('');
   const [signature, setSignature] = useState('');
 

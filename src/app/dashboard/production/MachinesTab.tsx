@@ -17,8 +17,8 @@ export default function MachinesTab() {
   const { rows, reload } = useApi('/production/machines');
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState<any>(null);
+  const [success, setSuccess] = useState<any>(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -30,8 +30,8 @@ export default function MachinesTab() {
       setSuccess('Machine registered.');
       setTimeout(() => setSuccess(null), 4000);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create machine');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to create machine');
     }
   }
 

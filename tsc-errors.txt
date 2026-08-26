@@ -1,0 +1,388 @@
+.next/types/validator.ts(314,39): error TS2307: Cannot find module '../../src/app/dashboard/superadmin/import/page.js' or its corresponding type declarations.
+.next/types/validator.ts(323,39): error TS2307: Cannot find module '../../src/app/dashboard/superadmin/page.js' or its corresponding type declarations.
+.next/types/validator.ts(332,39): error TS2307: Cannot find module '../../src/app/dashboard/superadmin/users/page.js' or its corresponding type declarations.
+next.config.ts(10,3): error TS2353: Object literal may only specify known properties, and 'eslint' does not exist in type 'NextConfig'.
+scratch/check_audit_logs.ts(5,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scratch/check_users.ts(5,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scratch/clear_incorrect_tanks.ts(5,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scratch/clear_incorrect_tanks.ts(24,40): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(...items: ConcatArray<never>[]): never[]', gave the following error.
+    Argument of type '{ id: any; name: any; tank_number: any; phone: any; }[]' is not assignable to parameter of type 'ConcatArray<never>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type '{ id: any; name: any; tank_number: any; phone: any; }[]' is not assignable to type 'never[]'.
+          Type '{ id: any; name: any; tank_number: any; phone: any; }' is not assignable to type 'never'.
+  Overload 2 of 2, '(...items: ConcatArray<never>[]): never[]', gave the following error.
+    Argument of type '{ id: any; name: any; tank_number: any; phone: any; }[]' is not assignable to parameter of type 'ConcatArray<never>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type '{ id: any; name: any; tank_number: any; phone: any; }[]' is not assignable to type 'never[]'.
+          Type '{ id: any; name: any; tank_number: any; phone: any; }' is not assignable to type 'never'.
+scratch/clear_incorrect_tanks.ts(33,21): error TS2339: Property 'tank_number' does not exist on type 'never'.
+scratch/clear_incorrect_tanks.ts(58,27): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+scratch/clear_incorrect_tanks_dryrun.ts(5,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scratch/clear_incorrect_tanks_dryrun.ts(24,40): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(...items: ConcatArray<never>[]): never[]', gave the following error.
+    Argument of type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to parameter of type 'ConcatArray<never>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to type 'never[]'.
+          Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }' is not assignable to type 'never'.
+  Overload 2 of 2, '(...items: ConcatArray<never>[]): never[]', gave the following error.
+    Argument of type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to parameter of type 'ConcatArray<never>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to type 'never[]'.
+          Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }' is not assignable to type 'never'.
+scratch/clear_incorrect_tanks_dryrun.ts(33,21): error TS2339: Property 'tank_number' does not exist on type 'never'.
+scratch/generate_shared_tanks_report.ts(8,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+scratch/generate_shared_tanks_report.ts(27,40): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(...items: ConcatArray<never>[]): never[]', gave the following error.
+    Argument of type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to parameter of type 'ConcatArray<never>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to type 'never[]'.
+          Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }' is not assignable to type 'never'.
+  Overload 2 of 2, '(...items: ConcatArray<never>[]): never[]', gave the following error.
+    Argument of type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to parameter of type 'ConcatArray<never>'.
+      The types returned by 'slice(...)' are incompatible between these types.
+        Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }[]' is not assignable to type 'never[]'.
+          Type '{ id: any; name: any; tank_number: any; phone: any; status: any; customer_type: any; guarantor: any; }' is not assignable to type 'never'.
+scratch/generate_shared_tanks_report.ts(36,21): error TS2339: Property 'tank_number' does not exist on type 'never'.
+scratch/list_tables.ts(5,31): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/dashboard/driver/page.tsx(37,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/driver/page.tsx(101,71): error TS2339: Property 'id' does not exist on type '{ role: string; full_name: string; }'.
+src/app/dashboard/driver/page.tsx(108,35): error TS2551: Property 'fullName' does not exist on type '{ role: string; full_name: string; }'. Did you mean 'full_name'?
+src/app/dashboard/finance/BillingCollectionsTab.tsx(41,58): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type 'string | (() => void)'.
+  Type 'Dispatch<SetStateAction<string>>' is not assignable to type '() => void'.
+    Target signature provides too few arguments. Expected 1 or more, but got 0.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(57,30): error TS2554: Expected 3 arguments, but got 2.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(57,75): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(58,35): error TS2554: Expected 3 arguments, but got 2.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(58,77): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(125,14): error TS2741: Property 'valueKey' is missing in type '{ title: string; rows: any; }' but required in type '{ title: any; rows: any; valueKey: any; }'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(126,14): error TS2741: Property 'valueKey' is missing in type '{ title: string; rows: any; }' but required in type '{ title: any; rows: any; valueKey: any; }'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,78): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,86): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,92): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,105): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,115): error TS2322: Type 'boolean' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,132): error TS2322: Type 'boolean' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,145): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(176,158): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(241,44): error TS2554: Expected 3 arguments, but got 2.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(241,111): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(262,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(400,16): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type '{}' provides no match for the signature '(prevState: null): null'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(412,102): error TS2345: Argument of type 'string | (() => void)' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type '() => void' is not assignable to type 'SetStateAction<string>'.
+    Type '() => void' is not assignable to type '(prevState: string) => string'.
+      Type 'void' is not assignable to type 'string'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(419,31): error TS2345: Argument of type '"Search for and select a customer first."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(420,18): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(420,74): error TS2345: Argument of type '"This customer has balances in multiple departments — choose which one this payment applies to."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(422,32): error TS2345: Argument of type '"Enter an amount greater than zero."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(426,31): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(429,24): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type '(prevState: null) => null'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(431,135): error TS2339: Property 'hno' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(436,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(445,30): error TS2339: Property 'payments' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(446,5): error TS18047: 'win' is possibly 'null'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(450,34): error TS2339: Property 'customer' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(450,68): error TS2339: Property 'customer' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(451,42): error TS2339: Property 'amount' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(451,76): error TS2339: Property 'method' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(453,21): error TS2339: Property 'unapplied' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(453,97): error TS2339: Property 'unapplied' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(455,5): error TS18047: 'win' is possibly 'null'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(456,5): error TS18047: 'win' is possibly 'null'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(486,25): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(486,91): error TS2339: Property 'hno' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(488,181): error TS2339: Property 'outstanding_balance' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(489,159): error TS2339: Property 'last_delivery_date' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(489,196): error TS2339: Property 'last_delivery_date' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(490,158): error TS2339: Property 'last_payment_date' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(490,194): error TS2339: Property 'last_payment_date' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(496,25): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(501,31): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(507,25): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(508,86): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(533,102): error TS2339: Property 'payments' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(552,75): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(552,85): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(552,93): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(552,101): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(597,27): error TS2554: Expected 3 arguments, but got 2.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(597,83): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(627,30): error TS2554: Expected 3 arguments, but got 2.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(627,71): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(684,29): error TS2345: Argument of type '"No customer found with that HNO, name, or phone."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(686,22): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type '(prevState: null) => null'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(688,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(708,28): error TS2339: Property 'customer' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(708,55): error TS2339: Property 'customer' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(717,31): error TS2339: Property 'statement' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(720,58): error TS2339: Property 'closing_balance' does not exist on type 'never'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(757,17): error TS2322: Type 'string | (() => void)' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type '() => void' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/app/dashboard/finance/BillingCollectionsTab.tsx(757,53): error TS2349: This expression is not callable.
+  Not all constituents of type 'string | (() => void)' are callable.
+    Type 'string' has no call signatures.
+src/app/dashboard/finance/page.tsx(107,106): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(107,122): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(134,26): error TS2339: Property 'description' does not exist on type '{}'.
+src/app/dashboard/finance/page.tsx(135,31): error TS2339: Property 'entry_date' does not exist on type '{}'.
+src/app/dashboard/finance/page.tsx(136,20): error TS2339: Property 'lines' does not exist on type '{}'.
+src/app/dashboard/finance/page.tsx(156,18): error TS2345: Argument of type '"Journal entry updated." | "Journal entry saved."' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type '"Journal entry updated."' is not assignable to type 'SetStateAction<null>'.
+src/app/dashboard/finance/page.tsx(160,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/finance/page.tsx(164,47): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/finance/page.tsx(177,13): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/finance/page.tsx(184,15): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type '{}' provides no match for the signature '(prevState: null): null'.
+src/app/dashboard/finance/page.tsx(294,23): error TS2339: Property 'entry_number' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(294,47): error TS2339: Property 'description' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(302,26): error TS2339: Property 'lines' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(465,6): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(465,17): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(465,33): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(499,76): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(523,94): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(523,110): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(525,72): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(525,101): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(526,6): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(526,25): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(526,31): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(526,50): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(556,76): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(585,92): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(585,108): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(587,70): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(587,99): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(588,6): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(588,25): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(588,31): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(588,50): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/finance/page.tsx(622,106): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/finance/page.tsx(677,18): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/finance/page.tsx(720,18): error TS2345: Argument of type '"Expense recorded."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/finance/page.tsx(724,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/finance/page.tsx(735,13): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/inventory/MovementsTab.tsx(16,102): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/inventory/MovementsTab.tsx(16,118): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/inventory/MovementsTab.tsx(47,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/inventory/page.tsx(18,18): error TS2532: Object is possibly 'undefined'.
+src/app/dashboard/inventory/ProductsTab.tsx(16,79): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/inventory/ProductsTab.tsx(16,87): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/inventory/ProductsTab.tsx(31,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/inventory/StockLevelsTab.tsx(10,107): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/inventory/WarehousesTab.tsx(28,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/maintenance/page.tsx(106,18): error TS2532: Object is possibly 'undefined'.
+src/app/dashboard/procurement/page.tsx(14,18): error TS2532: Object is possibly 'undefined'.
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(71,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(164,18): error TS2353: Object literal may only specify known properties, and 'po' does not exist in type '(prevState: null) => null'.
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(164,58): error TS2339: Property 'items' does not exist on type '{}'.
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(181,13): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(196,21): error TS2739: Type '{ suppliers: any; products: any; onCreated: () => void; onCancel: () => void; }' is missing the following properties from type '{ suppliers: any; products: any; onCreated: any; onCancel: any; editingPo: any; editingItems: any; }': editingPo, editingItems
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(200,30): error TS2339: Property 'po' does not exist on type 'never'.
+src/app/dashboard/procurement/PurchaseOrdersTab.tsx(200,56): error TS2339: Property 'items' does not exist on type 'never'.
+src/app/dashboard/procurement/SuppliersTab.tsx(28,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/BatchesTab.tsx(61,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/BatchesTab.tsx(89,13): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/BatchesTab.tsx(94,18): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/production/BatchesTab.tsx(100,39): error TS2345: Argument of type '"Select a QC Status before completing this batch."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/production/BatchesTab.tsx(116,24): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/BomTab.tsx(60,18): error TS2345: Argument of type '"Bill of materials saved."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/production/BomTab.tsx(64,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(43,112): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(43,128): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(89,116): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(89,125): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(89,131): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(137,196): error TS18048: 'department' is possibly 'undefined'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(138,198): error TS18048: 'department' is possibly 'undefined'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(150,92): error TS18048: 'department' is possibly 'undefined'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(187,122): error TS18048: 'department' is possibly 'undefined'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(207,56): error TS18048: 'department' is possibly 'undefined'.
+src/app/dashboard/production/CapacityCalendarTab.tsx(224,68): error TS18048: 'department' is possibly 'undefined'.
+src/app/dashboard/production/DowntimeTab.tsx(45,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/MachinesTab.tsx(30,18): error TS2345: Argument of type '"Machine registered."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/production/MachinesTab.tsx(34,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/production/ProductionReportsTab.tsx(27,77): error TS2322: Type 'number' is not assignable to type 'never'.
+src/app/dashboard/production/QualityControlTab.tsx(44,23): error TS18046: 'a' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(44,43): error TS18046: 'b' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(46,36): error TS18046: 'd' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(46,128): error TS18046: 'd' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(46,139): error TS18046: 'd' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(46,164): error TS18046: 'd' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(46,177): error TS18046: 'd' is of type 'unknown'.
+src/app/dashboard/production/QualityControlTab.tsx(46,188): error TS18046: 'd' is of type 'unknown'.
+src/app/dashboard/reports/page.tsx(56,88): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(56,104): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(76,98): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(76,114): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(98,95): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(98,111): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(100,73): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(100,102): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(101,6): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(101,25): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(101,31): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(101,50): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(165,97): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(165,113): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(188,100): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(188,116): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(209,99): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(209,115): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(211,77): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(211,106): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(212,6): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(212,25): error TS2339: Property 'from' does not exist on type 'never'.
+src/app/dashboard/reports/page.tsx(212,31): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/reports/page.tsx(212,50): error TS2339: Property 'to' does not exist on type 'never'.
+src/app/dashboard/sales/CustomersTab.tsx(25,13): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/CustomersTab.tsx(93,65): error TS2339: Property 'qaade_id' does not exist on type '{ name: string; customer_type: string; phone: string; address: string; tank_number: string; }'.
+src/app/dashboard/sales/CustomersTab.tsx(93,88): error TS2339: Property 'qaade_id' does not exist on type '{ name: string; customer_type: string; phone: string; address: string; tank_number: string; }'.
+src/app/dashboard/sales/CustomersTab.tsx(98,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/OrdersTab.tsx(182,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/OrdersTab.tsx(270,68): error TS2554: Expected 1 arguments, but got 2.
+src/app/dashboard/sales/OrdersTab.tsx(271,35): error TS2345: Argument of type '{ data: {}; }' is not assignable to parameter of type 'Blob | MediaSource'.
+src/app/dashboard/sales/OrdersTab.tsx(305,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/OrdersTab.tsx(376,18): error TS2353: Object literal may only specify known properties, and 'order' does not exist in type '(prevState: null) => null'.
+src/app/dashboard/sales/OrdersTab.tsx(376,61): error TS2339: Property 'items' does not exist on type '{}'.
+src/app/dashboard/sales/OrdersTab.tsx(393,13): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/OrdersTab.tsx(405,10): error TS2739: Type '{ customers: any; products: any; onCreated: () => void; onCancel: () => void; }' is missing the following properties from type '{ customers: any; products: any; onCreated: any; onCancel: any; editingOrder: any; editingItems: any; }': editingOrder, editingItems
+src/app/dashboard/sales/OrdersTab.tsx(411,33): error TS2339: Property 'order' does not exist on type 'never'.
+src/app/dashboard/sales/OrdersTab.tsx(411,62): error TS2339: Property 'items' does not exist on type 'never'.
+src/app/dashboard/sales/OrdersTab.tsx(445,95): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/sales/ProductLineTab.tsx(36,47): error TS2571: Object is of type 'unknown'.
+src/app/dashboard/sales/ProductLineTab.tsx(36,54): error TS2571: Object is of type 'unknown'.
+src/app/dashboard/sales/ProductLineTab.tsx(46,46): error TS18046: 'b' is of type 'unknown'.
+src/app/dashboard/sales/ProductLineTab.tsx(46,58): error TS18046: 'a' is of type 'unknown'.
+src/app/dashboard/sales/QaadesTab.tsx(78,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/RetailSalesTab.tsx(33,68): error TS2554: Expected 1 arguments, but got 2.
+src/app/dashboard/sales/RetailSalesTab.tsx(34,35): error TS2345: Argument of type '{ data: {}; }' is not assignable to parameter of type 'Blob | MediaSource'.
+src/app/dashboard/sales/RetailSalesTab.tsx(47,83): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(77,33): error TS2345: Argument of type '"Select a customer."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/RetailSalesTab.tsx(78,34): error TS2345: Argument of type '"Select a warehouse."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/RetailSalesTab.tsx(79,89): error TS2345: Argument of type '"Every line needs a product, quantity, and unit price."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/RetailSalesTab.tsx(91,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/RetailSalesTab.tsx(181,54): error TS2339: Property 'sale_type' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(181,124): error TS2339: Property 'invoice_hno' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(181,161): error TS2339: Property 'total_amount' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(181,187): error TS2339: Property 'payment_status' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(182,91): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(196,34): error TS2345: Argument of type '{ department: string | (() => void); }' is not assignable to parameter of type 'string | Record<string, string> | URLSearchParams | string[][] | undefined'.
+  Types of property 'department' are incompatible.
+    Type 'string | (() => void)' is not assignable to type 'string | undefined'.
+      Type '() => void' is not assignable to type 'string'.
+src/app/dashboard/sales/RetailSalesTab.tsx(198,62): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(198,74): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(264,34): error TS2339: Property 'map' does not exist on type '{}'.
+src/app/dashboard/sales/RetailSalesTab.tsx(275,77): error TS2345: Argument of type 'string | (() => void)' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type '() => void' is not assignable to type 'SetStateAction<string>'.
+    Type '() => void' is not assignable to type '(prevState: string) => string'.
+      Type 'void' is not assignable to type 'string'.
+src/app/dashboard/sales/RetailSalesTab.tsx(283,18): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(283,73): error TS2345: Argument of type '"This customer owes in both Bottled Water and Ice — choose which one this payment applies to."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/RetailSalesTab.tsx(285,32): error TS2345: Argument of type '"Enter an amount greater than zero."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/RetailSalesTab.tsx(289,31): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(291,24): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type '(prevState: null) => null'.
+src/app/dashboard/sales/RetailSalesTab.tsx(293,111): error TS2339: Property 'hno' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(299,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/RetailSalesTab.tsx(332,25): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(332,91): error TS2339: Property 'hno' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(336,25): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(341,31): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(345,153): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(359,81): error TS2339: Property 'department_balances' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(366,102): error TS2339: Property 'payments' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(380,77): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(380,124): error TS2322: Type 'null' is not assignable to type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(380,134): error TS2322: Type 'string | (() => void)' is not assignable to type 'never'.
+  Type 'string' is not assignable to type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(381,72): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(381,96): error TS2322: Type 'null' is not assignable to type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(387,16): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type '{}' provides no match for the signature '(prevState: null): null'.
+src/app/dashboard/sales/RetailSalesTab.tsx(413,27): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(413,93): error TS2339: Property 'hno' does not exist on type 'never'.
+src/app/dashboard/sales/RetailSalesTab.tsx(571,14): error TS2532: Object is possibly 'undefined'.
+src/app/dashboard/sales/RetailSalesTab.tsx(597,53): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type 'string | (() => void)'.
+  Type 'Dispatch<SetStateAction<string>>' is not assignable to type '() => void'.
+    Target signature provides too few arguments. Expected 1 or more, but got 0.
+src/app/dashboard/sales/SalesReportsTab.tsx(14,97): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/sales/SalesReportsTab.tsx(14,113): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/sales/SalesReportsTab.tsx(33,100): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/sales/SalesReportsTab.tsx(33,116): error TS2322: Type 'any' is not assignable to type 'never'.
+src/app/dashboard/sales/SalesReportsTab.tsx(54,33): error TS2739: Type '{ value: { key: string; from: string; to: string; label: any; compare: null; }; onChange: Dispatch<SetStateAction<{ key: string; from: string; to: string; label: any; compare: null; }>>; title: string; }' is missing the following properties from type '{ value: any; onChange: any; columns: any; rows: any; title?: string | undefined; }': columns, rows
+src/app/dashboard/sales/TankersTab.tsx(43,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TankersTab.tsx(50,20): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/sales/TankersTab.tsx(53,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TankersTab.tsx(136,16): error TS2345: Argument of type '"A reason is required when changing the Plate Number"' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/TankersTab.tsx(142,14): error TS2339: Property 'plate_number' does not exist on type '{ assigned_driver_id: any; status: any; notes: any; }'.
+src/app/dashboard/sales/TankersTab.tsx(143,14): error TS2339: Property 'model' does not exist on type '{ assigned_driver_id: any; status: any; notes: any; }'.
+src/app/dashboard/sales/TankersTab.tsx(144,32): error TS2339: Property 'reason' does not exist on type '{ assigned_driver_id: any; status: any; notes: any; }'.
+src/app/dashboard/sales/TankersTab.tsx(149,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TanksTab.tsx(42,95): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/sales/TanksTab.tsx(58,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(48,20): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/sales/TruckLoadsTab.tsx(51,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(57,20): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/sales/TruckLoadsTab.tsx(60,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(187,72): error TS2339: Property 'liters' does not exist on type '{}'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(196,16): error TS2345: Argument of type '"Finished Water Warehouse / Bulk Water product not found — contact Admin."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(201,16): error TS2345: Argument of type '"Cannot open Route Session. Load water first or use a truck with existing remaining stock."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(215,11): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(216,18): error TS2345: Argument of type '"This truck already has an active Route Session."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(218,18): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(296,16): error TS2345: Argument of type '"Select a reason for the difference"' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(300,16): error TS2345: Argument of type '"A note is required when the reason is \"Other\""' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/dashboard/sales/TruckLoadsTab.tsx(312,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/settings/AuditLogTab.tsx(15,64): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/settings/AuditLogTab.tsx(15,76): error TS2322: Type 'string' is not assignable to type 'never'.
+src/app/dashboard/settings/BackupsTab.tsx(36,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/settings/BackupsTab.tsx(74,20): error TS2554: Expected 2 arguments, but got 1.
+src/app/dashboard/settings/BackupsTab.tsx(78,16): error TS18046: 'err' is of type 'unknown'.
+src/app/dashboard/settings/BackupsTab.tsx(85,61): error TS2554: Expected 1 arguments, but got 2.
+src/app/dashboard/settings/BackupsTab.tsx(86,37): error TS2345: Argument of type '{ data: {}; }' is not assignable to parameter of type 'Blob | MediaSource'.
+src/app/dashboard/settings/page.tsx(16,18): error TS2532: Object is possibly 'undefined'.
+src/app/dashboard/settings/UsersTab.tsx(25,16): error TS18046: 'err' is of type 'unknown'.
+src/components/erp/DateFilterBar.tsx(44,81): error TS2339: Property 'contains' does not exist on type 'never'.
+src/components/erp/DateFilterBar.tsx(144,17): error TS18048: 'preset' is possibly 'undefined'.
+src/components/erp/DateFilterBar.tsx(144,35): error TS18048: 'preset' is possibly 'undefined'.
+src/components/erp/DateFilterBar.tsx(144,52): error TS18048: 'preset' is possibly 'undefined'.
+src/components/erp/DateFilterBar.tsx(144,70): error TS18048: 'preset' is possibly 'undefined'.
+src/components/erp/QuickSearch.tsx(3,29): error TS2307: Cannot find module 'react-router-dom' or its corresponding type declarations.
+src/components/erp/QuickSearch.tsx(23,57): error TS2339: Property 'contains' does not exist on type 'never'.
+src/components/erp/Table.tsx(38,35): error TS2339: Property 'key' does not exist on type 'never'.
+src/components/erp/Table.tsx(39,35): error TS2339: Property 'key' does not exist on type 'never'.
+src/components/erp/Table.tsx(46,19): error TS2339: Property 'dir' does not exist on type 'never'.
+src/components/erp/Table.tsx(59,13): error TS2345: Argument of type '(prev: null) => { key: any; dir: string; } | null' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type '{ key: any; dir: string; } | null' is not assignable to type 'null'.
+    Type '{ key: any; dir: string; }' is not assignable to type 'null'.
+src/components/erp/Table.tsx(60,25): error TS2339: Property 'key' does not exist on type 'never'.
+src/components/erp/Table.tsx(61,16): error TS2339: Property 'dir' does not exist on type 'never'.
+src/components/erp/Table.tsx(89,42): error TS2339: Property 'key' does not exist on type 'never'.
+src/components/erp/Table.tsx(95,40): error TS18047: 'sort' is possibly 'null'.
+src/components/erp/useApi.ts(58,26): error TS2345: Argument of type '{ name: any; amount: any; }' is not assignable to parameter of type 'never'.
+src/components/erp/useApi.ts(62,27): error TS2345: Argument of type '{ name: any; amount: number; }' is not assignable to parameter of type 'never'.
+src/components/erp/useApi.ts(90,25): error TS2345: Argument of type '{ name: any; balance: any; }' is not assignable to parameter of type 'never'.
+src/components/erp/useApi.ts(94,30): error TS2345: Argument of type '{ name: any; balance: number; }' is not assignable to parameter of type 'never'.
+src/components/erp/useApi.ts(98,25): error TS2345: Argument of type '{ name: any; balance: number; }' is not assignable to parameter of type 'never'.
+src/components/erp/useApi.ts(309,15): error TS2345: Argument of type '{ rows: any; }' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type '{ rows: any; }' provides no match for the signature '(prevState: null): null'.
+src/components/erp/useApi.ts(322,14): error TS2698: Spread types may only be created from object types.

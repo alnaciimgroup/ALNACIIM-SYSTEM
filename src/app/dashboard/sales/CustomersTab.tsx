@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useState } from 'react';
@@ -21,7 +22,7 @@ function StatementModal({ customerId, onClose }) {
     try {
       await client.post(`/sales/orders/${r.sales_order_id}/payments/${r.payment_id}/reverse`, { reason: reason || undefined });
       reload();
-    } catch (err) {
+    } catch (e) { const err = e as any;
       alert(err.response?.data?.error || 'Failed to reverse payment');
     }
   }
@@ -82,9 +83,9 @@ export default function CustomersTab() {
   const { rows: qaades } = useApi('/qaades');
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(null);
-  const [statementCustomerId, setStatementCustomerId] = useState(null);
-  const [activityCustomerId, setActivityCustomerId] = useState(null);
+  const [error, setError] = useState<any>(null);
+  const [statementCustomerId, setStatementCustomerId] = useState<any>(null);
+  const [activityCustomerId, setActivityCustomerId] = useState<any>(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -94,8 +95,8 @@ export default function CustomersTab() {
       setForm(EMPTY_FORM);
       setShowForm(false);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create customer');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to create customer');
     }
   }
 

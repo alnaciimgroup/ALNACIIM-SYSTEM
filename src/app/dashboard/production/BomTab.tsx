@@ -38,9 +38,9 @@ export default function BomTab() {
   const [name, setName] = useState('');
   const [items, setItems] = useState([{ raw_material_product_id: '', quantity_per_unit: '' }]);
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [viewingId, setViewingId] = useState(null);
+  const [error, setError] = useState<any>(null);
+  const [success, setSuccess] = useState<any>(null);
+  const [viewingId, setViewingId] = useState<any>(null);
 
   function updateItem(i, field, value) {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, [field]: value } : it)));
@@ -60,8 +60,8 @@ export default function BomTab() {
       setSuccess('Bill of materials saved.');
       setTimeout(() => setSuccess(null), 4000);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create BOM');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to create BOM');
     }
   }
 

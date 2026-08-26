@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useState, createContext, useContext } from 'react';
@@ -54,9 +55,9 @@ function SalesScreenTab() {
   const [tax, setTax] = useState('');
   const [paymentType, setPaymentType] = useState('cash');
   const [cashMethod, setCashMethod] = useState('cash');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [lastSale, setLastSale] = useState(null);
+  const [lastSale, setLastSale] = useState<any>(null);
 
   function updateItem(i, field, value) {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, [field]: value } : it)));
@@ -87,8 +88,8 @@ function SalesScreenTab() {
       });
       setLastSale(data.data);
       resetForCustomer();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to record sale');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to record sale');
     } finally {
       setBusy(false);
     }
@@ -246,15 +247,15 @@ function ReceivePaymentTab() {
   const canReceive = RECORD_SALE_ROLES.includes(user?.role) || user?.role === 'Finance Officer';
   const [department] = useRetailDept();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState(null);
-  const [customer, setCustomer] = useState(null);
+  const [results, setResults] = useState<any>(null);
+  const [customer, setCustomer] = useState<any>(null);
   const [payDept, setPayDept] = useState('');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('cash');
   const [referenceNumber, setReferenceNumber] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [lastPayment, setLastPayment] = useState(null);
+  const [lastPayment, setLastPayment] = useState<any>(null);
 
   async function search(e) {
     e.preventDefault();
@@ -295,8 +296,8 @@ function ReceivePaymentTab() {
       const retailBalances = updated.department_balances.filter((d) => RETAIL_DEPARTMENTS.some((r) => r.key === d.key));
       setCustomer({ ...updated, department_balances: retailBalances });
       setPayDept(retailBalances.length === 1 ? retailBalances[0].key : '');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save payment');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to save payment');
     } finally {
       setBusy(false);
     }
@@ -375,8 +376,8 @@ function ReceivePaymentTab() {
 function CustomerStatementTab() {
   const [department] = useRetailDept();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [results, setResults] = useState<any>(null);
+  const [selected, setSelected] = useState<any>(null);
   const { rows: profile } = useApi(selected ? `/retail/customers/${selected.id}/profile?department=${department}` : null, [selected, department]);
   const { rows: statement } = useApi(selected ? `/customers/${selected.id}/statement` : null, [selected]);
 

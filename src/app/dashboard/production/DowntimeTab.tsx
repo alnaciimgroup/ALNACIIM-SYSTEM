@@ -20,11 +20,11 @@ export default function DowntimeTab() {
   const canReport = ['Admin', 'Production Manager', 'Technician'].includes(user?.role);
   const { rows: machines, reload } = useApi('/production/machines');
   const { rows: summary } = useApi('/reports/dashboard-summary');
-  const [reportingId, setReportingId] = useState(null);
+  const [reportingId, setReportingId] = useState<any>(null);
   const [category, setCategory] = useState('breakdown');
   const [reason, setReason] = useState('');
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState<any>(null);
+  const [success, setSuccess] = useState<any>(null);
   const [openDowntime, setOpenDowntime] = useState({}); // machine_id -> downtime_log id reported this session
 
   function flashSuccess(msg) { setSuccess(msg); setTimeout(() => setSuccess(null), 4000); }
@@ -41,8 +41,8 @@ export default function DowntimeTab() {
       setReason('');
       flashSuccess('Breakdown reported — machine marked down.');
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to report breakdown');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to report breakdown');
     }
   }
 

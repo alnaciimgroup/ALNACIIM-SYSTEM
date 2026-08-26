@@ -7,7 +7,7 @@ export default async function TankDistributionPage() {
   let data;
   try {
     data = await getAgentDashboardData()
-  } catch (err) {
+  } catch (e) { const err = e as any;
     data = {
       staffList: [
         { id: '1', full_name: 'Mohamed' },

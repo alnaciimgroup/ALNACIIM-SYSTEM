@@ -38,7 +38,7 @@ export function BackdatesClient({ initialRequests }: { initialRequests: PendingB
         } else {
           setMessage({ text: res.message, type: 'error' })
         }
-      } catch (err) {
+      } catch (e) { const err = e as any;
         setMessage({ text: 'An unexpected error occurred.', type: 'error' })
       } finally {
         setActiveId(null)
@@ -61,7 +61,7 @@ export function BackdatesClient({ initialRequests }: { initialRequests: PendingB
         } else {
           setMessage({ text: res.message, type: 'error' })
         }
-      } catch (err) {
+      } catch (e) { const err = e as any;
         setMessage({ text: 'An unexpected error occurred.', type: 'error' })
       } finally {
         setActiveId(null)

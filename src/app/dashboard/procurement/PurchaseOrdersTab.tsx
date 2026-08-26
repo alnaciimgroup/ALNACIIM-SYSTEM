@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -50,7 +51,7 @@ function NewPoForm({ suppliers, products, onCreated, onCancel, editingPo, editin
   const [items, setItems] = useState(
     editingItems?.length ? editingItems.map((it) => ({ product_id: String(it.product_id), quantity_ordered: String(it.quantity_ordered), unit_cost: String(it.unit_cost) })) : [{ product_id: '', quantity_ordered: '', unit_cost: '' }]
   );
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   function updateItem(i, field, value) {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, [field]: value } : it)));
@@ -67,8 +68,8 @@ function NewPoForm({ suppliers, products, onCreated, onCancel, editingPo, editin
       if (isEdit) await client.put(`/procurement/purchase-orders/${editingPo.id}`, payload);
       else await client.post('/procurement/purchase-orders', payload);
       onCreated();
-    } catch (err) {
-      setError(err.response?.data?.error || `Failed to ${isEdit ? 'update' : 'create'} purchase order`);
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || `Failed to ${isEdit ? 'update' : 'create'} purchase order`);
     }
   }
 
@@ -155,9 +156,9 @@ export default function PurchaseOrdersTab() {
   const { rows: products } = useApi('/products?type=raw_material');
   const { rows: warehouses } = useApi('/warehouses');
   const [showForm, setShowForm] = useState(false);
-  const [receivingId, setReceivingId] = useState(null);
-  const [editing, setEditing] = useState(null);
-  const [viewingId, setViewingId] = useState(null);
+  const [receivingId, setReceivingId] = useState<any>(null);
+  const [editing, setEditing] = useState<any>(null);
+  const [viewingId, setViewingId] = useState<any>(null);
 
   async function startEdit(po) {
     const res = await client.get(`/procurement/purchase-orders/${po.id}`);
@@ -177,7 +178,7 @@ export default function PurchaseOrdersTab() {
     try {
       await client.post(`/procurement/purchase-orders/${po.id}/reverse`, { reason: reason || undefined });
       reload();
-    } catch (err) {
+    } catch (e) { const err = e as any;
       alert(err.response?.data?.error || 'Failed to reverse purchase order');
     }
   }

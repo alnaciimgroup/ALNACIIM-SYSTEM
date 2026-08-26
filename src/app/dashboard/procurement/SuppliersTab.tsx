@@ -14,7 +14,7 @@ export default function SuppliersTab() {
   const { rows, reload } = useApi('/suppliers');
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -24,8 +24,8 @@ export default function SuppliersTab() {
       setForm(EMPTY_FORM);
       setShowForm(false);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create supplier');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to create supplier');
     }
   }
 

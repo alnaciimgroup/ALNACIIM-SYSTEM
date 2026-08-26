@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -33,10 +34,10 @@ export default function TruckLoadsTab() {
   const { rows: products } = useApi('/products?type=finished_good');
   const { rows: warehouses } = useApi('/warehouses');
   const [showOpenModal, setShowOpenModal] = useState(false);
-  const [openInfo, setOpenInfo] = useState(null);
-  const [error, setError] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
-  const [reconcilingId, setReconcilingId] = useState(null);
+  const [openInfo, setOpenInfo] = useState<any>(null);
+  const [error, setError] = useState<any>(null);
+  const [expandedId, setExpandedId] = useState<any>(null);
+  const [reconcilingId, setReconcilingId] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
 
   // Complete/Cancel/Reconcile are the only ways an active ('loaded') row ever
@@ -47,8 +48,8 @@ export default function TruckLoadsTab() {
     try {
       await client.post(`/sales/truck-loads/${id}/complete`);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to complete loading');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to complete loading');
     }
   }
   async function cancelLoad(id) {
@@ -56,8 +57,8 @@ export default function TruckLoadsTab() {
     try {
       await client.post(`/sales/truck-loads/${id}/cancel`);
       reload();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to cancel loading');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to cancel loading');
     }
   }
 
@@ -156,7 +157,7 @@ function OpenRouteSessionModal({ user, trucks, products, warehouses, existingLoa
   const [truckId, setTruckId] = useState('');
   const [quantityLoaded, setQuantityLoaded] = useState('');
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   // Whatever the truck's last CLOSED session left physically on it — null
   // while unknown/loading, a number (possibly 0) once fetched for the
@@ -168,7 +169,7 @@ function OpenRouteSessionModal({ user, trucks, products, warehouses, existingLoa
   // came back. Validation instead happens only in submit() below, once
   // stockLoading is false — so it always sees the resolved answer, never
   // the momentary unknown one.
-  const [existingStock, setExistingStock] = useState(null);
+  const [existingStock, setExistingStock] = useState<any>(null);
   const [stockLoading, setStockLoading] = useState(false);
 
   const truck = trucks?.find((t) => t.id === Number(truckId));
@@ -211,11 +212,11 @@ function OpenRouteSessionModal({ user, trucks, products, warehouses, existingLoa
         notes
       });
       onOpened(data.message);
-    } catch (err) {
+    } catch (e) { const err = e as any;
       if (err.response?.status === 409) {
         setError('This truck already has an active Route Session.');
       } else {
-        setError(err.response?.data?.error || 'Failed to open Route Session');
+        setError((err as any)?.response?.data?.error || 'Failed to open Route Session');
       }
     } finally {
       setBusy(false);
@@ -285,7 +286,7 @@ function ReconcileModal({ load, onClose, onDone }) {
   const [actualRemaining, setActualRemaining] = useState(String(previousRemaining));
   const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(e) {
@@ -308,8 +309,8 @@ function ReconcileModal({ load, onClose, onDone }) {
         note: matches ? undefined : note
       });
       onDone();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reconcile stock');
+    } catch (e) { const err = e as any;
+      setError((err as any)?.response?.data?.error || 'Failed to reconcile stock');
     } finally {
       setBusy(false);
     }

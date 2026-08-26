@@ -15,7 +15,7 @@ export default function Table({
   sortable = false, pageSize = 0
 }) {
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState(null); // { key, dir }
+  const [sort, setSort] = useState<any>(null); // { key, dir }
   const [page, setPage] = useState(0);
 
   const filtered = useMemo(() => {
