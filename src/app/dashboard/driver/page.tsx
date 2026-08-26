@@ -10,8 +10,8 @@ const STATUS_LABEL = { scheduled: 'Scheduled', in_transit: 'On the way', deliver
 function ConfirmForm({ delivery, onDone }) {
   const [qty, setQty] = useState('');
   const [signature, setSignature] = useState('');
-  const [gps, setGps] = useState(null);
-  const [error, setError] = useState(null);
+  const [gps, setGps] = useState<{lat: number, lng: number} | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   function captureGps() {
