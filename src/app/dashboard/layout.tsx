@@ -34,8 +34,8 @@ export default async function DashboardLayout({
     return redirect('/dashboard/agent')
   }
 
-  if (role === 'superadmin' && pathname === '/dashboard') {
-    return redirect('/dashboard/superadmin')
+  if (role === 'manager' && pathname === '/dashboard') {
+    return redirect('/dashboard/manager')
   }
 
   return (

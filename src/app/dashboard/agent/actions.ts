@@ -26,7 +26,7 @@ export async function submitDistribution(prevState: any, formData: FormData) {
   const { data: truckData } = await supabase.from('trucks').select('id, capacity_liters').eq('driver_id', rawData.staff_id).single()
   
   if (!truckData) {
-    return { message: 'This staff member does not have an assigned truck. Superadmin must assign one first.', errors: true }
+    return { message: 'This staff member does not have an assigned truck. Manager must assign one first.', errors: true }
   }
 
   rawData.truck_id = truckData.id
@@ -440,7 +440,7 @@ export async function logProduction(prevState: any, formData: FormData) {
     const { error } = await supabase
       .from('production_logs')
       .insert({
-        superadmin_id: user.id, // Re-using this column temporarily for the agent
+        manager_id: user.id, // Re-using this column temporarily for the agent
         liters_produced: liters
       })
 

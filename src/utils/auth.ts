@@ -21,7 +21,7 @@ export async function verifySession(allowedRoles?: string[]) {
 
 export async function isAdmin() {
   const { role } = await verifySession()
-  return role === 'accountant' || role === 'superadmin'
+  return role === 'accountant' || role === 'manager'
 }
 
 export async function isAgent() {

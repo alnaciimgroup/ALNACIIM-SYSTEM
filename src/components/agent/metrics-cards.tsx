@@ -23,7 +23,7 @@ export function AgentMetricsCards({ metrics }: { metrics: MetricsProps }) {
           <span className="text-[38px] font-extrabold tracking-tight leading-none block mb-1.5">
             {metrics.availableLiters?.toLocaleString() || 0} <span className="text-[18px]">L</span>
           </span>
-          <p className="text-[12px] text-white font-medium opacity-80">Call Superadmin for refill if low.</p>
+          <p className="text-[12px] text-white font-medium opacity-80">Call Manager for refill if low.</p>
         </div>
       </div>
 

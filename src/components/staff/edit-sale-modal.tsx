@@ -14,7 +14,7 @@ interface EditSaleModalProps {
     quantity: number
     unitPrice: number
   }
-  role?: 'staff' | 'accountant' | 'superadmin'
+  role?: 'staff' | 'accountant' | 'manager'
 }
 
 export function EditSaleModal({ isOpen, onClose, sale, role = 'staff' }: EditSaleModalProps) {

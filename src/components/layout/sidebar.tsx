@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle, Upload, Clock } from 'lucide-react'
+import { LayoutDashboard, Users, Calculator, Droplet, History, LogOut, BarChart2, Settings, User as UserIcon, Banknote, List, X, AlertCircle, Upload, Clock, Building, Package, Factory, Wrench, ShoppingCart, Truck } from 'lucide-react'
 
 export function Sidebar({ 
   role, 
@@ -24,14 +24,26 @@ export function Sidebar({
           { name: 'Staff List', href: '/dashboard/agent/staff', icon: Users },
           { name: 'Distribution History', href: '/dashboard/agent/history', icon: History },
           { name: 'Reports', href: '/dashboard/agent/reports', icon: BarChart2 },
+          { name: 'Sales POS', href: '/dashboard/sales', icon: Calculator },
+          { name: 'Logistics', href: '/dashboard/driver', icon: Truck },
+          { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
         ]
-      case 'superadmin':
+      case 'manager':
         return [
-          { name: 'Dashboard', href: '/dashboard/superadmin', icon: LayoutDashboard },
-          { name: 'Manage Users', href: '/dashboard/superadmin/users', icon: Users },
-          { name: 'Import Data', href: '/dashboard/superadmin/import', icon: Upload },
-          { name: 'System Logs', href: '/dashboard/superadmin/logs', icon: History },
-          { name: 'Settings', href: '/dashboard/superadmin/settings', icon: Settings },
+          { name: 'Dashboard', href: '/dashboard/manager', icon: LayoutDashboard },
+          { name: 'Manage Users', href: '/dashboard/manager/users', icon: Users },
+          { name: 'Import Data', href: '/dashboard/manager/import', icon: Upload },
+          { name: 'System Logs', href: '/dashboard/manager/logs', icon: History },
+          { name: 'Finance', href: '/dashboard/finance', icon: Building },
+          { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
+          { name: 'Production', href: '/dashboard/production', icon: Factory },
+          { name: 'Procurement', href: '/dashboard/procurement', icon: ShoppingCart },
+          { name: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench },
+          { name: 'Sales POS', href: '/dashboard/sales', icon: Calculator },
+          { name: 'Logistics', href: '/dashboard/driver', icon: Truck },
+          { name: 'ERP Reports', href: '/dashboard/reports', icon: BarChart2 },
+          { name: 'ERP Settings', href: '/dashboard/settings', icon: Settings },
+          { name: 'System Settings', href: '/dashboard/manager/settings', icon: Settings },
         ]
       case 'staff':
         return [
@@ -55,6 +67,13 @@ export function Sidebar({
           { name: 'Backdate Requests', href: '/dashboard/accountant/backdates', icon: Clock },
           { name: 'Staff List', href: '/dashboard/accountant/staff', icon: List },
           { name: 'Reports', href: '/dashboard/accountant/reports', icon: BarChart2 },
+          { name: 'Finance', href: '/dashboard/finance', icon: Building },
+          { name: 'Procurement', href: '/dashboard/procurement', icon: ShoppingCart },
+        ]
+      case 'production':
+        return [
+          { name: 'Dashboard', href: '/dashboard/production', icon: LayoutDashboard },
+          { name: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench },
         ]
       default:
         return [

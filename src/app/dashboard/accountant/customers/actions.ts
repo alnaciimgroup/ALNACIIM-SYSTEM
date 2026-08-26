@@ -6,7 +6,7 @@ import { verifySession } from '@/utils/auth'
 
 export async function getAccountantCustomers(search?: string, page: number = 1) {
   try {
-    await verifySession(['accountant', 'superadmin'])
+    await verifySession(['accountant', 'manager'])
     const supabase = await createClient()
 
     const limit = 10
@@ -98,7 +98,7 @@ export async function getAccountantCustomers(search?: string, page: number = 1) 
 
 export async function getAllAccountantCustomers(search?: string) {
   try {
-    await verifySession(['accountant', 'superadmin'])
+    await verifySession(['accountant', 'manager'])
     const supabase = await createClient()
 
     let query = supabase
@@ -140,7 +140,7 @@ export async function getAllAccountantCustomers(search?: string) {
 
 export async function getCustomerDetailedData(id: string) {
   try {
-    await verifySession(['accountant', 'superadmin'])
+    await verifySession(['accountant', 'manager'])
     const supabase = await createClient()
 
     // 1. Fetch Profile, Sales, and Payments in PARALLEL (Massive Speed Boost)

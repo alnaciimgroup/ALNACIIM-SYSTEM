@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Shared Tank Numbers Report</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .header {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .company-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+    
+    .report-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #059669;
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .meta-card {
+      background-color: #f8fafc;
+      border: 1px solid #f1f5f9;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .meta-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    .meta-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+    
+    .success-banner {
+      background-color: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      margin-top: 40px;
+    }
+    
+    .success-icon {
+      font-size: 40px;
+      color: #059669;
+      margin-bottom: 10px;
+    }
+    
+    .success-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #065f46;
+    }
+    
+    .success-desc {
+      font-size: 13px;
+      color: #047857;
+      margin-top: 5px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 10px 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+    
+    tr {
+      page-break-inside: avoid;
+    }
+    
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="company-title">Alnaciim Group</div>
+    <div class="report-title">Shared Customer Tanks Audit Report</div>
+  </div>
+  
+  <div class="meta-grid">
+    <div class="meta-card">
+      <div class="meta-val">15,437</div>
+      <div class="meta-lbl">Total Customers</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-val">0</div>
+      <div class="meta-lbl">Shared Tank IDs</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-val">0</div>
+      <div class="meta-lbl">Affected Customer Profiles</div>
+    </div>
+  </div>
+
+  
+      <div class="success-banner">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Audit Completed Successfully</div>
+        <div class="success-desc">All customer tank numbers are now uniquely assigned. No duplicate or shared tanks detected.</div>
+      </div>
+      
+
+</body>
+</html>
+  

@@ -1,0 +1,66 @@
+import { Header } from '@/components/layout/header'
+import { ManagerMetricsCards } from '@/components/manager/metrics-cards'
+import { UserList } from '@/components/manager/user-list'
+import Link from 'next/link'
+import { PlusCircle } from 'lucide-react'
+import { createAdminClient } from '@/utils/supabase/admin'
+
+export default async function ManagerDashboard() {
+  const supabase = createAdminClient()
+
+  // Fetch all users from Auth Admin API for absolute source of truth
+  const { data: { users: authUsers }, error } = await supabase.auth.admin.listUsers()
+  
+  if (error) {
+    console.error('Manager Metrics Error:', error)
+  }
+
+  const metrics = {
+    agents: authUsers?.filter(u => (u.user_metadata?.role || u.app_metadata?.role) === 'agent').length || 0,
+    staff: authUsers?.filter(u => (u.user_metadata?.role || u.app_metadata?.role) === 'staff').length || 0,
+    accountants: authUsers?.filter(u => (u.user_metadata?.role || u.app_metadata?.role) === 'accountant').length || 0,
+    total: authUsers?.length || 0
+  }
+
+  const recentUsers = (authUsers || []).map(u => ({
+    id: u.id,
+    name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User',
+    email: u.email,
+    role: (u.user_metadata?.role || u.app_metadata?.role || 'staff').toUpperCase(),
+    status: 'Active'
+  }))
+
+  const data = {
+    metrics,
+    recentUsers
+  }
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden w-full bg-[#f8fafc]">
+      <Header title="Manager Dashboard" />
+      <main className="flex-1 overflow-y-auto px-8 pt-6 pb-8">
+        <div className="w-full">
+          <section className="mb-8">
+            <div className="flex justify-between items-end mb-6">
+              <div>
+                <h2 className="text-[18px] font-bold text-[#0f172a] mb-1 tracking-tight">System Node Overview</h2>
+                <p className="text-[14px] font-medium text-[#64748b]">Monitor and manage all operational system accounts</p>
+              </div>
+              
+              <Link href="/dashboard/manager/users" className="bg-[#4fa0ff] hover:bg-[#3b82f6] text-white font-bold h-[44px] px-6 rounded-[12px] flex items-center gap-2 transition-colors shadow-sm">
+                <PlusCircle size={18} strokeWidth={2.5} />
+                Provision Account
+              </Link>
+            </div>
+            
+            <ManagerMetricsCards metrics={data.metrics} />
+          </section>
+
+          <section className="grid grid-cols-1 gap-6">
+            <UserList users={data.recentUsers} />
+          </section>
+        </div>
+      </main>
+    </div>
+  )
+}

@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
 
     const role = user.user_metadata?.role || user.app_metadata?.role || 'staff'
     
-    // Strict Route Protection
+    // Strict Route Protection for 5 Big Roles
     if (request.nextUrl.pathname.startsWith('/dashboard/agent') && role !== 'agent') {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
     }
@@ -56,7 +56,14 @@ export async function updateSession(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith('/dashboard/accountant') && role !== 'accountant') {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
     }
-    if (request.nextUrl.pathname.startsWith('/dashboard/superadmin') && role !== 'superadmin') {
+    if (request.nextUrl.pathname.startsWith('/dashboard/production') && role !== 'production') {
+      return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
+    }
+    if (request.nextUrl.pathname.startsWith('/dashboard/manager') && role !== 'manager') {
+      return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
+    }
+    
+    if (request.nextUrl.pathname.startsWith('/dashboard/sales') && !['manager', 'agent', 'accountant'].includes(role)) {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
     }
   }
