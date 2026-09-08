@@ -61,22 +61,22 @@ export default async function SystemLogsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                      log.action === 'CREATE' ? 'bg-green-50 text-green-700 border-green-200' :
-                      log.action === 'UPDATE' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                      log.action === 'DELETE' ? 'bg-red-50 text-red-700 border-red-200' :
+                      log.action_type?.includes('CREATE') ? 'bg-green-50 text-green-700 border-green-200' :
+                      log.action_type?.includes('UPDATE') ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                      log.action_type?.includes('DELETE') ? 'bg-red-50 text-red-700 border-red-200' :
                       'bg-gray-50 text-gray-700 border-gray-200'
                     }`}>
-                      {log.action}
+                      {log.action_type || 'UNKNOWN'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 capitalize">
-                    {log.entity_type.replace('_', ' ')}
+                    {(log.target_table || 'System').replace('_', ' ')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                    {log.entity_id.substring(0, 8)}...
+                    {log.target_id ? log.target_id.substring(0, 8) + '...' : '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
-                    {log.details ? JSON.stringify(log.details) : '-'}
+                    {log.metadata ? JSON.stringify(log.metadata) : '-'}
                   </td>
                 </tr>
               ))}
