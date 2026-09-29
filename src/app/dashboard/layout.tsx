@@ -39,13 +39,18 @@ export default async function DashboardLayout({
     return redirect('/dashboard/manager')
   }
 
+  // Map Supabase base roles to ERP legacy roles for permissions
+  let erpRole = role;
+  if (role === 'manager') erpRole = 'Admin';
+  else if (role === 'accountant') erpRole = 'Finance Officer';
+
   return (
     <DashboardContainer 
       role={role} 
       userName={fullName}
       sidebar={<Sidebar role={role} logoutAction={logout} />}
     >
-      <AuthProvider user={{ role, full_name: fullName }}>
+      <AuthProvider user={{ role: erpRole, full_name: fullName }}>
         {children}
       </AuthProvider>
     </DashboardContainer>
