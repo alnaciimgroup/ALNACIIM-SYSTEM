@@ -273,7 +273,7 @@ async function fetchSupabaseData(endpoint) {
     const orderId = pathParts.length > 3 ? pathParts[3] : null;
 
     if (orderId) {
-      const { data: order } = await supabase.from('sales_orders').select('*, customers(name)').eq('id', orderId).single();
+      const { data: order } = await supabase.from('sales_orders').select('*, customers(name, debt)').eq('id', orderId).single();
       const { data: items } = await supabase.from('sales_order_items').select('*, products(name)').eq('sales_order_id', orderId);
       const { data: payments } = await supabase.from('payments').select('*').eq('sales_order_id', orderId);
       
@@ -281,6 +281,8 @@ async function fetchSupabaseData(endpoint) {
         rows: { 
           ...order, 
           customer_name: order?.customers?.name,
+          customer_outstanding_balance: order?.customers?.debt || 0,
+          amount_paid: (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
           items: (items || []).map(i => ({ ...i, product_name: i.products?.name })),
           payments: payments || []
         } 
