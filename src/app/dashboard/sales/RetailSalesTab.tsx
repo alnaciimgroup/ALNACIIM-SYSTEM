@@ -14,7 +14,7 @@ import { useAuth } from '@/components/erp/AuthContext';
 
 function money(v) { return `$${Number(v || 0).toFixed(2)}`; }
 
-const RECORD_SALE_ROLES = ['Admin', 'Sales Manager', 'Cashier'];
+const RECORD_SALE_ROLES = ['Admin', 'Sales Manager', 'Cashier', 'manager', 'agent', 'staff'];
 const PAY_BADGE = { unpaid: 'low', partial: 'pending', paid: 'ok' };
 
 // ---------------------------------------------------------------------
