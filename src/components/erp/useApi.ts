@@ -10,6 +10,9 @@ function createSafeProxy() {
       if (prop === 'toFixed') return () => '0.0';
       if (prop === 'map') return () => [];
       if (prop === 'filter') return () => [];
+      if (prop === 'find') return () => null;
+      if (prop === 'some') return () => false;
+      if (prop === 'includes') return () => false;
       if (prop === 'reduce') return () => 0;
       if (prop === 'slice') return () => [];
       if (prop === 'length') return 0;
