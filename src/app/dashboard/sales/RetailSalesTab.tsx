@@ -81,9 +81,10 @@ function SalesScreenTab() {
     setBusy(true);
     try {
       const { data } = await client.post('/retail/sales', {
-        customer_id: Number(customerId), department, warehouse_id: Number(warehouseId),
+        customer_id: customerId, department, warehouse_id: Number(warehouseId),
         items: items.map((it) => ({ product_id: Number(it.product_id), quantity: Number(it.quantity), unit_price: Number(it.unit_price), discount: Number(it.discount) || 0 })),
         discount: Number(orderDiscount) || 0, tax: Number(tax) || 0,
+        subtotal, total_amount: total, payment_status: paymentType === 'cash' ? 'paid' : 'unpaid',
         payment_type: paymentType, cash_payment_method: paymentType === 'cash' ? cashMethod : undefined
       });
       setLastSale(data.data);
