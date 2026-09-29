@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { DashboardContainer } from '@/components/layout/dashboard-container'
 import { Sidebar } from '@/components/layout/sidebar'
 import { logout } from '@/app/login/actions'
+import { AuthProvider } from '@/components/erp/AuthContext'
 
 export default async function DashboardLayout({
   children,
@@ -44,7 +45,9 @@ export default async function DashboardLayout({
       userName={fullName}
       sidebar={<Sidebar role={role} logoutAction={logout} />}
     >
-      {children}
+      <AuthProvider user={{ role, full_name: fullName }}>
+        {children}
+      </AuthProvider>
     </DashboardContainer>
   )
 }
