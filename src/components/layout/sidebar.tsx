@@ -48,6 +48,7 @@ export function Sidebar({
           { name: 'Dashboard', href: '/dashboard/staff', icon: LayoutDashboard },
           { name: 'Customers', href: '/dashboard/staff/customers', icon: Users },
           { name: 'Record Sales', href: '/dashboard/staff/record-sales', icon: Calculator },
+          { name: 'My Deliveries', href: '/dashboard/driver', icon: Truck },
           { name: 'Pending Drafts', href: '/dashboard/staff/drafts', icon: AlertCircle },
           { name: 'My Liters', href: '/dashboard/staff/tanks', icon: Droplet },
           { name: 'Daily Report', href: '/dashboard/staff/daily-report', icon: BarChart2 },
