@@ -268,16 +268,36 @@ async function fetchSupabaseData(endpoint) {
   }
 
   if (endpoint.startsWith('/sales/orders')) {
-    const { data } = await supabase.from('sales_orders').select(`
-      *,
-      customers(name)
-    `).order('created_at', { ascending: false });
-    
-    const rows = (data || []).map(d => ({
-      ...d,
-      customer_name: d.customers?.name
-    }));
-    return { rows };
+    const url = new URL(endpoint, 'http://localhost');
+    const pathParts = url.pathname.split('/');
+    const orderId = pathParts.length > 3 ? pathParts[3] : null;
+
+    if (orderId) {
+      const { data: order } = await supabase.from('sales_orders').select('*, customers(name)').eq('id', orderId).single();
+      const { data: items } = await supabase.from('sales_order_items').select('*, products(name)').eq('sales_order_id', orderId);
+      // Wait, is there a payments table? We should try to fetch payments if it exists, otherwise just return []
+      const { data: payments } = await supabase.from('payments').select('*').eq('sales_order_id', orderId).catch(() => ({ data: [] }));
+      
+      return { 
+        rows: { 
+          ...order, 
+          customer_name: order?.customers?.name,
+          items: (items || []).map(i => ({ ...i, product_name: i.products?.name })),
+          payments: payments || []
+        } 
+      };
+    } else {
+      const { data } = await supabase.from('sales_orders').select(`
+        *,
+        customers(name)
+      `).order('created_at', { ascending: false });
+      
+      const rows = (data || []).map(d => ({
+        ...d,
+        customer_name: d.customers?.name
+      }));
+      return { rows };
+    }
   }
   
   if (endpoint.startsWith('/sales/truck-loads')) {
