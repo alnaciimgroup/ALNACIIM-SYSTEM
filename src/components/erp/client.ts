@@ -166,15 +166,6 @@ const client = {
           const { error: itemsError } = await supabase.from('sales_order_items').insert(itemsData);
           if (itemsError) throw itemsError;
         }
-
-        // 3. Insert payment if it's a cash sale (payment_status is 'paid')
-        if (orderData.payment_status === 'paid') {
-          await supabase.from('payments').insert({
-            sales_order_id: order.id,
-            amount: orderData.total_amount || 0,
-            method: orderData.cash_payment_method || 'cash'
-          });
-        }
         
         return { data: order };
       }

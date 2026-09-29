@@ -274,17 +274,16 @@ async function fetchSupabaseData(endpoint) {
 
     if (orderId) {
       const { data: order } = await supabase.from('sales_orders').select('*, customers(name, debt)').eq('id', orderId).single();
-      const { data: items } = await supabase.from('sales_order_items').select('*, products(name)').eq('sales_order_id', orderId);
-      const { data: payments } = await supabase.from('payments').select('*').eq('sales_order_id', orderId);
+      const { data: items } = await supabase.from('sales_order_items').select('*, products(name, unit)').eq('sales_order_id', orderId);
       
       return { 
         rows: { 
           ...order, 
           customer_name: order?.customers?.name,
           customer_outstanding_balance: order?.customers?.debt || 0,
-          amount_paid: (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
-          items: (items || []).map(i => ({ ...i, product_name: i.products?.name })),
-          payments: payments || []
+          amount_paid: order?.payment_status === 'paid' ? Number(order.total_amount) : 0,
+          items: (items || []).map(i => ({ ...i, product_name: i.products?.name, unit: i.products?.unit })),
+          payments: []
         } 
       };
     } else {
