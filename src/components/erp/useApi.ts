@@ -275,8 +275,7 @@ async function fetchSupabaseData(endpoint) {
     if (orderId) {
       const { data: order } = await supabase.from('sales_orders').select('*, customers(name)').eq('id', orderId).single();
       const { data: items } = await supabase.from('sales_order_items').select('*, products(name)').eq('sales_order_id', orderId);
-      // Wait, is there a payments table? We should try to fetch payments if it exists, otherwise just return []
-      const { data: payments } = await supabase.from('payments').select('*').eq('sales_order_id', orderId).catch(() => ({ data: [] }));
+      const { data: payments } = await supabase.from('payments').select('*').eq('sales_order_id', orderId);
       
       return { 
         rows: { 
