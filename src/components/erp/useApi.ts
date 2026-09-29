@@ -111,7 +111,7 @@ async function fetchSupabaseData(endpoint) {
     const type = url.searchParams.get('type');
     const search = url.searchParams.get('search');
     let q = supabase.from('products').select('*, categories(name)');
-    if (type && type !== 'undefined' && type !== 'null' && type !== '') q = q.eq('type', type);
+    if (type && type !== 'undefined' && type !== 'null' && type !== '') q = q.eq('product_type', type);
     if (search && search !== 'undefined' && search !== 'null' && search !== '') q = q.ilike('name', `%${search}%`);
     const { data } = await q.order('name');
     return { rows: data || [] };
