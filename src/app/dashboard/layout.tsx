@@ -43,6 +43,8 @@ export default async function DashboardLayout({
   let erpRole = role;
   if (role === 'manager') erpRole = 'Admin';
   else if (role === 'accountant') erpRole = 'Finance Officer';
+  else if (role === 'production') erpRole = 'Production Manager';
+  else if (role === 'staff') erpRole = 'Driver';
 
   return (
     <DashboardContainer 
