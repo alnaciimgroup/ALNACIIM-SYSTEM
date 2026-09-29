@@ -25,7 +25,6 @@ export function Sidebar({
           { name: 'Distribution History', href: '/dashboard/agent/history', icon: History },
           { name: 'Reports', href: '/dashboard/agent/reports', icon: BarChart2 },
           { name: 'Sales POS', href: '/dashboard/sales', icon: Calculator },
-          { name: 'Logistics', href: '/dashboard/driver', icon: Truck },
           { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
         ]
       case 'manager':
@@ -40,7 +39,6 @@ export function Sidebar({
           { name: 'Procurement', href: '/dashboard/procurement', icon: ShoppingCart },
           { name: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench },
           { name: 'Sales POS', href: '/dashboard/sales', icon: Calculator },
-          { name: 'Logistics', href: '/dashboard/driver', icon: Truck },
           { name: 'ERP Reports', href: '/dashboard/reports', icon: BarChart2 },
           { name: 'ERP Settings', href: '/dashboard/settings', icon: Settings },
           { name: 'System Settings', href: '/dashboard/manager/settings', icon: Settings },
