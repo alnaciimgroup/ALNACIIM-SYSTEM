@@ -220,7 +220,7 @@ async function fetchSupabaseData(endpoint) {
     if (poId) {
       // Fetch specific PO with items
       const { data: po } = await supabase.from('purchase_orders').select('*, suppliers(name)').eq('id', poId).single();
-      const { data: items } = await supabase.from('purchase_order_items').select('*, products(name)').eq('po_id', poId);
+      const { data: items } = await supabase.from('purchase_items').select('*, products(name)').eq('purchase_order_id', poId);
       return { rows: { ...po, items: items || [] } };
     } else {
       // List all POs

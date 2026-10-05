@@ -194,13 +194,13 @@ const client = {
         // 2. Insert items
         if (payload.items && payload.items.length > 0) {
           const items = payload.items.map(i => ({
-            po_id: header.id,
+            purchase_order_id: header.id,
             product_id: i.product_id,
-            quantity: Number(i.quantity) || 0,
-            unit_price: Number(i.unit_price) || 0,
-            total_price: (Number(i.quantity) || 0) * (Number(i.unit_price) || 0)
+            quantity_ordered: Number(i.quantity_ordered) || 0,
+            unit_cost: Number(i.unit_cost) || 0,
+            subtotal: (Number(i.quantity_ordered) || 0) * (Number(i.unit_cost) || 0)
           }));
-          const { error: itemsErr } = await supabase.from('purchase_order_items').insert(items);
+          const { error: itemsErr } = await supabase.from('purchase_items').insert(items);
           if (itemsErr) throw itemsErr;
         }
         return { data: header };
@@ -247,6 +247,30 @@ const client = {
           if (error) throw error;
           return { data };
         }
+      }
+      
+      if (endpoint.startsWith('/procurement/purchase-orders/')) {
+        const poId = endpoint.split('/')[3];
+        const { error: headErr } = await supabase.from('purchase_orders').update({
+          supplier_id: payload.supplier_id,
+          total_amount: payload.total_amount || 0,
+        }).eq('id', poId);
+        if (headErr) throw headErr;
+        
+        await supabase.from('purchase_items').delete().eq('purchase_order_id', poId);
+        
+        if (payload.items && payload.items.length > 0) {
+          const items = payload.items.map(i => ({
+            purchase_order_id: poId,
+            product_id: i.product_id,
+            quantity_ordered: Number(i.quantity_ordered) || 0,
+            unit_cost: Number(i.unit_cost) || 0,
+            subtotal: (Number(i.quantity_ordered) || 0) * (Number(i.unit_cost) || 0)
+          }));
+          const { error: itemsErr } = await supabase.from('purchase_items').insert(items);
+          if (itemsErr) throw itemsErr;
+        }
+        return { data: { id: poId } };
       }
 
       console.warn('Unhandled PUT endpoint:', endpoint);
