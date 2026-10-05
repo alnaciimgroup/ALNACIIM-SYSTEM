@@ -69,7 +69,8 @@ function NewPoForm({ suppliers, products, onCreated, onCancel, editingPo, editin
       else await client.post('/procurement/purchase-orders', payload);
       onCreated();
     } catch (e) { const err = e as any;
-      setError((err as any)?.response?.data?.error || `Failed to ${isEdit ? 'update' : 'create'} purchase order`);
+      const errorMessage = err?.message || (err as any)?.response?.data?.error || `Failed to ${isEdit ? 'update' : 'create'} purchase order`;
+      setError(errorMessage);
     }
   }
 

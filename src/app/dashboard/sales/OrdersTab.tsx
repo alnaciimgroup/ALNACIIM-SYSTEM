@@ -108,6 +108,7 @@ function OrderViewModal({ orderId, onClose }) {
       />
       <div style={{ textAlign: 'right', marginTop: 14, fontSize: 14 }}>
         <span style={{ color: 'var(--text-muted)' }}>Subtotal ${Number(order.subtotal).toFixed(2)}</span>
+        {Number(order.discount) > 0 && <span style={{ marginLeft: 12, color: 'var(--text-muted)' }}>- Discount ${Number(order.discount).toFixed(2)}</span>}
         {Number(order.delivery_fee) > 0 && <span style={{ marginLeft: 12, color: 'var(--text-muted)' }}>+ Delivery ${Number(order.delivery_fee).toFixed(2)}</span>}
         <strong style={{ marginLeft: 12 }}>Total ${Number(order.total_amount).toFixed(2)}</strong>
       </div>
@@ -119,7 +120,7 @@ function OrderViewModal({ orderId, onClose }) {
             columns={[
               { key: 'payment_date', header: 'Date', render: (r) => String(r.payment_date).slice(0, 10) },
               { key: 'amount', header: 'Amount', render: (r) => `$${Number(r.amount).toFixed(2)}` },
-              { key: 'method', header: 'Method' },
+              { key: 'payment_method', header: 'Method' },
               { key: 'reference_number', header: 'Reference', render: (r) => r.reference_number || '—' },
               { key: 'recorded_by_name', header: 'Recorded By' },
               { key: 'voided_at', header: 'Status', render: (r) => r.voided_at ? <span className="badge badge--low">Voided</span> : <span className="badge badge--ok">Active</span> }

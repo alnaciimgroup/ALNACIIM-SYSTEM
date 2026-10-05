@@ -179,14 +179,16 @@ const client = {
 
       if (endpoint === '/procurement/purchase-orders') {
         const { data: authData } = await supabase.auth.getUser();
+        const total = (payload.items || []).reduce((sum, i) => sum + ((Number(i.quantity_ordered)||0) * (Number(i.unit_cost)||0)), 0);
+        
         // 1. Insert header
         const { data: header, error: headErr } = await supabase.from('purchase_orders').insert([{
           supplier_id: payload.supplier_id,
           po_number: `PO-${Date.now()}`,
           order_date: payload.order_date || new Date().toISOString(),
-          expected_delivery: payload.expected_delivery,
+          expected_date: payload.expected_date || null,
           status: payload.status || 'draft',
-          total_amount: payload.total_amount || 0,
+          total_amount: total,
           created_by: authData.user?.id
         }]).select().single();
         if (headErr) throw headErr;
@@ -251,9 +253,11 @@ const client = {
       
       if (endpoint.startsWith('/procurement/purchase-orders/')) {
         const poId = endpoint.split('/')[3];
+        const total = (payload.items || []).reduce((sum, i) => sum + ((Number(i.quantity_ordered)||0) * (Number(i.unit_cost)||0)), 0);
+        
         const { error: headErr } = await supabase.from('purchase_orders').update({
           supplier_id: payload.supplier_id,
-          total_amount: payload.total_amount || 0,
+          total_amount: total,
         }).eq('id', poId);
         if (headErr) throw headErr;
         
