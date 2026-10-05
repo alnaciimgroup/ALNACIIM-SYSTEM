@@ -285,7 +285,18 @@ const client = {
     }
   },
   delete: async (endpoint) => {
-    return { data: {} };
+    try {
+      if (endpoint.startsWith('/procurement/purchase-orders/')) {
+        const poId = endpoint.split('/')[3];
+        const { error } = await supabase.from('purchase_orders').delete().eq('id', poId);
+        if (error) throw error;
+        return { data: { success: true } };
+      }
+      return { data: {} };
+    } catch (e) { const err = e as any;
+      console.error('Supabase DELETE Error:', err);
+      throw err;
+    }
   }
 };
 
