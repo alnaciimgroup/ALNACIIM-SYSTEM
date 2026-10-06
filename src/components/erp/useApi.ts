@@ -117,7 +117,23 @@ async function fetchSupabaseData(endpoint) {
     if (type && type !== 'undefined' && type !== 'null' && type !== '') q = q.eq('product_type', type);
     if (search && search !== 'undefined' && search !== 'null' && search !== '') q = q.ilike('name', `%${search}%`);
     const { data } = await q.order('name');
-    return { rows: data || [] };
+    
+    const { data: stocks } = await supabase.from('stock_levels').select('product_id, quantity');
+    const qtys: Record<number, number> = {};
+    if (stocks) {
+      for (const s of stocks) {
+        qtys[s.product_id] = (qtys[s.product_id] || 0) + Number(s.quantity);
+      }
+    }
+
+    const rows = (data || []).map(p => ({
+      ...p,
+      category_name: p.categories?.name,
+      total_quantity: qtys[p.id] || 0,
+      total_amount: (qtys[p.id] || 0) * Number(p.unit_cost || 0)
+    }));
+    
+    return { rows };
   }
 
   if (endpoint.includes('/categories')) {
@@ -224,8 +240,19 @@ async function fetchSupabaseData(endpoint) {
       return { rows: { ...po, items: items || [] } };
     } else {
       // List all POs
-      const { data } = await supabase.from('purchase_orders').select('*, suppliers(name)').order('order_date', { ascending: false });
-      return { rows: data || [] };
+      const { data } = await supabase.from('purchase_orders')
+        .select('*, suppliers(name), purchase_items(quantity_ordered, unit_cost)')
+        .order('order_date', { ascending: false });
+      
+      const rows = (data || []).map(po => {
+        const totalQty = (po.purchase_items as any[])?.reduce((sum, item) => sum + Number(item.quantity_ordered), 0) || 0;
+        return {
+          ...po,
+          supplier_name: (po.suppliers as any)?.name,
+          total_quantity: totalQty
+        };
+      });
+      return { rows };
     }
   }
 

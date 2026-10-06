@@ -83,6 +83,8 @@ export default function ProductsTab() {
             { key: 'unit', header: 'Unit' },
             { key: 'unit_cost', header: 'Cost', render: (r) => `$${Number(r.unit_cost).toFixed(2)}` },
             { key: 'unit_price', header: 'Price', render: (r) => `$${Number(r.unit_price).toFixed(2)}` },
+            { key: 'total_quantity', header: 'Quantity', render: (r) => Number(r.total_quantity).toFixed(0) },
+            { key: 'total_amount', header: 'Total Value', render: (r) => `$${Number(r.total_amount).toFixed(2)}` },
             { key: 'reorder_level', header: 'Reorder Level' }
           ]}
           rows={rows}

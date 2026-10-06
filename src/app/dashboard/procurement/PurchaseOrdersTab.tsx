@@ -207,13 +207,14 @@ export default function PurchaseOrdersTab() {
 
       <div className="card table-wrap">
         <table>
-          <thead><tr><th>PO #</th><th>Date</th><th>Supplier</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>PO #</th><th>Date</th><th>Supplier</th><th>Qty</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
             {rows?.map((po) => (
               <tr key={po.id}>
                 <td>{po.po_number}</td>
                 <td>{String(po.order_date).slice(0, 10)}</td>
                 <td>{po.supplier_name}</td>
+                <td>{po.total_quantity || 0}</td>
                 <td>${Number(po.total_amount).toFixed(2)}</td>
                 <td><span className={`badge badge--${STATUS_BADGE[po.status]}`}>{po.status}</span></td>
                 <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
