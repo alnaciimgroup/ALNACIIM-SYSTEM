@@ -6,12 +6,14 @@ import ProductsTab from './ProductsTab';
 import StockLevelsTab from './StockLevelsTab';
 import MovementsTab from './MovementsTab';
 import WarehousesTab from './WarehousesTab';
+import PurchaseOrdersTab from '../procurement/PurchaseOrdersTab';
 
 const TABS = [
   { key: 'products', label: 'Products', Component: ProductsTab },
   { key: 'stock', label: 'Stock Levels', Component: StockLevelsTab },
   { key: 'movements', label: 'Movements', Component: MovementsTab },
-  { key: 'warehouses', label: 'Warehouses', Component: WarehousesTab }
+  { key: 'warehouses', label: 'Warehouses', Component: WarehousesTab },
+  { key: 'incoming', label: 'Incoming Shipments', Component: PurchaseOrdersTab }
 ];
 
 export default function InventoryPage() {
