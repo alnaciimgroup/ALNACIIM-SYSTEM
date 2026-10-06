@@ -41,7 +41,6 @@ export function Sidebar({
           { name: 'Sales POS', href: '/dashboard/sales', icon: Calculator },
           { name: 'ERP Reports', href: '/dashboard/reports', icon: BarChart2 },
           { name: 'ERP Settings', href: '/dashboard/settings', icon: Settings },
-          { name: 'System Settings', href: '/dashboard/manager/settings', icon: Settings },
         ]
       case 'staff':
         return [
