@@ -221,7 +221,7 @@ export default function PurchaseOrdersTab() {
                   {canManage && ['draft', 'sent'].includes(po.status) && (
                     <>
                       {po.status === 'draft' && (
-                        <button className="btn secondary" onClick={() => client.post(`/procurement/purchase-orders/${po.id}/mark-sent`, {}).then(reload)}>Mark Sent</button>
+                        <button className="btn secondary" onClick={() => client.post(`/procurement/purchase-orders/${po.id}/mark-sent`, {}).then(reload).catch(e => alert(e.message || JSON.stringify(e)))}>Mark Sent</button>
                       )}
                       <button className="btn secondary" onClick={() => startEdit(po)}>Edit</button>
                       <button className="btn secondary" onClick={() => deletePo(po)}>Delete</button>
