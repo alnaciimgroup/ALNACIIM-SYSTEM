@@ -140,8 +140,8 @@ function ReceiveForm({ po, warehouses, onDone }) {
 
 export default function PurchaseOrdersTab() {
   const { user } = useAuth();
-  const canManage = ['Admin', 'Procurement Officer'].includes(user?.role);
-  const canReceive = ['Admin', 'Procurement Officer', 'Storekeeper'].includes(user?.role);
+  const canManage = ['Admin', 'manager', 'Procurement Officer'].includes(user?.role);
+  const canReceive = ['Admin', 'manager', 'Procurement Officer', 'Storekeeper'].includes(user?.role);
   const [dateRange, setDateRange] = useState(defaultDateRange());
   // No from/to support on the backend for purchase orders — filtered client-side
   // against the full list, same pattern used for Maintenance Logs.
