@@ -194,12 +194,23 @@ async function fetchSupabaseData(endpoint) {
     if (bomId) {
       // Fetch specific BOM with items
       const { data: bom } = await supabase.from('bill_of_materials').select('*, products(name)').eq('id', bomId).single();
-      const { data: items } = await supabase.from('bom_items').select('*, products(name)').eq('bom_id', bomId);
-      return { rows: { ...bom, items: items || [] } };
+      const { data: items } = await supabase.from('bom_items').select('*, products(name, unit)').eq('bom_id', bomId);
+      
+      const mappedItems = (items || []).map((i: any) => ({
+        ...i,
+        raw_material_name: i.products?.name,
+        unit: i.products?.unit || 'unit'
+      }));
+      
+      return { rows: { ...bom, product_name: (bom as any).products?.name, items: mappedItems } };
     } else {
       // List all BOMs
       const { data } = await supabase.from('bill_of_materials').select('*, products(name)').order('created_at', { ascending: false });
-      return { rows: data || [] };
+      const rows = (data || []).map((bom: any) => ({
+        ...bom,
+        product_name: bom.products?.name
+      }));
+      return { rows };
     }
   }
 
