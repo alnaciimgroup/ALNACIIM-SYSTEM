@@ -49,8 +49,30 @@ const client = {
       }
       
       if (endpoint === '/products') {
-        const { data, error } = await supabase.from('products').insert([payload]).select();
+        const { initial_warehouse_id, initial_quantity, ...productPayload } = payload;
+        const { data, error } = await supabase.from('products').insert([productPayload]).select().single();
         if (error) throw error;
+        
+        if (initial_warehouse_id && initial_quantity && Number(initial_quantity) > 0) {
+          const { data: authData } = await supabase.auth.getUser();
+          const userId = authData.user?.id;
+          
+          await supabase.from('stock_levels').insert([{
+            product_id: data.id,
+            warehouse_id: Number(initial_warehouse_id),
+            quantity: Number(initial_quantity)
+          }]);
+          
+          await supabase.from('stock_movements').insert([{
+            product_id: data.id,
+            warehouse_id: Number(initial_warehouse_id),
+            movement_type: 'IN',
+            quantity: Number(initial_quantity),
+            reference_type: 'adjustment',
+            performed_by: userId
+          }]);
+        }
+        
         return { data };
       }
 
