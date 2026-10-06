@@ -242,22 +242,29 @@ async function fetchSupabaseData(endpoint) {
     const poId = pathParts.length > 3 ? pathParts[3] : null;
 
     if (poId) {
-      // Fetch specific PO with items
+      // Fetch specific PO with items and receipts
       const { data: po } = await supabase.from('purchase_orders').select('*, suppliers(name)').eq('id', poId).single();
+      const { data: receipts } = await supabase.from('goods_receipts').select('warehouses(name)').eq('purchase_order_id', poId);
       const { data: items } = await supabase.from('purchase_items').select('*, products(name)').eq('purchase_order_id', poId);
-      return { rows: { ...po, items: items || [] } };
+      
+      const mappedItems = items?.map(it => ({ ...it, product_name: (it.products as any)?.name })) || [];
+      const warehouseNames = [...new Set(receipts?.map(r => (r.warehouses as any)?.name).filter(Boolean))].join(', ') || 'Not received yet';
+      
+      return { rows: { ...po, supplier_name: (po.suppliers as any)?.name, destination_warehouse: warehouseNames, items: mappedItems } };
     } else {
       // List all POs
       const { data } = await supabase.from('purchase_orders')
-        .select('*, suppliers(name), purchase_items(quantity_ordered, unit_cost)')
+        .select('*, suppliers(name), purchase_items(quantity_ordered, quantity_received)')
         .order('order_date', { ascending: false });
       
       const rows = (data || []).map(po => {
-        const totalQty = (po.purchase_items as any[])?.reduce((sum, item) => sum + Number(item.quantity_ordered), 0) || 0;
+        const totalQtyOrd = (po.purchase_items as any[])?.reduce((sum, item) => sum + Number(item.quantity_ordered), 0) || 0;
+        const totalQtyRec = (po.purchase_items as any[])?.reduce((sum, item) => sum + Number(item.quantity_received || 0), 0) || 0;
         return {
           ...po,
           supplier_name: (po.suppliers as any)?.name,
-          total_quantity: totalQty
+          total_quantity: totalQtyOrd,
+          received_quantity: totalQtyRec
         };
       });
       return { rows };

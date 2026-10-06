@@ -5,7 +5,8 @@ import { useMemo, useState } from 'react';
 import { Eye, X } from 'lucide-react';
 import { useApi } from '@/components/erp/useApi';
 import Table from '@/components/erp/Table';
-import DateFilterBar, { defaultDateRange } from '@/components/erp/DateFilterBar';
+import DateFilterBar from '@/components/erp/DateFilterBar';
+import { quickFilters } from '@/utils/dateRanges';
 import client from '@/components/erp/client';
 import { useAuth } from '@/components/erp/AuthContext';
 
@@ -24,6 +25,8 @@ function PoViewModal({ poId, onClose }) {
         <button className="btn secondary" onClick={onClose}><X size={13} /> Close</button>
       </div>
       <div className="form-grid" style={{ marginBottom: 18 }}>
+        <div className="form-field"><label>Supplier</label><span>{po.supplier_name}</span></div>
+        <div className="form-field"><label>Destination</label><span>{po.destination_warehouse}</span></div>
         <div className="form-field"><label>Order Date</label><span>{String(po.order_date).slice(0, 10)}</span></div>
         <div className="form-field"><label>Expected Date</label><span>{po.expected_date ? String(po.expected_date).slice(0, 10) : '—'}</span></div>
         <div className="form-field"><label>Status</label><span className={`badge badge--${STATUS_BADGE[po.status]}`}>{po.status}</span></div>
@@ -142,7 +145,10 @@ export default function PurchaseOrdersTab() {
   const { user } = useAuth();
   const canManage = ['Admin', 'manager', 'Procurement Officer'].includes(user?.role);
   const canReceive = ['Admin', 'manager', 'Procurement Officer', 'Storekeeper'].includes(user?.role);
-  const [dateRange, setDateRange] = useState(defaultDateRange());
+  const [dateRange, setDateRange] = useState(() => {
+    const todayPreset = quickFilters().find((p) => p.key === 'today');
+    return { key: todayPreset.key, from: todayPreset.from, to: todayPreset.to, label: todayPreset.label, compare: null };
+  });
   // No from/to support on the backend for purchase orders — filtered client-side
   // against the full list, same pattern used for Maintenance Logs.
   const { rows: allRows, reload } = useApi('/procurement/purchase-orders');
@@ -214,7 +220,7 @@ export default function PurchaseOrdersTab() {
                 <td>{po.po_number}</td>
                 <td>{String(po.order_date).slice(0, 10)}</td>
                 <td>{po.supplier_name}</td>
-                <td>{po.total_quantity || 0}</td>
+                <td>{po.received_quantity} / {po.total_quantity || 0}</td>
                 <td>${Number(po.total_amount).toFixed(2)}</td>
                 <td><span className={`badge badge--${STATUS_BADGE[po.status]}`}>{po.status}</span></td>
                 <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
