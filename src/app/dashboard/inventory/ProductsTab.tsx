@@ -7,7 +7,7 @@ import Table from '@/components/erp/Table';
 import client from '@/components/erp/client';
 import { useAuth } from '@/components/erp/AuthContext';
 
-const EMPTY_FORM = { sku: '', name: '', category_id: '', product_type: 'raw_material', unit: 'pcs', unit_cost: '', unit_price: '', reorder_level: '', reorder_qty: '' };
+const EMPTY_FORM = { sku: '', name: '', category_id: '', product_type: 'raw_material', unit: 'pcs', unit_cost: '', unit_price: '', reorder_level: '', reorder_qty: '', is_active: true };
 
 export default function ProductsTab() {
   const { user } = useAuth();
@@ -69,6 +69,9 @@ export default function ProductsTab() {
           <label>Unit Price<input type="number" step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} /></label>
           <label>Reorder Level<input type="number" step="0.01" value={form.reorder_level} onChange={(e) => setForm({ ...form, reorder_level: e.target.value })} /></label>
           <label>Reorder Qty<input type="number" step="0.01" value={form.reorder_qty} onChange={(e) => setForm({ ...form, reorder_qty: e.target.value })} /></label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /> Active
+          </label>
           <div><button className="btn" type="submit">Save Product</button></div>
         </form>
       )}
@@ -85,7 +88,8 @@ export default function ProductsTab() {
             { key: 'unit_price', header: 'Price', render: (r) => `$${Number(r.unit_price).toFixed(2)}` },
             { key: 'total_quantity', header: 'Quantity', render: (r) => Number(r.total_quantity).toFixed(0) },
             { key: 'total_amount', header: 'Total Value', render: (r) => `$${Number(r.total_amount).toFixed(2)}` },
-            { key: 'reorder_level', header: 'Reorder Level' }
+            { key: 'reorder_level', header: 'Reorder Level' },
+            { key: 'is_active', header: 'Status', render: (r) => r.is_active ? <span className="badge badge--success">Active</span> : <span className="badge badge--error">Inactive</span> }
           ]}
           rows={rows}
         />

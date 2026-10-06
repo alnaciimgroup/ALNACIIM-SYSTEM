@@ -68,10 +68,26 @@ const client = {
 
       if (endpoint === '/inventory/movements') {
         const { data: authData } = await supabase.auth.getUser();
-        const { data, error } = await supabase.from('inventory_movements').insert([{
-          ...payload,
-          performed_by: authData.user?.id
+        const { data, error } = await supabase.from('stock_movements').insert([{
+          product_id: payload.product_id,
+          warehouse_id: payload.warehouse_id,
+          movement_type: payload.movement_type,
+          quantity: payload.quantity,
+          reference_type: payload.reference_type,
+          performed_by: authData.user?.id,
+          notes: payload.notes
         }]).select();
+        
+        const { data: sl } = await supabase.from('stock_levels').select('*').eq('product_id', payload.product_id).eq('warehouse_id', payload.warehouse_id).single();
+        let qtyChange = Number(payload.quantity);
+        if (payload.movement_type === 'OUT' || payload.movement_type === 'TRANSFER_OUT' || payload.movement_type === 'ADJUSTMENT_OUT') qtyChange = -qtyChange;
+        
+        if (sl) {
+          await supabase.from('stock_levels').update({ quantity: Number(sl.quantity) + qtyChange, updated_at: new Date().toISOString() }).eq('id', sl.id);
+        } else {
+          await supabase.from('stock_levels').insert([{ product_id: payload.product_id, warehouse_id: payload.warehouse_id, quantity: qtyChange }]);
+        }
+
         if (error) throw error;
         return { data };
       }
@@ -208,7 +224,13 @@ const client = {
         return { data: header };
       }
 
-      
+      if (endpoint.match(/^\/procurement\/purchase-orders\/\d+\/mark-sent$/)) {
+        const poId = Number(endpoint.split('/')[3]);
+        const { error } = await supabase.from('purchase_orders').update({ status: 'sent' }).eq('id', poId);
+        if (error) throw error;
+        return { data: { success: true } };
+      }
+
       if (endpoint.match(/^\/procurement\/purchase-orders\/\d+\/receive$/)) {
         const poId = Number(endpoint.split('/')[3]);
         const { data: authData } = await supabase.auth.getUser();

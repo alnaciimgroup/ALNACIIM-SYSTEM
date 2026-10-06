@@ -26,7 +26,7 @@ export default function MovementsTab() {
     { key: 'warehouse_name', header: 'Warehouse' },
     { key: 'movement_type', header: 'Type', render: (r) => <span className="badge badge--info">{r.movement_type}</span> },
     { key: 'quantity', header: 'Qty' },
-    { key: 'reference_type', header: 'Reference' },
+    { key: 'destination', header: 'Destination / Ref' },
     { key: 'performed_by_name', header: 'By' }
   ];
 

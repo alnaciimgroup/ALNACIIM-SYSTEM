@@ -147,8 +147,15 @@ async function fetchSupabaseData(endpoint) {
   }
 
   if (endpoint.includes('/inventory/movements')) {
-    const { data } = await supabase.from('inventory_movements').select('*, products(name), warehouses(name)').order('movement_date', { ascending: false });
-    return { rows: data || [] };
+    const { data } = await supabase.from('stock_movements').select('*, products(name), warehouses!warehouse_id(name), related_warehouse:warehouses!related_warehouse_id(name), users!performed_by(full_name)').order('created_at', { ascending: false });
+    const rows = (data || []).map(d => ({
+      ...d,
+      product_name: (d.products as any)?.name,
+      warehouse_name: (d.warehouses as any)?.name,
+      destination: (d.related_warehouse as any)?.name || d.reference_type || '-',
+      performed_by_name: (d.users as any)?.full_name || 'System'
+    }));
+    return { rows };
   }
 
   if (endpoint.includes('/inventory/stock-levels')) {
