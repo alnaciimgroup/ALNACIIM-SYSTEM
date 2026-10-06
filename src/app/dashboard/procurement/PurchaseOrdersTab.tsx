@@ -220,6 +220,9 @@ export default function PurchaseOrdersTab() {
                   <button className="btn-icon" title="View" onClick={() => setViewingId(po.id)}><Eye size={13} /></button>
                   {canManage && ['draft', 'sent'].includes(po.status) && (
                     <>
+                      {po.status === 'draft' && (
+                        <button className="btn secondary" onClick={() => client.post(`/procurement/purchase-orders/${po.id}/mark-sent`, {}).then(reload)}>Mark Sent</button>
+                      )}
                       <button className="btn secondary" onClick={() => startEdit(po)}>Edit</button>
                       <button className="btn secondary" onClick={() => deletePo(po)}>Delete</button>
                     </>
