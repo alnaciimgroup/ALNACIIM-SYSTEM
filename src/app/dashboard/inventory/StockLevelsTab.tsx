@@ -25,6 +25,7 @@ export default function StockLevelsTab() {
             { key: 'product_name', header: 'Product' },
             { key: 'warehouse_name', header: 'Warehouse' },
             { key: 'quantity', header: 'Quantity', render: (r) => `${Number(r.quantity).toLocaleString()} ${r.unit}` },
+            { key: 'total_amount', header: 'Total Value', render: (r) => `$${Number(r.total_amount).toFixed(2)}` },
             { key: 'updated_at', header: 'Last Updated', render: (r) => new Date(r.updated_at).toLocaleString() }
           ]}
           rows={rows}

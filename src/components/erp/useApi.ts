@@ -154,22 +154,23 @@ async function fetchSupabaseData(endpoint) {
   if (endpoint.includes('/inventory/stock-levels')) {
     const url = new URL(endpoint, 'http://localhost');
     const warehouseId = url.searchParams.get('warehouse_id');
-    const { data: products } = await supabase.from('products').select('*');
-    let q = supabase.from('inventory_movements').select('*');
-    if (warehouseId && warehouseId !== 'undefined' && warehouseId !== 'null' && warehouseId !== '') q = q.eq('warehouse_id', warehouseId);
-    const { data: movements } = await q;
-
-    const stock = {};
-    for (const m of (movements || [])) {
-      if (!stock[m.product_id]) stock[m.product_id] = 0;
-      if (m.movement_type === 'in' || m.movement_type === 'initial' || m.movement_type === 'transfer_in') stock[m.product_id] += Number(m.quantity);
-      if (m.movement_type === 'out' || m.movement_type === 'adjustment' || m.movement_type === 'transfer_out') stock[m.product_id] -= Number(m.quantity);
+    
+    let q = supabase.from('stock_levels').select('*, products(name, sku, unit, unit_cost), warehouses(name)');
+    if (warehouseId && warehouseId !== 'undefined' && warehouseId !== 'null' && warehouseId !== '') {
+      q = q.eq('warehouse_id', warehouseId);
     }
     
-    const rows = (products || []).map(p => ({
-      ...p,
-      quantity_on_hand: stock[p.id] || 0
+    const { data } = await q.order('updated_at', { ascending: false });
+    
+    const rows = (data || []).map(s => ({
+      ...s,
+      product_name: (s.products as any)?.name,
+      sku: (s.products as any)?.sku,
+      unit: (s.products as any)?.unit,
+      warehouse_name: (s.warehouses as any)?.name,
+      total_amount: Number(s.quantity) * Number((s.products as any)?.unit_cost || 0)
     }));
+    
     return { rows };
   }
 
