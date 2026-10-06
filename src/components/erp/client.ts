@@ -209,6 +209,67 @@ const client = {
       }
 
       
+      if (endpoint.match(/^\/procurement\/purchase-orders\/\d+\/receive$/)) {
+        const poId = Number(endpoint.split('/')[3]);
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData.user?.id;
+        
+        // 1. Create goods_receipt
+        const { data: receipt, error: rErr } = await supabase.from('goods_receipts').insert([{
+            purchase_order_id: poId,
+            received_by: userId,
+            warehouse_id: payload.warehouse_id
+        }]).select().single();
+        if (rErr) throw rErr;
+
+        let allReceived = true;
+        for (const it of payload.items) {
+             const qty = Number(it.quantity_received);
+             if (qty <= 0) continue;
+             
+             // insert goods_receipt_items
+             await supabase.from('goods_receipt_items').insert([{
+                 goods_receipt_id: receipt.id,
+                 purchase_item_id: it.purchase_item_id,
+                 quantity_received: qty,
+                 condition: it.condition || 'good'
+             }]);
+
+             // get purchase item product_id and quantities
+             const { data: pItem } = await supabase.from('purchase_items').select('product_id, quantity_ordered, quantity_received').eq('id', it.purchase_item_id).single();
+             if (!pItem) continue;
+
+             const newTotal = Number(pItem.quantity_received) + qty;
+             if (newTotal < Number(pItem.quantity_ordered)) allReceived = false;
+
+             await supabase.from('purchase_items').update({ quantity_received: newTotal }).eq('id', it.purchase_item_id);
+
+             // insert stock_movements
+             await supabase.from('stock_movements').insert([{
+                 product_id: pItem.product_id,
+                 warehouse_id: payload.warehouse_id,
+                 movement_type: 'IN',
+                 quantity: qty,
+                 reference_type: 'purchase',
+                 reference_id: receipt.id,
+                 performed_by: userId
+             }]);
+
+             // update stock_levels (using rpc is best for upsert, but we can do select then update/insert)
+             const { data: sl } = await supabase.from('stock_levels').select('*').eq('product_id', pItem.product_id).eq('warehouse_id', payload.warehouse_id).single();
+             if (sl) {
+                 await supabase.from('stock_levels').update({ quantity: Number(sl.quantity) + qty, updated_at: new Date().toISOString() }).eq('id', sl.id);
+             } else {
+                 await supabase.from('stock_levels').insert([{ product_id: pItem.product_id, warehouse_id: payload.warehouse_id, quantity: qty }]);
+             }
+        }
+
+        // update PO status
+        await supabase.from('purchase_orders').update({ status: allReceived ? 'received' : 'partially_received' }).eq('id', poId);
+
+        return { data: { success: true } };
+      }
+
       console.warn('Unhandled POST endpoint:', endpoint);
       return { data: {} };
     } catch (e) { const err = e as any;
