@@ -123,17 +123,15 @@ const client = {
       if (endpoint === '/production/bom') {
         const { data: header, error: headErr } = await supabase.from('bill_of_materials').insert([{
           product_id: payload.product_id,
-          version: payload.version,
-          status: payload.status
+          name: payload.name
         }]).select().single();
         if (headErr) throw headErr;
         
         if (payload.items && payload.items.length > 0) {
           const items = payload.items.map(i => ({
             bom_id: header.id,
-            product_id: i.product_id,
-            quantity: Number(i.quantity) || 0,
-            unit_of_measure: i.unit_of_measure || 'kg'
+            raw_material_product_id: i.raw_material_product_id,
+            quantity_per_unit: Number(i.quantity_per_unit) || 0
           }));
           const { error: itemsErr } = await supabase.from('bom_items').insert(items);
           if (itemsErr) throw itemsErr;
