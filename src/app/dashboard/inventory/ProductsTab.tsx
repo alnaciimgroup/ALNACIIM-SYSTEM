@@ -74,10 +74,10 @@ export default function ProductsTab() {
             </select>
           </label>
           <label>Unit<input required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></label>
-          <label>Unit Cost<input type="number" step="0.01" value={form.unit_cost} onChange={(e) => setForm({ ...form, unit_cost: e.target.value })} /></label>
-          <label>Unit Price<input type="number" step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} /></label>
-          <label>Reorder Level<input type="number" step="0.01" value={form.reorder_level} onChange={(e) => setForm({ ...form, reorder_level: e.target.value })} /></label>
-          <label>Reorder Qty<input type="number" step="0.01" value={form.reorder_qty} onChange={(e) => setForm({ ...form, reorder_qty: e.target.value })} /></label>
+          <label>Unit Cost<input type="number" step="0.01" required value={form.unit_cost} onChange={(e) => setForm({ ...form, unit_cost: e.target.value })} /></label>
+          <label>Unit Price<input type="number" step="0.01" required value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} /></label>
+          <label>Reorder Level<input type="number" step="0.01" required value={form.reorder_level} onChange={(e) => setForm({ ...form, reorder_level: e.target.value })} /></label>
+          <label>Reorder Qty<input type="number" step="0.01" required value={form.reorder_qty} onChange={(e) => setForm({ ...form, reorder_qty: e.target.value })} /></label>
           <hr style={{ gridColumn: '1/-1', opacity: 0.2 }} />
           <label>Initial Warehouse (Optional)
             <select value={form.initial_warehouse_id} onChange={(e) => setForm({ ...form, initial_warehouse_id: e.target.value })}>
