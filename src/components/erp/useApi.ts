@@ -40,6 +40,55 @@ async function fetchSupabaseData(endpoint) {
     return { rows: data || [] };
   }
 
+  if (endpoint.includes('reports/cash-summary')) {
+    const url = new URL(endpoint, 'http://localhost');
+    // If not provided, fetch all time (used by overview dashboards)
+    const from = url.searchParams.get('from') || '2000-01-01';
+    const to = url.searchParams.get('to') || '2100-01-01';
+
+    const { data: payments } = await supabase.from('payments')
+      .select('*')
+      .gte('created_at', `${from}T00:00:00.000Z`)
+      .lte('created_at', `${to}T23:59:59.999Z`);
+
+    const { data: sales } = await supabase.from('sales')
+      .select('sale_type, total_amount')
+      .gte('created_at', `${from}T00:00:00.000Z`)
+      .lte('created_at', `${to}T23:59:59.999Z`);
+
+    const total_collected = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+
+    const methods: Record<string, any> = {};
+    for (const p of (payments || [])) {
+        const m = p.payment_method || 'unknown';
+        if (!methods[m]) methods[m] = { count: 0, total: 0 };
+        methods[m].count += 1;
+        methods[m].total += Number(p.amount);
+    }
+    const by_method = Object.keys(methods).map(m => ({
+        method: m.replace('_', ' ').toUpperCase(),
+        count: methods[m].count,
+        total: methods[m].total
+    }));
+
+    const types: Record<string, any> = {};
+    for (const s of (sales || [])) {
+        const st = s.sale_type || 'unknown';
+        if (!types[st]) types[st] = { count: 0, total: 0 };
+        types[st].count += 1;
+        types[st].total += Number(s.total_amount);
+    }
+    const sale_type_split = Object.keys(types).map(st => ({
+        sale_type: st.toUpperCase(),
+        order_count: types[st].count,
+        total: types[st].total
+    }));
+
+    return {
+        rows: { from, to, total_collected, by_method, sale_type_split }
+    };
+  }
+
   if (endpoint.includes('reports/profit-loss')) {
     const { data: accounts } = await supabase.from('chart_of_accounts').select('*');
     const { data: lines } = await supabase.from('journal_lines').select('account_id, debit, credit');
